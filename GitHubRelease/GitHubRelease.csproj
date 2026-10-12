@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="sdo-launcher" Version="1.17.12" />
+    <PackageReference Include="sdo-launcher" Version="1.21.0" />
   </ItemGroup>
 
 </Project>

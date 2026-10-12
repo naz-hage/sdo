@@ -73,7 +73,7 @@ namespace NbuildTasks
             }
             var parentDir = Directory.GetParent(Environment.CurrentDirectory).FullName;
             var mainDir = Path.GetFullPath(parentDir).Substring(Path.GetPathRoot(parentDir).Length);
-            if (mainDir.EndsWith("ntools"))
+            if (mainDir.EndsWith("sdo"))
             {
                 mainDir = mainDir.Substring(0, mainDir.Length - 7);
             }

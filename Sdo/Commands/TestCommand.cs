@@ -188,7 +188,7 @@ public sealed class TestCommand : Command
             return Path.GetFullPath(testCase);
         }
 
-        foreach (var extension in new[] { ".yaml", ".ntools.yml", ".yml" })
+        foreach (var extension in new[] { ".yaml", ".sdo.yml", ".yml" })
         {
             var candidate = Path.Combine(metadataPath, $"{testCase}{extension}");
             if (File.Exists(candidate))
@@ -203,9 +203,9 @@ public sealed class TestCommand : Command
     private static string GetTestName(string testFile)
     {
         var name = Path.GetFileName(testFile);
-        if (name.EndsWith(".ntools.yml", StringComparison.OrdinalIgnoreCase))
+        if (name.EndsWith(".sdo.yml", StringComparison.OrdinalIgnoreCase))
         {
-            return name[..^".ntools.yml".Length];
+            return name[..^".sdo.yml".Length];
         }
 
         return Path.GetFileNameWithoutExtension(name);
