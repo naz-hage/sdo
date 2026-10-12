@@ -432,11 +432,11 @@ public partial class BuildStarter
     //public static IEnumerable<string> GetImportAttributes(string filePath, string attributeName, Dictionary<string, string>? replacements = null)
     public static IEnumerable<string> GetImportAttributes(string filePath, string attributeName)
     {
-        var ntoolsEnv = new NtoolsEnvironmentVariables();
+        var sdoEnv = new NtoolsEnvironmentVariables();
         var replacements = new Dictionary<string, string>
                     {
-                        { "$(MainDir)", ntoolsEnv.MainDir },
-                        { "$(DevDrive)", ntoolsEnv.DevDrive },
+                        { "$(MainDir)", sdoEnv.MainDir },
+                        { "$(DevDrive)", sdoEnv.DevDrive },
                         { "$(ProgramFiles)", Environment.GetEnvironmentVariable("ProgramFiles") ?? string.Empty },
                         { "$(BuildTools)", $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\sdo" }
                     };
