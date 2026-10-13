@@ -36,6 +36,7 @@ namespace Nbuild.Tests
                 "SOLUTION",
                 "SOLUTION_MSBUILD",
                 "PACKAGE",
+                "PACKAGE_FILE",
                 "COPY_ARTIFACTS",
                 "DEPLOY",
                 "TEST",
