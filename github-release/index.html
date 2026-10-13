@@ -1473,7 +1473,7 @@
 
   <h1>GitHub Releases</h1>
 
-<p>sdo.exe is designed to help you create and manage GitHub releases. It also enables you to download release assets, such as files named in the format x.y.z.zip. The tool expects downloaded assets to be in a zip file named ${tag}.zip, where tag must be a valid tag in the repository created by the tool (e.g., <code>x.y.z</code>). Check the <a href="../versioning/">versioning</a> section for more details.</p>
+<p>sdo.exe is designed to help you create and manage GitHub releases. Release packages are named <code>$(SolutionName)-$(ProductVersion).zip</code>, so the uploaded asset includes both the solution name and version. Tool manifests can reference the corresponding asset with <code>$(Name)-$(Version).zip</code>. Check the <a href="../versioning/">versioning</a> section for more details.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Anchor link to this section for reference">&para;</a></h2>
 <h3 id="repository-requirements">Repository Requirements<a class="headerlink" href="#repository-requirements" title="Anchor link to this section for reference">&para;</a></h3>
 <ul>
