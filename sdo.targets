@@ -418,30 +418,28 @@
 		<Message Text="==> DONE"/>
 	</Target>
 	
-	<!-- Creates a stage or prod release 
-	Add for testing and remove after success-->
-	<Target Name="GITHUB_RELEASE" DependsOnTargets="ARTIFACTS;GIT_BRANCH" AfterTargets="PROD"  >
+	<!-- Creates a prod release -->
+	<Target Name="GITHUB_RELEASE" DependsOnTargets="ARTIFACTS;PACKAGE_FILE;GIT_BRANCH" AfterTargets="PROD" >
 		<Git Command="PushTag" TaskParameter="$(ProductVersion)">
-			<Output TaskParameter="Output" PropertyName="PushTagResult" />
+			<Output TaskParameter="Output" PropertyName="PushResult"/>
 		</Git>
-		<Error Condition="'$(PushTagResult)' != 'True'" Text="Unable to push tag $(ProductVersion). Run 'git push origin $(GitBranch)' and 'git push origin $(ProductVersion)', then rerun the release." />
-		<Exec Command='$(SolutionDir)\sdo\bin\Release\sdo.exe release create -r $(OWNER)/$(SolutionName) -t $(ProductVersion) -b $(GitBranch) -f $(ArtifactsFolder).zip' WorkingDirectory="$(SolutionDir)" />
+		<RedError Condition="'$(PushResult)' != 'True'" Message="Failed to push tag $(ProductVersion) to remote repository. Build cannot continue with version conflicts." />
+		<Exec Command='"$(SdoExe)" release create -r $(OWNER)/$(SolutionName) -t $(ProductVersion) -b $(GitBranch) -f $(PackageFile)' WorkingDirectory="$(BuildTools)" />
 
 		<Message Text="==> DONE"/>
 	</Target>
 
-	<!-- Creates a stage or prod pre-release 
-	Add for testing and remove after success -->
-	<Target Name="GITHUB_PRE_RELEASE" DependsOnTargets="ARTIFACTS;GIT_BRANCH" AfterTargets="STAGE" >
+	<!-- Creates a pre-release -->
+	<Target Name="GITHUB_PRE_RELEASE" DependsOnTargets="ARTIFACTS;PACKAGE_FILE;GIT_BRANCH" AfterTargets="STAGE" >
 		<Git Command="PushTag" TaskParameter="$(ProductVersion)">
-			<Output TaskParameter="Output" PropertyName="PushTagResult" />
+			<Output TaskParameter="Output" PropertyName="PushResult"/>
 		</Git>
-		<Error Condition="'$(PushTagResult)' != 'True'" Text="Unable to push tag $(ProductVersion). Run 'git push origin $(GitBranch)' and 'git push origin $(ProductVersion)', then rerun the pre-release." />
-		<Exec Command='"$(SolutionDir)\sdo\bin\Release\sdo.exe" release create -p -r $(OWNER)/$(SolutionName) -t $(ProductVersion) -b $(GitBranch) -f $(ArtifactsFolder).zip --verbose' WorkingDirectory="$(SolutionDir)" />
+		<RedError Condition="'$(PushResult)' != 'True'" Message="Failed to push tag $(ProductVersion) to remote repository. Build cannot continue with version conflicts." />
+		<Exec Command='"$(SdoExe)" release create -p -r $(OWNER)/$(SolutionName) -t $(ProductVersion) -b $(GitBranch) -f $(PackageFile)' WorkingDirectory="$(BuildTools)" />
 
 		<Message Text="==> DONE"/>
 	</Target>
-
+	
 	<!-- Pre-check: ensure no machine-level Debug/Release folders are present before running tests -->
 	<Target Name="NB_PRECHECK">
 		<Message Text="Running NB_PRECHECK: ensure C:\\Debug and C:\\Release do not exist on this machine" Importance="high" />

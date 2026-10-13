@@ -855,8 +855,8 @@ namespace NbuildTests
                       - Name: "testapp"
                         Version: "1.0.0"
                         AppFileName: "$(InstallPath)\\testapp.exe"
-                        WebDownloadFile: "https://example.com/$(Version).zip"
-                        DownloadedFile: "$(Version).zip"
+                        WebDownloadFile: "https://example.com/$(Name)-$(Version).zip"
+                        DownloadedFile: "$(Name)-$(Version).zip"
                         InstallCommand: "echo"
                         InstallArgs: "installed"
                         InstallPath: 'C:\\Temp\\testapp'
@@ -869,8 +869,8 @@ namespace NbuildTests
 
                 Assert.AreEqual(1, apps.Count);
                 Assert.AreEqual("2.0.0", apps[0].Version);
-                Assert.AreEqual("https://example.com/2.0.0.zip", apps[0].WebDownloadFile);
-                Assert.AreEqual("2.0.0.zip", apps[0].DownloadedFile);
+                Assert.AreEqual("https://example.com/testapp-2.0.0.zip", apps[0].WebDownloadFile);
+                Assert.AreEqual("testapp-2.0.0.zip", apps[0].DownloadedFile);
             }
             finally
             {

@@ -1244,10 +1244,12 @@ namespace Nbuild
                 .Replace("$(InstallPath)", nbuildApp.InstallPath);
 
             nbuildApp.WebDownloadFile = nbuildApp.WebDownloadFile!
+                .Replace("$(Name)", nbuildApp.Name)
                 .Replace("$(Version)", nbuildApp.Version)
                 .Replace("$(AppFileName)", nbuildApp.AppFileName);
 
             nbuildApp.DownloadedFile = nbuildApp.DownloadedFile!
+                .Replace("$(Name)", nbuildApp.Name)
                 .Replace("$(Version)", nbuildApp.Version)
                 .Replace("$(AppFileName)", nbuildApp.AppFileName);
 
