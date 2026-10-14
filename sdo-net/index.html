@@ -1743,6 +1743,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#install-a-named-tool-from-a-yaml-manifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install a named tool from a YAML manifest:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#dry-run-mode-for-install" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1766,6 +1777,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="2. Uninstall Applications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#uninstall-only-one-named-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uninstall only one named application:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -4118,6 +4146,10 @@ Installs applications specified in the manifest file. The <code>--manifest</code
 sdo.exe tool install --name "MyApp" --appversion "1.2.3"
 </code></pre></div>
 Searches for the requested application in the explicit <code>--json</code> manifest first when one is provided, then in <code>apps.yaml</code> in the current directory, <code>go\\apps.yaml</code>, and finally in <code>C:\\Program Files\\sdo\\apps.yaml</code>. The <code>--appversion</code> parameter is optional and overrides the version specified in the JSON file.</p>
+<h4 id="install-a-named-tool-from-a-yaml-manifest">Install a named tool from a YAML manifest:<a class="headerlink" href="#install-a-named-tool-from-a-yaml-manifest" title="Anchor link to this section for reference">&para;</a></h4>
+<p><div class="highlight"><pre><span></span><code>sdo.exe tool install --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
+</code></pre></div>
+Installs only the matching tool from the specified manifest. Standalone executables that do not expose Windows file-version metadata use the manifest version for reporting. After installation, SDO displays the installed file's SHA-256 hash; when <code>StoredHash</code> is present, the hash is also validated.</p>
 <p><strong>BREAKING CHANGE (v1.76+):</strong> This command now searches ONLY for <code>apps.yaml</code> files, not all JSON files. You must consolidate your application definitions into a single <code>apps.yaml</code> file in the target directory or move it to the default installation directory.</p>
 <p><strong>Search order:</strong> When <code>--json</code> is provided, that file is searched first, followed by <code>apps.yaml</code> in the current directory, then <code>C:\Program Files\nbuild\apps.yaml</code>. Without <code>--json</code>, the current directory is searched first, followed by the default installation directory. The first matching app takes precedence.</p>
 <p><strong>Note:</strong> If you specify both <code>--json</code> and <code>--name</code>, the command searches the specified JSON file first and falls back to the standard locations if the app is not found there. The <code>--name</code> method provides a convenient way to install applications without needing to know the exact path to the JSON configuration file.</p>
@@ -4137,6 +4169,12 @@ sdo.exe tool install --name "MyApp" --appversion "1.2.3" --dry-run
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool uninstall --json "C:\Program Files\example-tool.json"
 </code></pre></div>
 Uninstalls applications as specified in the manifest file. (Requires admin privileges.)</p>
+<h4 id="uninstall-only-one-named-application">Uninstall only one named application:<a class="headerlink" href="#uninstall-only-one-named-application" title="Anchor link to this section for reference">&para;</a></h4>
+<p><div class="highlight"><pre><span></span><code>sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
+sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml" --appversion "2.5.0"
+</code></pre></div>
+The <code>--name</code> (<code>-n</code>) option limits uninstall to the matching application instead of processing every entry in the manifest. Use <code>--appversion</code> (<code>-av</code>) when the manifest contains multiple versions of the same application.</p>
+<p>The sample <code>dev-setup\apps.yaml</code> manifest includes Crossplane CLI <code>2.5.0</code>, installed to <code>C:\Program Files\Crossplane</code> and added to the user PATH. Its configured SHA-256 hash is checked after installation.</p>
 <h3 id="3-list-installed-applications">3. List Installed Applications<a class="headerlink" href="#3-list-installed-applications" title="Anchor link to this section for reference">&para;</a></h3>
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool list
 sdo.exe tool list --manifest "C:\Program Files\sdo\apps.yaml"
@@ -4145,7 +4183,7 @@ Lists all applications specified in the provided JSON file. If no <code>--manife
 <h3 id="4-download-applications">4. Download Applications<a class="headerlink" href="#4-download-applications" title="Anchor link to this section for reference">&para;</a></h3>
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool download --manifest "C:\Program Files\sdo\apps.yaml"
 </code></pre></div>
-Downloads tools and applications specified in the manifest file. (Uses the <code>--manifest</code> option to locate the YAML file.)</p>
+Downloads tools and applications specified in the manifest file. The output table expands its columns for long application names and filenames and does not add status prefixes inside table rows. (Uses the <code>--manifest</code> option to locate the YAML file.)</p>
 <h3 id="5-error-handling-for-json-manifest-files">5. Error Handling for JSON Manifest Files<a class="headerlink" href="#5-error-handling-for-json-manifest-files" title="Anchor link to this section for reference">&para;</a></h3>
 <p>The <code>list</code>, <code>install</code>, <code>uninstall</code>, and <code>download</code> commands require valid YAML manifest files. The following errors may occur:</p>
 <h4 id="file-not-found">File Not Found<a class="headerlink" href="#file-not-found" title="Anchor link to this section for reference">&para;</a></h4>
