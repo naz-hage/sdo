@@ -74,6 +74,16 @@ namespace NbuildTests
         }
 
         [TestMethod]
+        public void Uninstall_DryRun_WithNameTargetsOnlySelectedApp()
+        {
+            var result = Command.Uninstall("apps.yaml", false, true, "Crossplane CLI", "2.5.0");
+
+            Assert.IsTrue(result.IsSuccess());
+            Assert.IsTrue(result.Output.Any(x => x.Contains("app 'Crossplane CLI'")));
+            Assert.IsFalse(result.Output.Any(x => x.Contains("all apps")));
+        }
+
+        [TestMethod]
         public async Task ListReleases_DryRun_PrintsDryRunMessageAndFetchesData()
         {
             // Use a real repository for testing since dry-run now performs read-only fetches
@@ -107,6 +117,18 @@ namespace NbuildTests
 
             // It should NOT report actual downloads (e.g., 'apps to download' table header)
             Assert.IsFalse(result.Output.Any(x => x.Contains("apps to download") || x.Contains("Downloaded file") || x.Contains("| App name")), "Dry-run should not list actual downloads or table output.");
+        }
+
+        [TestMethod]
+        public void DownloadTableRow_AlignsLongApplicationNames_WithoutStatusPrefix()
+        {
+            var shortRow = Command.FormatDownloadTableRow("7-zip", "7zip.exe", "00:00:03.49", 22, 30, 16);
+            var longRow = Command.FormatDownloadTableRow("Dotnet Desktop Runtime", "dotnet_installer.exe", "00:00:12.55", 22, 30, 16);
+
+            Assert.AreEqual(shortRow.Length, longRow.Length);
+            Assert.AreEqual(shortRow.IndexOf("│", 1), longRow.IndexOf("│", 1));
+            Assert.AreEqual(shortRow.LastIndexOf("│"), longRow.LastIndexOf("│"));
+            Assert.IsFalse(longRow.StartsWith("√", StringComparison.Ordinal));
         }
 
         // Method to teardown test mode flag

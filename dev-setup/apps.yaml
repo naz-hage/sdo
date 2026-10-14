@@ -20,7 +20,7 @@ NbuildAppList:
     InstallPath: "$(ProgramFiles)\\ArgoCD"
     UninstallCommand: "powershell.exe"
     UninstallArgs: "-Command \"Remove-Item -Path '$(InstallPath)\\' -Recurse -Force\""
-    StoredHash: "527dd257eed3efc288f6cc08b3c6476e2579ab250a46b9d7b4de72ad30c0a002"
+    StoredHash: " f5c7e60f30328821dfe66ca74733f924581c8656752a0480a616e56cb1f4f98c"
     AddToPath: true
   - Name: "AzureCLI"
     Version: "2.78.0"
@@ -137,6 +137,18 @@ NbuildAppList:
     UninstallCommand: "powershell.exe"
     UninstallArgs: "-Command \"Remove-Item -Path '$(InstallPath)\\' -Recurse -Force\""
     StoredHash: "db6d96f65a86426e6c9484ca88a233aa7f160025f40c20b153c5bf4f9746c791"
+    AddToPath: true
+  - Name: "Crossplane CLI"
+    Version: "2.5.0"
+    AppFileName: "$(InstallPath)\\crossplane.exe"
+    WebDownloadFile: "https://cli.crossplane.io/stable/v$(Version)/bin/windows_amd64/crossplane.exe"
+    DownloadedFile: "crossplane.exe"
+    InstallCommand: "xcopy.exe"
+    InstallArgs: "$(DownloadedFile) \"$(InstallPath)\\\" /d /y"
+    InstallPath: "$(ProgramFiles)\\Crossplane"
+    UninstallCommand: "powershell.exe"
+    UninstallArgs: "-Command \"Remove-Item -Path '$(InstallPath)\\' -Recurse -Force\""
+    StoredHash: "a1de20a2a3375ded8aef59af573d4ed44aa68661a21100b64fe3ec59147299db"
     AddToPath: true
   - Name: "minikube"
     Version: "1.37.0"

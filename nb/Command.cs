@@ -35,6 +35,7 @@ namespace Nbuild
         private static bool _testMode = IsTestMode();
         // Factory for creating IReleaseService instances. Can be overridden in tests.
         public static ReleaseServiceFactory? ReleaseServiceFactory { get; set; } = repo => new ReleaseServiceAdapter(repo);
+        internal static Func<string, string, Task<ResultDownload>> DownloadFileAsync { get; set; } = Nfile.DownloadAsync;
 
         static Command()
         {
@@ -225,7 +226,7 @@ namespace Nbuild
                     // Print the stored hash of the app file name
                     if (!string.IsNullOrEmpty(app.StoredHash))
                     {
-                        ConsoleHelper.WriteWarning($"Stored hash for {app.AppFileName}: {app.StoredHash}");
+                        ConsoleHelper.WriteWarning($"Stored hash for {app.AppFileName}: {app.StoredHash.ToLowerInvariant()}");
                     }
                 }
 
@@ -260,31 +261,45 @@ namespace Nbuild
                 // Print the stored hash of the app file name
                 if (!string.IsNullOrEmpty(app.StoredHash))
                 {
-                    ConsoleHelper.WriteWarning($"Stored hash for {app.AppFileName}: {app.StoredHash}");
+                    ConsoleHelper.WriteWarning($"Stored hash for {app.AppFileName}: {app.StoredHash.ToLowerInvariant()}");
                 }
             }
 
             return result;
         }
 
-        public static ResultHelper Uninstall(string? json, bool verbose = false, bool dryRun = false)
+        public static ResultHelper Uninstall(
+            string? json,
+            bool verbose = false,
+            bool dryRun = false,
+            string? name = null,
+            string? version = null)
         {
             Verbose = verbose;
             ResultHelper result = ResultHelper.New();
             if (dryRun)
             {
-                var msg = $"DRY-RUN: would uninstall apps from json: {json ?? "<default>"}";
+                var target = string.IsNullOrEmpty(name) ? "apps" : $"app '{name}'";
+                var msg = $"DRY-RUN: would uninstall {target} from json: {json ?? "<default>"}";
                 ConsoleHelper.WriteWarning(msg);
                 return ResultHelper.Success(msg);
             }
             if (!CanRunCommand()) return ResultHelper.Fail(-1, $"You must run this command as an administrator");
 
-            var apps = GetApps(json);
+            var apps = string.IsNullOrEmpty(name)
+                ? GetApps(json)
+                : GetAppsFromCurrentDirectory(name, version, out _, json);
             if (apps == null) return ResultHelper.Fail(-1, $"Invalid json input");
 
-            if (Verbose) ConsoleHelper.WriteWarning($"{apps.Count()} apps to Uninstall.");
+            var appList = apps.ToList();
+            if (!appList.Any())
+            {
+                return ResultHelper.Fail(-1, $"No apps found matching '{name}'");
+            }
 
-            foreach (var app in apps)
+            if (Verbose) ConsoleHelper.WriteWarning($"{appList.Count} apps to Uninstall.");
+
+            foreach (var app in appList)
             {
                 result = Uninstall(app);
                 if (!result.IsSuccess())
@@ -351,18 +366,22 @@ namespace Nbuild
 
             if (apps == null) return ResultHelper.Fail(-1, $"Invalid json input");
 
-            ConsoleHelper.WriteWarning($"{apps.ToList().Count} apps to download to {DownloadsDirectory}");
+            var appList = apps.ToList();
+            var appNameWidth = Math.Max(18, appList.Max(app => app.Name?.Length ?? 0));
+            var downloadedFileWidth = Math.Max(30, appList.Max(app => app.DownloadedFile?.Length ?? 0));
+            const int elapsedWidth = 16;
 
             // print header ┌, ┐, └, or ┘
-            ConsoleHelper.WriteWarning("┌───────────────────┬───────────────────────────────┬─────────────────┐");
-            ConsoleHelper.WriteWarning("│ App name          │ Downloaded file               │ (hh:mm:ss.ff)   │");
-            ConsoleHelper.WriteWarning("├───────────────────┼───────────────────────────────┼─────────────────┤");
+            ConsoleHelper.WriteWarning($"{appList.Count} apps to download to {DownloadsDirectory}");
+            ConsoleHelper.WriteWarning(FormatDownloadTableBorder('┌', '┬', '┐', appNameWidth, downloadedFileWidth, elapsedWidth));
+            ConsoleHelper.WriteWarning(FormatDownloadTableRow("App name", "Downloaded file", "(hh:mm:ss.ff)", appNameWidth, downloadedFileWidth, elapsedWidth));
+            ConsoleHelper.WriteWarning(FormatDownloadTableBorder('├', '┼', '┤', appNameWidth, downloadedFileWidth, elapsedWidth));
 
             string webDownloadedFile = string.Empty;
             ResultHelper lastResult = ResultHelper.Success();
             try
             {
-                foreach (var app in apps)
+                foreach (var app in appList)
                 {
                     webDownloadedFile = app.WebDownloadFile!;
 
@@ -376,13 +395,17 @@ namespace Nbuild
 
                     if (result.IsSuccess())
                     {
-                        ConsoleHelper.WriteSuccess($" | {app.Name,-18} | {app.DownloadedFile,-30} | {stopWatch.Elapsed,-16:hh\\:mm\\:ss\\.ff}|");
+                        ConsoleHelper.WriteLine(
+                            FormatDownloadTableRow(app.Name, app.DownloadedFile, stopWatch.Elapsed.ToString("hh\\:mm\\:ss\\.ff"), appNameWidth, downloadedFileWidth, elapsedWidth),
+                            ConsoleColor.Green);
                     }
                     else
                     {
                         ConsoleHelper.WriteError($" Failed to download {app.WebDownloadFile} to {app.DownloadedFile}");
                         Console.WriteLine($"Return: {result.GetFirstOutput()}");
-                        ConsoleHelper.WriteError($" | {app.Name,-18} | {app.DownloadedFile,-30} | {stopWatch.Elapsed,-16:hh\\:mm\\:ss\\.ff}|");
+                        ConsoleHelper.WriteLine(
+                            FormatDownloadTableRow(app.Name, app.DownloadedFile, stopWatch.Elapsed.ToString("hh\\:mm\\:ss\\.ff"), appNameWidth, downloadedFileWidth, elapsedWidth),
+                            ConsoleColor.Red);
                     }
 
                 }
@@ -394,7 +417,7 @@ namespace Nbuild
                 return ResultHelper.Fail(-1, errorMessage);
             }
 
-            ConsoleHelper.WriteWarning("└───────────────────┴───────────────────────────────┴─────────────────┘");
+            ConsoleHelper.WriteWarning(FormatDownloadTableBorder('└', '┴', '┘', appNameWidth, downloadedFileWidth, elapsedWidth));
             Console.WriteLine();
 
             // If any download failed, return the last failure result
@@ -404,6 +427,28 @@ namespace Nbuild
             }
 
             return ResultHelper.Success();
+        }
+
+        internal static string FormatDownloadTableRow(
+            string? appName,
+            string? downloadedFile,
+            string elapsed,
+            int appNameWidth,
+            int downloadedFileWidth,
+            int elapsedWidth)
+        {
+            return $"│ {(appName ?? string.Empty).PadRight(appNameWidth)} │ {(downloadedFile ?? string.Empty).PadRight(downloadedFileWidth)} │ {elapsed.PadRight(elapsedWidth)} │";
+        }
+
+        private static string FormatDownloadTableBorder(
+            char left,
+            char separator,
+            char right,
+            int appNameWidth,
+            int downloadedFileWidth,
+            int elapsedWidth)
+        {
+            return $"{left}{new string('─', appNameWidth + 2)}{separator}{new string('─', downloadedFileWidth + 2)}{separator}{new string('─', elapsedWidth + 2)}{right}";
         }
 
         private static ResultHelper DownloadApp(NbuildApp nbuildApp)
@@ -428,27 +473,19 @@ namespace Nbuild
 
             try
             {
-                var result = Task.Run(async () => await Nfile.DownloadAsync(nbuildApp.WebDownloadFile, fileName)).Result;
+                var result = Task.Run(async () => await DownloadFileAsync(nbuildApp.WebDownloadFile, fileName)).Result;
 
-                if (Verbose)
+                if (result.DigitallySigned)
                 {
-                    // display download file signature and size
-                    //result.DisplayCertificate();
-                    try
+                    if (Verbose)
                     {
-                        if (result.DigitallySigned)
-                        {
-                            ConsoleHelper.WriteWarning($" {fileName} is signed");
-                        }
-                        else
-                        {
-                            ConsoleHelper.WriteWarning($" {fileName} is not signed");
-                        }
+                        ConsoleHelper.WriteWarning($" {fileName} is signed");
                     }
-                    catch (Exception)
-                    {
-                        // result may not expose DigitallySigned in some implementations; ignore safely
-                    }
+                }
+                else if (Verbose)
+                {
+                    // Unsigned archives are allowed; report their status without treating it as a download failure.
+                    ConsoleHelper.WriteWarning($" {fileName} is not signed");
                 }
 
                 // If the unauthenticated download failed, attempt GitHub authenticated fallback
@@ -503,7 +540,9 @@ namespace Nbuild
                     }
                 }
 
-                return result;
+                return result.IsSuccess()
+                    ? result
+                    : ResultHelper.Fail(-1, GetDownloadFailureMessage(result, nbuildApp, fileName));
             }
             catch (AggregateException aggEx)
             {
@@ -609,6 +648,18 @@ namespace Nbuild
             // end of DownloadApp try/catch - result already returned or failure returned above
         }
 
+        private static string GetDownloadFailureMessage(ResultDownload result, NbuildApp app, string fileName)
+        {
+            var details = result.GetFirstOutput();
+            if (string.IsNullOrWhiteSpace(details))
+            {
+                details = "The downloader did not provide an error message.";
+            }
+
+            var signatureStatus = result.DigitallySigned ? "signed" : "not digitally signed";
+            return $"Failed to download {app.WebDownloadFile} to {fileName} ({signatureStatus}). {details}";
+        }
+
         private static ResultHelper Install(NbuildApp nbuildApp, bool verbose = false)
         {
             Verbose = verbose;
@@ -703,7 +754,9 @@ namespace Nbuild
             }
             else
             {
-                return ResultHelper.Fail(-1, $"Failed to download {nbuildApp.WebDownloadFile} to {nbuildApp.DownloadedFile}. {result.GetFirstOutput()}");
+                var message = $"Failed to download {nbuildApp.WebDownloadFile} to {nbuildApp.DownloadedFile}. {result.GetFirstOutput()}";
+                ConsoleHelper.WriteError(message);
+                return ResultHelper.Fail(-1, message);
             }
         }
 
@@ -729,41 +782,33 @@ namespace Nbuild
 
         private static ResultHelper SuccessfullInstall(NbuildApp nbuildApp, ResultHelper result)
         {
-            if (IsAppVersionGreaterOrEqual(nbuildApp))
+            var installedVersion = GetAppFileVersion(nbuildApp);
+            var displayVersion = string.IsNullOrEmpty(installedVersion)
+                ? nbuildApp.Version
+                : installedVersion;
+
+            if (result.Code == MsiReturnCodeRestartRequired)
             {
-                ConsoleHelper.WriteSuccess($"{nbuildApp.Name} {GetAppFileVersion(nbuildApp)} installed.");
-                return ResultHelper.Success();
+                ConsoleHelper.WriteWarning($"{nbuildApp.Name} {nbuildApp.Version} installed.  Restart Required");
+                result.Code = 0;
+                return result;
             }
-            else
+
+            if (File.Exists(nbuildApp.AppFileName))
             {
-                if (result.Code == MsiReturnCodeRestartRequired)
-                {
-                    ConsoleHelper.WriteWarning($"{nbuildApp.Name} {nbuildApp.Version} installed.  Restart Required");
-                    result.Code = 0;
-                    return result;
-                }
+                var computedHash = FileHashString(nbuildApp.AppFileName);
+                ConsoleHelper.WriteWarning($"SHA-256 for {nbuildApp.AppFileName}: {computedHash}");
 
-                // Print the stored hash of the app file name
-                if (!string.IsNullOrEmpty(nbuildApp.StoredHash))
+                if (!string.IsNullOrEmpty(nbuildApp.StoredHash) &&
+                    !computedHash.Equals(nbuildApp.StoredHash, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    ConsoleHelper.WriteWarning($"Stored hash for {nbuildApp.AppFileName}: {FileHashString(nbuildApp.AppFileName)}");
-
-                    // Only compare file hash when a StoredHash is provided
-                    if (IsFileHashEqual(nbuildApp.AppFileName, nbuildApp.StoredHash))
-                    {
-                        ConsoleHelper.WriteSuccess($"{nbuildApp.Name} {nbuildApp.Version} installed.");
-                        return ResultHelper.Success();
-                    }
-                    else
-                    {
-                        ConsoleHelper.WriteError($"{nbuildApp.Name} {nbuildApp.Version} installed, but file hash does not match.");
-                        return ResultHelper.Fail(-1, $"File hash does not match for {nbuildApp.AppFileName}");
-                    }
+                    ConsoleHelper.WriteError($"{nbuildApp.Name} {nbuildApp.Version} installed, but file hash does not match.");
+                    return ResultHelper.Fail(-1, $"File hash does not match for {nbuildApp.AppFileName}");
                 }
             }
 
-            // If no explicit success/failure was determined above, return the provided installer result
-            return result;
+            ConsoleHelper.WriteSuccess($"{nbuildApp.Name} {displayVersion} installed.");
+            return ResultHelper.Success();
         }
 
         private static void DisplayCodeAndOutput(ResultHelper result)
@@ -777,8 +822,6 @@ namespace Nbuild
 
         private static ResultHelper Uninstall(NbuildApp nbuildApp)
         {
-            if (!CanRunCommand()) return ResultHelper.Fail(-1, $"You must run this command as an administrator");
-
             if (string.IsNullOrEmpty(nbuildApp.DownloadedFile) ||
                 string.IsNullOrEmpty(nbuildApp.WebDownloadFile) ||
                 string.IsNullOrEmpty(nbuildApp.Version) ||
@@ -853,6 +896,10 @@ namespace Nbuild
 
                 // return file Version as combined string of all parts : major, minor, build, patch
                 return fileVersionInfo != null
+                    && !(fileVersionInfo.FileMajorPart == 0 &&
+                         fileVersionInfo.FileMinorPart == 0 &&
+                         fileVersionInfo.FileBuildPart == 0 &&
+                         fileVersionInfo.FilePrivatePart == 0)
                     ? $"{fileVersionInfo.FileMajorPart}.{fileVersionInfo.FileMinorPart}.{fileVersionInfo.FileBuildPart}.{fileVersionInfo.FilePrivatePart}"
                     : null;
             }
