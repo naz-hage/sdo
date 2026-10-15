@@ -577,8 +577,9 @@ function Invoke-SdoDownload {
         New-Item -ItemType Directory -Path $DownloadsDirectory | Out-Null
     }
 
-    $url = "https://github.com/naz-hage/sdo/releases/download/$Version/$Version.zip"
-    $fileName = "$DownloadsDirectory\$Version.zip"
+    $archiveName = "sdo-$Version.zip"
+    $url = "https://github.com/naz-hage/sdo/releases/download/$Version/$archiveName"
+    $fileName = Join-Path -Path $DownloadsDirectory -ChildPath $archiveName
     
     try {
         Invoke-WebRequest -Uri $url -OutFile $fileName -ErrorAction Stop
@@ -651,7 +652,7 @@ function Install-Sdo {
     }
 
     # Check if the downloaded file exists
-    $downloadedFile = Join-Path -Path $DownloadsDirectory -ChildPath "$Version.zip"
+    $downloadedFile = Join-Path -Path $DownloadsDirectory -ChildPath "sdo-$Version.zip"
     if (!(Test-Path -Path $downloadedFile)) {
         Write-Host "Downloaded file not found: $downloadedFile"
         return $false

@@ -1783,6 +1783,12 @@ sdo.exe tool install --name "MyApp" --appversion "1.2.3"
 ```
 Searches for the requested application in the explicit `--json` manifest first when one is provided, then in `apps.yaml` in the current directory, `go\\apps.yaml`, and finally in `C:\\Program Files\\sdo\\apps.yaml`. The `--appversion` parameter is optional and overrides the version specified in the JSON file.
 
+#### Install a named tool from a YAML manifest:
+```cmd
+sdo.exe tool install --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
+```
+Installs only the matching tool from the specified manifest. Standalone executables that do not expose Windows file-version metadata use the manifest version for reporting. After installation, SDO displays the installed file's SHA-256 hash; when `StoredHash` is present, the hash is also validated.
+
 **BREAKING CHANGE (v1.76+):** This command now searches ONLY for `apps.yaml` files, not all JSON files. You must consolidate your application definitions into a single `apps.yaml` file in the target directory or move it to the default installation directory.
 
 **Search order:** When `--json` is provided, that file is searched first, followed by `apps.yaml` in the current directory, then `C:\Program Files\nbuild\apps.yaml`. Without `--json`, the current directory is searched first, followed by the default installation directory. The first matching app takes precedence.
@@ -1810,6 +1816,15 @@ sdo.exe tool uninstall --json "C:\Program Files\example-tool.json"
 ```
 Uninstalls applications as specified in the manifest file. (Requires admin privileges.)
 
+#### Uninstall only one named application:
+```cmd
+sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
+sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml" --appversion "2.5.0"
+```
+The `--name` (`-n`) option limits uninstall to the matching application instead of processing every entry in the manifest. Use `--appversion` (`-av`) when the manifest contains multiple versions of the same application.
+
+The sample `dev-setup\apps.yaml` manifest includes Crossplane CLI `2.5.0`, installed to `C:\Program Files\Crossplane` and added to the user PATH. Its configured SHA-256 hash is checked after installation.
+
 ### 3. List Installed Applications
 ```cmd
 sdo.exe tool list
@@ -1821,7 +1836,7 @@ Lists all applications specified in the provided JSON file. If no `--manifest` o
 ```cmd
 sdo.exe tool download --manifest "C:\Program Files\sdo\apps.yaml"
 ```
-Downloads tools and applications specified in the manifest file. (Uses the `--manifest` option to locate the YAML file.)
+Downloads tools and applications specified in the manifest file. The output table expands its columns for long application names and filenames and does not add status prefixes inside table rows. (Uses the `--manifest` option to locate the YAML file.)
 
 ### 5. Error Handling for JSON Manifest Files
 

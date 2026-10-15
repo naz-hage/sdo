@@ -18,9 +18,9 @@ namespace Nbuild
         [Required(ErrorMessage = "AppFileName is required")]
         public string? AppFileName { get; set; }     // name of File that hold the app version.  File should have file version info
         [Required(ErrorMessage = "WebDownloadFile is required")]
-        public string? WebDownloadFile { get; set; }     // the url to download the app from. can use $(Version) to substitute the version number
+        public string? WebDownloadFile { get; set; }     // the url to download the app from. can use $(Name) and $(Version) substitutions
         [Required(ErrorMessage = "DownloadedFile is required")]
-        public string? DownloadedFile { get; set; }     // the downloaded file name, can use $(Version) to substitute the version number
+        public string? DownloadedFile { get; set; }     // the downloaded file name, can use $(Name) and $(Version) substitutions
         [Required(ErrorMessage = "InstallCommand is required")]
         public string? InstallCommand { get; set; }  // install command to run to install the app. i.e. setup.exe
         [Required(ErrorMessage = "InstallArgs is required")]

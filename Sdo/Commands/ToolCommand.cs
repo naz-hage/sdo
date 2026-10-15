@@ -78,9 +78,13 @@ namespace Sdo.Commands
             var uninstallCommand = new System.CommandLine.Command("uninstall", "Uninstall tools from a manifest.");
             var jsonOption = new Option<string>("--json") { Description = "Path to the tools manifest", Required = true };
             var manifestOption = new Option<string?>("--manifest", ["-m"]) { Description = "Path to a JSON or YAML tools manifest" };
+            var nameOption = new Option<string?>("--name", ["-n"]) { Description = "Application name to uninstall" };
+            var versionOption = new Option<string?>("--appversion", ["-av"]) { Description = "Optional application version to uninstall" };
             jsonOption.Required = false;
             uninstallCommand.Add(jsonOption);
             uninstallCommand.Add(manifestOption);
+            uninstallCommand.Add(nameOption);
+            uninstallCommand.Add(versionOption);
             uninstallCommand.Add(verboseOption);
             AddDryRunOption(uninstallCommand, dryRunOption);
             uninstallCommand.SetAction(parseResult =>
@@ -89,6 +93,8 @@ namespace Sdo.Commands
                 var dryRun = GetDryRunValue(parseResult, dryRunOption);
                 var json = parseResult.GetValue(jsonOption);
                 var manifest = parseResult.GetValue(manifestOption);
+                var name = parseResult.GetValue(nameOption);
+                var version = parseResult.GetValue(versionOption);
                 if (string.IsNullOrEmpty(json) == string.IsNullOrEmpty(manifest))
                 {
                     Console.Error.WriteLine("Error: Specify exactly one of --json or --manifest.");
@@ -98,7 +104,7 @@ namespace Sdo.Commands
                 WriteDryRunNotice(dryRun);
                 try
                 {
-                    return NbuildCommand.Uninstall(manifest ?? json, verbose, dryRun).Code;
+                    return NbuildCommand.Uninstall(manifest ?? json, verbose, dryRun, name, version).Code;
                 }
                 catch (Exception exception)
                 {

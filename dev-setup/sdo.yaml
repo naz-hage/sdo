@@ -1,12 +1,12 @@
 Version: '1.2.0'
 NbuildAppList:
   - Name: sdo
-    Version: '1.85.0'
+    Version: '2.0.8'
     AppFileName: '$(InstallPath)\sdo.exe'
-    WebDownloadFile: 'https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip'
-    DownloadedFile: '$(Version).zip'
+    WebDownloadFile: 'https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Name)-$(Version).zip'
+    DownloadedFile: '$(Name)-$(Version).zip'
     InstallCommand: powershell.exe
-    InstallArgs: "-Command Expand-Archive -Path $(Version).zip -DestinationPath '$(InstallPath)' -Force"
+    InstallArgs: "-Command Expand-Archive -Path $(DownloadedFile) -DestinationPath '$(InstallPath)' -Force"
     InstallPath: '$(ProgramFiles)\sdo'
     UninstallCommand: powershell.exe
     UninstallArgs: "-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force"

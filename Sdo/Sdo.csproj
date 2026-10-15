@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -36,8 +36,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	<PackageReference Include="sdo-launcher" Version="1.21.0" />
-	<PackageReference Include="System.CommandLine" Version="2.0.12" />
+	<PackageReference Include="sdo-launcher" Version="2.5.0" />
+	<PackageReference Include="System.CommandLine" Version="2.0.13" />
 	<PackageReference Include="YamlDotNet" Version="18.1.0" />
 	</ItemGroup>
 

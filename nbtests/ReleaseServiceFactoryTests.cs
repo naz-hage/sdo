@@ -1,12 +1,71 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Nbuild;
+using Ntools;
 using System.Net;
 
 namespace NbuildTests
 {
     [TestClass]
+    [DoNotParallelize]
     public class ReleaseServiceFactoryTests
     {
+        [TestMethod]
+        public void DownloadApp_AllowsUnsignedDownload_WhenDownloadSucceeds()
+        {
+            var previousDownloader = Command.DownloadFileAsync;
+            var previousTestMode = Environment.GetEnvironmentVariable("LOCAL_TEST", EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("LOCAL_TEST", "true", EnvironmentVariableTarget.User);
+            Command.DownloadFileAsync = (url, fileName) =>
+            {
+                var download = new ResultDownload(new Uri(url), fileName);
+                download.Success();
+                return Task.FromResult(download);
+            };
+
+            try
+            {
+                var result = Command.Download(CreateManifest("unsigned-app"), true);
+
+                Assert.IsTrue(result.IsSuccess(), "An unsigned archive should not be treated as a failed download.");
+            }
+            finally
+            {
+                Command.DownloadFileAsync = previousDownloader;
+                Environment.SetEnvironmentVariable("LOCAL_TEST", previousTestMode, EnvironmentVariableTarget.User);
+            }
+        }
+
+        [TestMethod]
+        public void DownloadApp_ReturnsExplanation_WhenUnsignedDownloadFails()
+        {
+            var previousDownloader = Command.DownloadFileAsync;
+            var previousTestMode = Environment.GetEnvironmentVariable("LOCAL_TEST", EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("LOCAL_TEST", "true", EnvironmentVariableTarget.User);
+            Command.DownloadFileAsync = (url, fileName) =>
+            {
+                var download = new ResultDownload(new Uri(url), fileName);
+                download.Fail("The downloaded file could not be validated.");
+                return Task.FromResult(download);
+            };
+
+            try
+            {
+                var result = Command.Download(CreateManifest("failed-app"), true);
+
+                Assert.IsFalse(result.IsSuccess());
+                Assert.IsTrue(
+                    result.Output.Any(message =>
+                        message.Contains("not digitally signed", StringComparison.OrdinalIgnoreCase) &&
+                        message.Contains("could not be validated", StringComparison.OrdinalIgnoreCase)),
+                    "The failure should explain both the signature state and the downloader error.");
+            }
+            finally
+            {
+                Command.DownloadFileAsync = previousDownloader;
+                Environment.SetEnvironmentVariable("LOCAL_TEST", previousTestMode, EnvironmentVariableTarget.User);
+            }
+        }
+
         [TestMethod]
         public void DownloadApp_UsesReleaseServiceFactory_OnAuthenticatedFallback_Success()
         {
@@ -107,6 +166,30 @@ namespace NbuildTests
                 var resp = new HttpResponseMessage(_status);
                 return Task.FromResult(resp);
             }
+
+        }
+
+        private static string CreateManifest(string name)
+        {
+            return $$"""
+            {
+                "Version": "1.2.0",
+                "NbuildAppList": [
+                {
+                    "Name": "{{name}}",
+                    "Version": "0.0.0",
+                    "AppFileName": "{{name}}.zip",
+                    "WebDownloadFile": "https://example.com/{{name}}.zip",
+                    "DownloadedFile": "{{name}}.zip",
+                    "InstallCommand": "powershell.exe",
+                    "InstallArgs": "-Command Write-Output 'noop'",
+                    "InstallPath": "C:\\Temp\\nbuild2",
+                    "UninstallCommand": "powershell.exe",
+                    "UninstallArgs": "-Command Write-Output 'noop'"
+                }
+                ]
+            }
+            """;
         }
     }
 }

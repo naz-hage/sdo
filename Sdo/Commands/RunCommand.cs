@@ -100,7 +100,7 @@ public sealed class RunCommand : Command
                         ? await executor.LaunchAsync(expandedConfig, stepName)
                         : await executor.LaunchAsync(expandedConfig, stepIndices!);
 
-                PrintOutput(selectedResult.Results);
+                PrintOutput(selectedResult.Results, effectiveVerbose);
                 var selectedCount = selectedResult.Results?.Count ?? 0;
                 var selectedSummary = $"Steps complete: {selectedCount}/{selectedCount}";
                 if (selectedResult.Success)
@@ -117,22 +117,15 @@ public sealed class RunCommand : Command
 
             var completedSteps = 0;
             var success = true;
+            var workflowConfig = ExpandConfig(config, variables);
 
-            foreach (var configuredStep in config.Steps)
+            for (var stepIndex = 0; stepIndex < workflowConfig.Steps!.Count; stepIndex++)
             {
-                var step = ExpandStep(configuredStep, variables);
                 var stepResult = await executor.LaunchAsync(
-                    new LauncherConfig
-                    {
-                        Version = config.Version,
-                        Description = config.Description,
-                        Execution = config.Execution,
-                        Variables = config.Variables,
-                        Steps = [step]
-                    },
-                    0);
+                    workflowConfig,
+                    stepIndex);
 
-                PrintOutput(stepResult.Results);
+                PrintOutput(stepResult.Results, effectiveVerbose);
                 completedSteps++;
                 if (!stepResult.Success)
                 {
@@ -225,8 +218,13 @@ public sealed class RunCommand : Command
         return value;
     }
 
-    private static void PrintOutput(List<ExecutionResult>? results)
+    private static void PrintOutput(List<ExecutionResult>? results, bool outputAlreadyStreamed)
     {
+        if (outputAlreadyStreamed)
+        {
+            return;
+        }
+
         foreach (var result in results ?? [])
         {
             if (!string.IsNullOrWhiteSpace(result.StdOut))
