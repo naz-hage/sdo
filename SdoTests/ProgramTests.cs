@@ -190,6 +190,47 @@ steps:
     }
 
     [Fact]
+    public void Main_WithVerboseWorkflow_NumbersStepsIncrementallyAndPrintsOutputOnce()
+    {
+        var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-output-{Guid.NewGuid():N}.yaml");
+        File.WriteAllText(manifestPath, """
+version: '1.0'
+execution:
+  verbose: true
+steps:
+  - name: first
+    path: cmd.exe
+    arguments: /c echo first-output
+  - name: second
+    path: cmd.exe
+    arguments: /c echo second-output
+""");
+
+        var originalOut = Console.Out;
+        var originalError = Console.Error;
+        using var output = new StringWriter();
+        Console.SetOut(output);
+        Console.SetError(output);
+
+        try
+        {
+            Assert.Equal(0, Program.Main("run", "--manifest", manifestPath));
+
+            var text = output.ToString();
+            Assert.Contains("Step 1: first", text);
+            Assert.Contains("Step 2: second", text);
+            Assert.Equal(1, CountLines(text, "first-output"));
+            Assert.Equal(1, CountLines(text, "second-output"));
+        }
+        finally
+        {
+            Console.SetOut(originalOut);
+            Console.SetError(originalError);
+            DeleteFiles(manifestPath);
+        }
+    }
+
+    [Fact]
     public void Main_WithStopOnFirstErrorFalse_ContinuesAfterFailure()
     {
         var manifestPath = CreateFailureManifest(stopOnFirstError: false, includeExecution: true, out var markerPath);
@@ -392,6 +433,12 @@ stages:
         {
             DeleteFiles(manifestPath);
         }
+    }
+
+    private static int CountLines(string text, string value)
+    {
+        return text.Split(Environment.NewLine, StringSplitOptions.None)
+            .Count(line => line == value);
     }
 
     private static string CreateFailureManifest(bool? stopOnFirstError, bool includeExecution, out string markerPath)
