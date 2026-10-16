@@ -349,7 +349,7 @@ namespace Sdo.Services
                 string? meEmail = null;
 
                 // Primary source: connectionData authenticated identity
-                var connUrl = $"https://dev.azure.com/{_organization}/_apis/connectiondata?connectOptions=1&lastChangeId=-1&lastChangeId64=-1&api-version=7.0";
+                var connUrl = $"https://dev.azure.com/{_organization}/_apis/connectiondata?connectOptions=1&lastChangeId=-1&lastChangeId64=-1&api-version=7.1-preview.1";
                 var connResponse = await _httpClient.GetAsync(connUrl);
                 if (connResponse.IsSuccessStatusCode)
                 {
