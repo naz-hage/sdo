@@ -239,23 +239,10 @@ namespace NbuildTasks
 
         private string GetGitStatus()
         {
-            var process = new System.Diagnostics.Process
-            {
-                StartInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "git",
-                    Arguments = "status --porcelain",
-                    WorkingDirectory = WorkingDirectory,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true
-                }
-            };
-
-            process.Start();
-            var output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-            return output;
+            var git = new GitWrapper();
+            git.WorkingDirectory = WorkingDirectory;
+            var result = git.CallGitCommand("status --porcelain");
+            return result.Code == 0 ? string.Join(Environment.NewLine, result.Output) : string.Empty;
         }
 
         private static List<(string Status, string File)> ParseGitStatus(string gitOutput)

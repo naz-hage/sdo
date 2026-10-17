@@ -1,6 +1,6 @@
+using Sdo.Commands;
 using System.CommandLine;
 using Xunit;
-using Sdo.Commands;
 
 namespace SdoTests;
 
@@ -26,6 +26,20 @@ public class RepositoryCommandTests
         var command = new RepositoryCommand(_verboseOption);
         var createCmd = Assert.Single(command.Subcommands, s => s.Name == "create");
         Assert.NotNull(createCmd);
+    }
+
+    [Fact]
+    public void Constructor_AddsBranchSubcommand()
+    {
+        var command = new RepositoryCommand(_verboseOption);
+        var branchCmd = Assert.Single(command.Subcommands, s => s.Name == "branch");
+
+        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--list"));
+        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--local"));
+        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--remote"));
+        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--delete"));
+        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--contains"));
+        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--name"));
     }
 
     [Fact]
@@ -88,7 +102,7 @@ public class RepositoryCommandTests
     {
         var command = new RepositoryCommand(_verboseOption);
         var subcommandNames = command.Subcommands.Select(s => s.Name).ToList();
-        Assert.Equal(new[] { "clone", "create", "delete", "info", "list", "tag" }, subcommandNames);
+        Assert.Equal(new[] { "branch", "clone", "create", "delete", "info", "list", "tag" }, subcommandNames);
     }
 
     [Fact]
@@ -140,4 +154,3 @@ public class RepositoryCommandTests
         Assert.NotNull(topOption);
     }
 }
-

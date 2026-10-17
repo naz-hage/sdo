@@ -40,7 +40,7 @@ namespace NbuildTasks.Tests
             RunGit(sourceRepository, "remote add origin " + Quote(BareRepository));
             RunGit(sourceRepository, "push --set-upstream origin main");
             RunGit(sourceRepository, "push origin 1.0.0");
-            RunGit(BareRepository, "symbolic-ref HEAD refs/heads/main");
+            RunGit(BareRepository, "-c safe.bareRepository=all symbolic-ref HEAD refs/heads/main");
 
             var workingRepository = Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName);
             DeleteDirectory(workingRepository);
@@ -173,6 +173,26 @@ namespace NbuildTasks.Tests
 
         [TestMethod]
         public void ListBranchesTest() => Assert.IsTrue(GitWrapper.ListBranches().Contains("main"));
+
+        [TestMethod]
+        public void CallGitCommand_ShouldExecuteArguments()
+        {
+            var result = GitWrapper.CallGitCommand("rev-parse --abbrev-ref HEAD");
+
+            Assert.AreEqual(0, result.Code);
+            Assert.IsTrue(result.Output.Any(line => line.Trim() == "main"));
+        }
+
+        [TestMethod]
+        public void DeleteBranch_ShouldProtectCurrentAndDefaultBranches()
+        {
+            Assert.IsFalse(GitWrapper.DeleteBranch(GitWrapper.Branch));
+            Assert.IsFalse(GitWrapper.DeleteBranch("main"));
+            Assert.IsFalse(GitWrapper.DeleteBranch("master"));
+            Assert.IsFalse(GitWrapper.DeleteRemoteBranch(GitWrapper.Branch));
+            Assert.IsFalse(GitWrapper.DeleteRemoteBranch("main"));
+            Assert.IsFalse(GitWrapper.DeleteRemoteBranch("master"));
+        }
 
         [TestMethod]
         public void CheckoutBranchTest2() => Assert.IsTrue(GitWrapper.CheckoutBranch("main"));

@@ -1,4 +1,5 @@
-﻿using Ntools;
+using Launcher.Services;
+using Ntools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -139,6 +140,21 @@ namespace NbuildTasks
         }
 
         /// <summary>
+        /// Executes a Git command after displaying it in blue.
+        /// </summary>
+        public ResultHelper CallGitCommand(string arguments)
+        {
+            ConsoleHelper.WriteLine($"git {arguments}", ConsoleColor.Blue);
+            Process.StartInfo.Arguments = arguments;
+            return Process.LockStart(Verbose);
+        }
+
+        private ResultHelper CallGitCommand()
+        {
+            return CallGitCommand(Process.StartInfo.Arguments);
+        }
+
+        /// <summary>
         /// Automatically generates and sets a tag based on the build type.
         /// </summary>
         /// <param name="buildType">The build type (e.g., "stage" or "production").</param>
@@ -186,7 +202,7 @@ namespace NbuildTasks
 
             // Pull the latest changes from the remote branch
             Process.StartInfo.Arguments = $"pull origin {Branch}";
-            var pullResult = Process.LockStart(Verbose);
+            var pullResult = CallGitCommand();
             if (pullResult.Code != 0)
             {
                 Console.WriteLine("Failed to pull the latest changes from the remote branch.");
@@ -199,7 +215,7 @@ namespace NbuildTasks
 
             // Push the new tag to the remote repository
             Process.StartInfo.Arguments = $"push origin {Branch} {newTag}";
-            var pushResult = Process.LockStart(Verbose);
+            var pushResult = CallGitCommand();
             if (pushResult.Code == 0 && pushResult.Output.Count > 0)
             {
                 foreach (var line in pushResult.Output)
@@ -240,7 +256,7 @@ namespace NbuildTasks
             {
                 Process.StartInfo.Arguments = $"tag -a {newTag} HEAD -m \"Automated tag\"";
 
-                var result = Process.LockStart(Verbose);
+                var result = CallGitCommand();
                 if ((result.Code == 0) && (result.Output.Count >= 0))
                 {
                     foreach (var line in result.Output)
@@ -274,7 +290,7 @@ namespace NbuildTasks
         {
             var branch = string.Empty;
             Process.StartInfo.Arguments = $"rev-parse --abbrev-ref HEAD";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             if ((result.Code == 0) && (result.Output.Count == 1))
             {
                 branch = result.GetFirstOutput();
@@ -287,7 +303,7 @@ namespace NbuildTasks
         {
             Process.StartInfo.Arguments = $"describe --abbrev=0 --tags";
 
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             return (result.Code == 0) && (result.Output.Count == 1)
                 ? CheckForErrorAndDisplayOutput(result.Output) ? string.Empty : result.GetFirstOutput()
                 : string.Empty;
@@ -319,7 +335,7 @@ namespace NbuildTasks
         {
             Process.StartInfo.Arguments = $"tag --list";
 
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             return result.Code == 0 && result.Output.Count >= 1 ? result.Output.ToList() : new List<string>();
         }
 
@@ -327,7 +343,7 @@ namespace NbuildTasks
         {
             var tags = new List<string>();
             Process.StartInfo.Arguments = $"ls-remote --tags {url}";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             if (result.Code == 0 && result.Output.Count >= 1)
             {
                 foreach (var line in result.Output)
@@ -348,7 +364,7 @@ namespace NbuildTasks
         {
             var tags = new List<string>();
             Process.StartInfo.Arguments = $"ls-remote --tags";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             if (result.Code == 0 && result.Output.Count >= 1)
             {
                 foreach (var line in result.Output)
@@ -370,7 +386,7 @@ namespace NbuildTasks
 
             Process.StartInfo.Arguments = $"tag -d {tag}";
 
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             return result.Code == 0
                     && result.Output.Count >= 1
                     && result.Output.Exists(line => line.StartsWith($"Deleted tag '{tag}'"));
@@ -381,7 +397,7 @@ namespace NbuildTasks
             if (!RemoteTagExists(tag)) return true;
 
             Process.StartInfo.Arguments = $"push origin :refs/tags/{tag}";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             if (result.Code == 0 && result.Output.Count >= 1)
             {
                 foreach (var line in result.Output)
@@ -444,7 +460,7 @@ namespace NbuildTasks
                 Process.StartInfo.WorkingDirectory = sourceDir;
                 Process.StartInfo.Arguments = $"clone {url} ";
 
-                result = Process.LockStart(Verbose);
+                result = CallGitCommand();
                 if ((result.Code == 0) && (result.Output.Count > 0))
                 {
                     if (CheckForErrorAndDisplayOutput(result.Output))
@@ -511,7 +527,7 @@ namespace NbuildTasks
                 Process.StartInfo.WorkingDirectory = sourceDir;
                 Process.StartInfo.Arguments = $"clone {url} ";
 
-                ResultHelper result = Process.LockStart(Verbose);
+                ResultHelper result = CallGitCommand();
                 if ((result.Code == 0) && (result.Output.Count > 0))
                 {
                     if (CheckForErrorAndDisplayOutput(result.Output))
@@ -547,13 +563,13 @@ namespace NbuildTasks
             if (create && !BranchExists(branch))
             {
                 Process.StartInfo.Arguments = $"checkout -b {branch}";
-                result = Process.LockStart(Verbose);
+                result = CallGitCommand();
             }
             else
             {
                 // checkout
                 Process.StartInfo.Arguments = $"checkout {branch}";
-                result = Process.LockStart(Verbose);
+                result = CallGitCommand();
             }
 
             if (result.Code == 0 && result.Output.Count >= 1)
@@ -574,7 +590,7 @@ namespace NbuildTasks
         public bool PullWithRebase()
         {
             Process.StartInfo.Arguments = "pull --rebase";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             
             if (result.Code == 0)
             {
@@ -599,7 +615,7 @@ namespace NbuildTasks
                 return false;
 
             Process.StartInfo.Arguments = $"commit -m \"{message.Replace("\"", "\\\"")  }\"";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
 
             if (result.Code == 0)
             {
@@ -622,7 +638,7 @@ namespace NbuildTasks
         {
             var pushArgs = string.IsNullOrWhiteSpace(branch) ? "push" : $"push origin {branch}";
             Process.StartInfo.Arguments = pushArgs;
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
 
             if (result.Code == 0)
             {
@@ -643,7 +659,7 @@ namespace NbuildTasks
         public bool StageAllChanges()
         {
             Process.StartInfo.Arguments = "add -A";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
 
             if (result.Code == 0)
             {
@@ -667,7 +683,7 @@ namespace NbuildTasks
             var branches = new List<string>();
 
             Process.StartInfo.Arguments = $"branch --list";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             if (result.Code == 0 && result.Output.Count >= 1)
             {
                 foreach (var line in result.Output)
@@ -698,7 +714,7 @@ namespace NbuildTasks
                 if (!string.Equals(branchName, currentBranch, StringComparison.OrdinalIgnoreCase))
                 {
                     Process.StartInfo.Arguments = $"branch -D {branchName}";
-                    var result = Process.LockStart(Verbose);
+                    var result = CallGitCommand();
                     if (result.Code == 0)
                     {
                         deletedBranches.Add(branchName);
@@ -723,18 +739,22 @@ namespace NbuildTasks
         /// <returns>True if the branch was successfully deleted, false otherwise.</returns>
         public bool DeleteBranch(string branch)
         {
-            if (string.IsNullOrEmpty(branch) || branch.Equals("main", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(branch) ||
+                branch.Equals(Branch, StringComparison.OrdinalIgnoreCase) ||
+                branch.Equals("main", StringComparison.OrdinalIgnoreCase) ||
+                branch.Equals("master", StringComparison.OrdinalIgnoreCase))
             {
                 if (Verbose) Console.WriteLine($"Cannot delete branch: {branch}");
                 return false;
             }
 
             Process.StartInfo.Arguments = $"branch -D {branch}";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             if (result.Code == 0)
             {
                 return true;
             }
+
             else
             {
                 if (Verbose)
@@ -745,8 +765,38 @@ namespace NbuildTasks
                         Console.WriteLine(line);
                     }
                 }
+
                 return false;
             }
+        }
+
+        /// <summary>Lists branches available on the origin remote.</summary>
+        public List<string> ListRemoteBranches()
+        {
+            Process.StartInfo.Arguments = "ls-remote --heads origin";
+            var result = CallGitCommand();
+            return result.Code == 0
+                ? result.Output
+                    .Select(line => line.Split(new[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault())
+                    .Where(reference => !string.IsNullOrWhiteSpace(reference))
+                    .Select(reference => reference!.Replace("refs/heads/", string.Empty, StringComparison.Ordinal))
+                    .ToList()
+                : new List<string>();
+        }
+
+        /// <summary>Deletes a branch from the origin remote.</summary>
+        public bool DeleteRemoteBranch(string branch)
+        {
+            if (string.IsNullOrWhiteSpace(branch) ||
+                branch.Equals("main", StringComparison.OrdinalIgnoreCase) ||
+                branch.Equals("master", StringComparison.OrdinalIgnoreCase) ||
+                branch.Equals(Branch, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            Process.StartInfo.Arguments = $"push origin --delete {branch}";
+            return CallGitCommand().Code == 0;
         }
 
         private bool CheckForErrorAndDisplayOutput(List<string> lines)
@@ -770,7 +820,7 @@ namespace NbuildTasks
         public bool IsGitRepository(string currentDirectory)
         {
             Process.StartInfo.Arguments = "rev-parse --is-inside-work-tree";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             if ((result.Code == 0) && (result.Output.Count >= 0))
             {
                 foreach (var line in result.Output)
@@ -815,7 +865,7 @@ namespace NbuildTasks
         public string GetGitUserNameConfiguration()
         {
             Process.StartInfo.Arguments = "config --global user.name";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             if ((result.Code == 0) && (result.Output.Count >= 0))
             {
                 foreach (var line in result.Output)
@@ -842,7 +892,7 @@ namespace NbuildTasks
         public string GetGitUserEmailConfiguration()
         {
             Process.StartInfo.Arguments = "config --global user.email";
-            var result = Process.LockStart(Verbose);
+            var result = CallGitCommand();
             if ((result.Code == 0) && (result.Output.Count >= 0))
             {
                 foreach (var line in result.Output)
