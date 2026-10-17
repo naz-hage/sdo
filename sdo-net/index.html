@@ -962,6 +962,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#repo-branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        repo branch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#repo-clone" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3177,8 +3188,9 @@ sdo<span class="w"> </span>pr<span class="w"> </span>update<span class="w"> </sp
 - <code>--verbose</code> — Show mapping</p>
 <hr />
 <h3 id="repo-repository-management">repo: Repository management<a class="headerlink" href="#repo-repository-management" title="Anchor link to this section for reference">&para;</a></h3>
-<p>Create, delete, list, inspect, clone, and tag repositories.</p>
+<p>Create, delete, list, inspect, clone, and tag repositories, and manage Git branches.</p>
 <p><strong>Subcommands:</strong>
+- <code>branch</code> — Delete selected local and remote Git branches
 - <code>list</code> — List repositories
 - <code>info</code> — Display current Git branch, tag, and remote repository information
 - <code>clone</code> — Clone a Git repository
@@ -3212,6 +3224,23 @@ sdo<span class="w"> </span>TEST<span class="w"> </span>--verbose<span class="w">
 sdo<span class="w"> </span>repo<span class="w"> </span>info<span class="w"> </span>--verbose
 </code></pre></div>
 <p><code>repo info</code> combines the local Git branch, project/tag details, and repository metadata from the current Git remote. Use <code>--dry-run</code> to display the local information without contacting the hosting service.</p>
+<h4 id="repo-branch">repo branch<a class="headerlink" href="#repo-branch" title="Anchor link to this section for reference">&para;</a></h4>
+<p>Manage local and remote Git branches. The current branch, <code>main</code>, and <code>master</code> are always protected.</p>
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--list
+sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--list<span class="w"> </span>--local
+sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--list<span class="w"> </span>--remote
+sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--delete<span class="w"> </span>--name<span class="w"> </span>feature-123
+sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--delete<span class="w"> </span>--contains<span class="w"> </span><span class="m">123</span>
+</code></pre></div>
+<p><strong>Options:</strong>
+- <code>--list</code> — List branches; defaults to both local and remote branches
+- <code>--local</code> — With <code>--list</code>, show local branches only
+- <code>--remote</code> — With <code>--list</code>, show remote branches only
+- <code>--delete</code> — Delete matching local and remote branches
+- <code>--name &lt;name&gt;</code> — Select one branch by exact name
+- <code>--contains &lt;text&gt;</code> — Select branches whose names contain the supplied text
+- <code>--verbose</code> — Show detailed Git command output</p>
+<p>When <code>--contains</code> is used, SDO always prompts for an explicit <code>yes</code> confirmation before deleting any matching branches. Declining the prompt leaves all branches unchanged.</p>
 <h4 id="repo-clone">repo clone<a class="headerlink" href="#repo-clone" title="Anchor link to this section for reference">&para;</a></h4>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>repo<span class="w"> </span>clone<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repository
 sdo<span class="w"> </span>repo<span class="w"> </span>clone<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repository<span class="w"> </span>--path<span class="w"> </span>C:<span class="se">\w</span>ork<span class="se">\r</span>epository
