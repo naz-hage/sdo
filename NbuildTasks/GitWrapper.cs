@@ -140,18 +140,15 @@ namespace NbuildTasks
         }
 
         /// <summary>
-        /// Executes a Git command after displaying it in blue.
+        /// Executes a Git command with the specified arguments and returns the result.
         /// </summary>
+        /// <param name="arguments">The arguments to pass to the Git command.</param>
+        /// <returns>A <see cref="ResultHelper"/> containing the result of the Git command.</returns>
         public ResultHelper CallGitCommand(string arguments)
         {
             ConsoleHelper.WriteLine($"git {arguments}", ConsoleColor.Blue);
             Process.StartInfo.Arguments = arguments;
             return Process.LockStart(Verbose);
-        }
-
-        private ResultHelper CallGitCommand()
-        {
-            return CallGitCommand(Process.StartInfo.Arguments);
         }
 
         /// <summary>
@@ -201,8 +198,7 @@ namespace NbuildTasks
             }
 
             // Pull the latest changes from the remote branch
-            Process.StartInfo.Arguments = $"pull origin {Branch}";
-            var pullResult = CallGitCommand();
+            var pullResult = CallGitCommand($"pull origin {Branch}");
             if (pullResult.Code != 0)
             {
                 Console.WriteLine("Failed to pull the latest changes from the remote branch.");
@@ -214,8 +210,7 @@ namespace NbuildTasks
             }
 
             // Push the new tag to the remote repository
-            Process.StartInfo.Arguments = $"push origin {Branch} {newTag}";
-            var pushResult = CallGitCommand();
+            var pushResult = CallGitCommand($"push origin {Branch} {newTag}");
             if (pushResult.Code == 0 && pushResult.Output.Count > 0)
             {
                 foreach (var line in pushResult.Output)
@@ -254,9 +249,7 @@ namespace NbuildTasks
             bool resultSetTag = true;
             for (int i = 0; i < 2; i++)
             {
-                Process.StartInfo.Arguments = $"tag -a {newTag} HEAD -m \"Automated tag\"";
-
-                var result = CallGitCommand();
+                var result = CallGitCommand($"tag -a {newTag} HEAD -m \"Automated tag\"");
                 if ((result.Code == 0) && (result.Output.Count >= 0))
                 {
                     foreach (var line in result.Output)
@@ -289,8 +282,7 @@ namespace NbuildTasks
         private string GetBranch()
         {
             var branch = string.Empty;
-            Process.StartInfo.Arguments = $"rev-parse --abbrev-ref HEAD";
-            var result = CallGitCommand();
+            var result = CallGitCommand("rev-parse --abbrev-ref HEAD");
             if ((result.Code == 0) && (result.Output.Count == 1))
             {
                 branch = result.GetFirstOutput();
@@ -301,9 +293,7 @@ namespace NbuildTasks
 
         private string GetTag()
         {
-            Process.StartInfo.Arguments = $"describe --abbrev=0 --tags";
-
-            var result = CallGitCommand();
+            var result = CallGitCommand("describe --abbrev=0 --tags");
             return (result.Code == 0) && (result.Output.Count == 1)
                 ? CheckForErrorAndDisplayOutput(result.Output) ? string.Empty : result.GetFirstOutput()
                 : string.Empty;
@@ -333,17 +323,14 @@ namespace NbuildTasks
 
         public List<string> ListLocalTags()
         {
-            Process.StartInfo.Arguments = $"tag --list";
-
-            var result = CallGitCommand();
+            var result = CallGitCommand("tag --list");
             return result.Code == 0 && result.Output.Count >= 1 ? result.Output.ToList() : new List<string>();
         }
 
         private List<string> DeleteRemoteTags(string url)
         {
             var tags = new List<string>();
-            Process.StartInfo.Arguments = $"ls-remote --tags {url}";
-            var result = CallGitCommand();
+            var result = CallGitCommand($"ls-remote --tags {url}");
             if (result.Code == 0 && result.Output.Count >= 1)
             {
                 foreach (var line in result.Output)
@@ -363,8 +350,7 @@ namespace NbuildTasks
         public List<string> ListRemoteTags()
         {
             var tags = new List<string>();
-            Process.StartInfo.Arguments = $"ls-remote --tags";
-            var result = CallGitCommand();
+            var result = CallGitCommand("ls-remote --tags");
             if (result.Code == 0 && result.Output.Count >= 1)
             {
                 foreach (var line in result.Output)
@@ -384,9 +370,7 @@ namespace NbuildTasks
         {
             if (!LocalTagExists(tag)) return true;
 
-            Process.StartInfo.Arguments = $"tag -d {tag}";
-
-            var result = CallGitCommand();
+            var result = CallGitCommand($"tag -d {tag}");
             return result.Code == 0
                     && result.Output.Count >= 1
                     && result.Output.Exists(line => line.StartsWith($"Deleted tag '{tag}'"));
@@ -396,8 +380,7 @@ namespace NbuildTasks
         {
             if (!RemoteTagExists(tag)) return true;
 
-            Process.StartInfo.Arguments = $"push origin :refs/tags/{tag}";
-            var result = CallGitCommand();
+            var result = CallGitCommand($"push origin :refs/tags/{tag}");
             if (result.Code == 0 && result.Output.Count >= 1)
             {
                 foreach (var line in result.Output)
@@ -458,9 +441,7 @@ namespace NbuildTasks
                 }
 
                 Process.StartInfo.WorkingDirectory = sourceDir;
-                Process.StartInfo.Arguments = $"clone {url} ";
-
-                result = CallGitCommand();
+                result = CallGitCommand($"clone {url} ");
                 if ((result.Code == 0) && (result.Output.Count > 0))
                 {
                     if (CheckForErrorAndDisplayOutput(result.Output))
@@ -525,9 +506,7 @@ namespace NbuildTasks
                 }
 
                 Process.StartInfo.WorkingDirectory = sourceDir;
-                Process.StartInfo.Arguments = $"clone {url} ";
-
-                ResultHelper result = CallGitCommand();
+                ResultHelper result = CallGitCommand($"clone {url} ");
                 if ((result.Code == 0) && (result.Output.Count > 0))
                 {
                     if (CheckForErrorAndDisplayOutput(result.Output))
@@ -562,14 +541,12 @@ namespace NbuildTasks
             ResultHelper result;
             if (create && !BranchExists(branch))
             {
-                Process.StartInfo.Arguments = $"checkout -b {branch}";
-                result = CallGitCommand();
+                result = CallGitCommand($"checkout -b {branch}");
             }
             else
             {
                 // checkout
-                Process.StartInfo.Arguments = $"checkout {branch}";
-                result = CallGitCommand();
+                result = CallGitCommand($"checkout {branch}");
             }
 
             if (result.Code == 0 && result.Output.Count >= 1)
@@ -589,8 +566,7 @@ namespace NbuildTasks
         /// <returns><c>true</c> if the pull with rebase is successful; otherwise, <c>false</c>.</returns>
         public bool PullWithRebase()
         {
-            Process.StartInfo.Arguments = "pull --rebase";
-            var result = CallGitCommand();
+            var result = CallGitCommand("pull --rebase");
             
             if (result.Code == 0)
             {
@@ -614,8 +590,7 @@ namespace NbuildTasks
             if (string.IsNullOrEmpty(message))
                 return false;
 
-            Process.StartInfo.Arguments = $"commit -m \"{message.Replace("\"", "\\\"")  }\"";
-            var result = CallGitCommand();
+            var result = CallGitCommand($"commit -m \"{message.Replace("\"", "\\\"")  }\"");
 
             if (result.Code == 0)
             {
@@ -637,8 +612,7 @@ namespace NbuildTasks
         public bool Push(string branch = null)
         {
             var pushArgs = string.IsNullOrWhiteSpace(branch) ? "push" : $"push origin {branch}";
-            Process.StartInfo.Arguments = pushArgs;
-            var result = CallGitCommand();
+            var result = CallGitCommand(pushArgs);
 
             if (result.Code == 0)
             {
@@ -658,8 +632,7 @@ namespace NbuildTasks
         /// <returns><c>true</c> if the add is successful; otherwise, <c>false</c>.</returns>
         public bool StageAllChanges()
         {
-            Process.StartInfo.Arguments = "add -A";
-            var result = CallGitCommand();
+            var result = CallGitCommand("add -A");
 
             if (result.Code == 0)
             {
@@ -682,8 +655,7 @@ namespace NbuildTasks
         {
             var branches = new List<string>();
 
-            Process.StartInfo.Arguments = $"branch --list";
-            var result = CallGitCommand();
+            var result = CallGitCommand("branch --list");
             if (result.Code == 0 && result.Output.Count >= 1)
             {
                 foreach (var line in result.Output)
@@ -713,8 +685,7 @@ namespace NbuildTasks
                 var branchName = branch.Trim();
                 if (!string.Equals(branchName, currentBranch, StringComparison.OrdinalIgnoreCase))
                 {
-                    Process.StartInfo.Arguments = $"branch -D {branchName}";
-                    var result = CallGitCommand();
+                    var result = CallGitCommand($"branch -D {branchName}");
                     if (result.Code == 0)
                     {
                         deletedBranches.Add(branchName);
@@ -748,8 +719,7 @@ namespace NbuildTasks
                 return false;
             }
 
-            Process.StartInfo.Arguments = $"branch -D {branch}";
-            var result = CallGitCommand();
+            var result = CallGitCommand($"branch -D {branch}");
             if (result.Code == 0)
             {
                 return true;
@@ -773,8 +743,7 @@ namespace NbuildTasks
         /// <summary>Lists branches available on the origin remote.</summary>
         public List<string> ListRemoteBranches()
         {
-            Process.StartInfo.Arguments = "ls-remote --heads origin";
-            var result = CallGitCommand();
+            var result = CallGitCommand("ls-remote --heads origin");
             return result.Code == 0
                 ? result.Output
                     .Select(line => line.Split(new[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault())
@@ -795,8 +764,7 @@ namespace NbuildTasks
                 return false;
             }
 
-            Process.StartInfo.Arguments = $"push origin --delete {branch}";
-            return CallGitCommand().Code == 0;
+            return CallGitCommand($"push origin --delete {branch}").Code == 0;
         }
 
         private bool CheckForErrorAndDisplayOutput(List<string> lines)
@@ -819,8 +787,7 @@ namespace NbuildTasks
         /// </remarks>
         public bool IsGitRepository(string currentDirectory)
         {
-            Process.StartInfo.Arguments = "rev-parse --is-inside-work-tree";
-            var result = CallGitCommand();
+            var result = CallGitCommand("rev-parse --is-inside-work-tree");
             if ((result.Code == 0) && (result.Output.Count >= 0))
             {
                 foreach (var line in result.Output)
@@ -864,8 +831,7 @@ namespace NbuildTasks
         /// <returns>The git global user.name if configured, otherwise null.</returns>
         public string GetGitUserNameConfiguration()
         {
-            Process.StartInfo.Arguments = "config --global user.name";
-            var result = CallGitCommand();
+            var result = CallGitCommand("config --global user.name");
             if ((result.Code == 0) && (result.Output.Count >= 0))
             {
                 foreach (var line in result.Output)
@@ -891,8 +857,7 @@ namespace NbuildTasks
         /// <returns>The git global user.email if configured, otherwise null.</returns>
         public string GetGitUserEmailConfiguration()
         {
-            Process.StartInfo.Arguments = "config --global user.email";
-            var result = CallGitCommand();
+            var result = CallGitCommand("config --global user.email");
             if ((result.Code == 0) && (result.Output.Count >= 0))
             {
                 foreach (var line in result.Output)
