@@ -6,15 +6,12 @@
 // Command handler for pull request management operations.
 // Supports both GitHub pull requests and Azure DevOps pull requests.
 
-using System;
-using System.CommandLine;
-using System.Linq;
-using System.Text.Json;
 using Launcher.Services;
 using NbuildTasks;
 using Sdo.Interfaces;
 using Sdo.Services;
-using Sdo.Mapping;
+using System.CommandLine;
+using System.Text.Json;
 
 namespace Sdo.Commands
 {
@@ -916,55 +913,13 @@ namespace Sdo.Commands
         {
             try
             {
-                var processInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "git",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
-
-                // Use ArgumentList to safely pass arguments (prevents command injection)
-                processInfo.ArgumentList.Add("ls-remote");
-                processInfo.ArgumentList.Add("--exit-code");
-                processInfo.ArgumentList.Add("--heads");
-                processInfo.ArgumentList.Add("origin");
-                processInfo.ArgumentList.Add(branchName);
-
-                // Disable credential prompts to prevent hanging on authentication
-                processInfo.Environment["GIT_TERMINAL_PROMPT"] = "0";
-
-                using (var process = System.Diagnostics.Process.Start(processInfo))
-                {
-                    if (process != null)
-                    {
-                        const int gitTimeoutMilliseconds = 10000; // 10-second timeout
-                        if (!process.WaitForExit(gitTimeoutMilliseconds))
-                        {
-                            try
-                            {
-                                process.Kill(entireProcessTree: true);
-                            }
-                            catch
-                            {
-                                // Process may have already exited
-                            }
-
-                            return true; // Timeout - assume branch exists to avoid false negatives
-                        }
-
-                        return process.ExitCode == 0;
-                    }
-                }
+                return new GitWrapper().BranchExistsOnRemote(branchName);
             }
             catch (Exception)
             {
                 // If git command fails, assume branch exists to avoid false negatives
                 return true;
             }
-
-            return false;
         }
 
         /// <summary>
@@ -999,4 +954,3 @@ namespace Sdo.Commands
         }
     }
 }
-

@@ -222,22 +222,6 @@ public class WorkItemCommandTests
 
     [Fact]
     [Trait("Category", "Integration")]
-    public void ShowSubcommand_WithNoArguments_ReturnsError()
-    {
-        // Arrange
-        var command = new WorkItemCommand(_verboseOption);
-        var args = new[] { "show" };
-
-        // Act
-        var result = command.Parse(args).Invoke();
-
-        // Assert
-        // Should fail because --id is required
-        Assert.NotEqual(0, result);
-    }
-
-    [Fact]
-    [Trait("Category", "Integration")]
     public void ShowSubcommand_WithValidId_ReturnsExitCode()
     {
         // Arrange

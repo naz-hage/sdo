@@ -6,10 +6,11 @@
 // Command handler for repository management operations.
 // Supports both GitHub repositories and Azure DevOps Git repositories.
 
-using System.CommandLine;
 using Launcher.Services;
+using NbuildTasks;
 using Sdo.Interfaces;
 using Sdo.Services;
+using System.CommandLine;
 
 namespace Sdo.Commands
 {
@@ -35,12 +36,186 @@ namespace Sdo.Commands
             _dryRunOption = dryRunOption;
 
             // Add subcommands (in alphabetical order)
+            AddBranchCommand(verboseOption);
             AddCloneCommand(verboseOption);
             AddCreateCommand(verboseOption);
             AddDeleteCommand(verboseOption);
             AddInfoCommand(verboseOption);
             AddListCommand(verboseOption);
             AddTagCommand(verboseOption);
+        }
+
+        private void AddBranchCommand(Option<bool> verboseOption)
+        {
+            var branchCommand = new Command("branch", "Manage Git branches");
+            var listOption = new Option<bool>("--list")
+            {
+                Description = "List local and remote branches"
+            };
+            var localOption = new Option<bool>("--local")
+            {
+                Description = "Limit listing to local branches"
+            };
+            var remoteOption = new Option<bool>("--remote")
+            {
+                Description = "Limit listing to remote branches"
+            };
+            var deleteOption = new Option<bool>("--delete")
+            {
+                Description = "Delete matching local and remote branches"
+            };
+            var containsOption = new Option<string?>("--contains")
+            {
+                Description = "Only select branches whose names contain this text"
+            };
+            var nameOption = new Option<string?>("--name")
+            {
+                Description = "Select one branch by name"
+            };
+            branchCommand.Add(listOption);
+            branchCommand.Add(localOption);
+            branchCommand.Add(remoteOption);
+            branchCommand.Add(deleteOption);
+            branchCommand.Add(containsOption);
+            branchCommand.Add(nameOption);
+            branchCommand.Add(verboseOption);
+            AddDryRunOption(branchCommand);
+            branchCommand.SetAction(parseResult =>
+            {
+                var list = parseResult.GetValue(listOption);
+                var localOnly = parseResult.GetValue(localOption);
+                var remoteOnly = parseResult.GetValue(remoteOption);
+                var delete = parseResult.GetValue(deleteOption);
+                var contains = parseResult.GetValue(containsOption);
+                var name = parseResult.GetValue(nameOption);
+                var verbose = parseResult.GetValue(verboseOption);
+                var dryRun = GetDryRunValue(parseResult);
+
+                if (localOnly && remoteOnly)
+                {
+                    ConsoleHelper.WriteError("Use either --local or --remote, not both.");
+                    return 1;
+                }
+
+                if (list && delete)
+                {
+                    ConsoleHelper.WriteError("Use either --list or --delete, not both.");
+                    return 1;
+                }
+
+                var git = new GitWrapper(verbose: verbose);
+                var local = (!remoteOnly || delete)
+                    ? git.ListBranches().Select(branch => branch.Trim())
+                        .Where(branch => !string.IsNullOrWhiteSpace(branch)).ToList()
+                    : [];
+                var remote = (!localOnly || delete)
+                    ? git.ListRemoteBranches()
+                    : [];
+
+                if (list)
+                {
+                    if (!remoteOnly)
+                    {
+                        ConsoleHelper.WriteLine("Local branches:");
+                        foreach (var branch in local)
+                        {
+                            ConsoleHelper.WriteLine($"  {branch}");
+                        }
+                    }
+
+                    if (!localOnly)
+                    {
+                        ConsoleHelper.WriteLine("Remote branches:");
+                        foreach (var branch in remote)
+                        {
+                            ConsoleHelper.WriteLine($"  {branch}");
+                        }
+                    }
+
+                    return 0;
+                }
+
+                if (!delete)
+                {
+                    ConsoleHelper.WriteError("Specify --list to list branches or --delete with --name or --contains to delete branches.");
+                    return 1;
+                }
+
+                if (localOnly || remoteOnly)
+                {
+                    ConsoleHelper.WriteError("--local and --remote are only valid with --list.");
+                    return 1;
+                }
+
+                if (string.IsNullOrWhiteSpace(contains) && string.IsNullOrWhiteSpace(name))
+                {
+                    ConsoleHelper.WriteError("Specify --name or --contains to select branches for deletion.");
+                    return 1;
+                }
+
+                var selected = local.Concat(remote)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Where(branch => string.IsNullOrWhiteSpace(name) ||
+                                     branch.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    .Where(branch => string.IsNullOrWhiteSpace(contains) ||
+                                     branch.Contains(contains, StringComparison.OrdinalIgnoreCase))
+                    .Where(branch => !branch.Equals(git.Branch, StringComparison.OrdinalIgnoreCase) &&
+                                     !branch.Equals("main", StringComparison.OrdinalIgnoreCase) &&
+                                     !branch.Equals("master", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (selected.Count == 0)
+                {
+                    ConsoleHelper.WriteError("No matching branches were found.");
+                    return 1;
+                }
+
+                ConsoleHelper.WriteLine("Branches selected for deletion:");
+                foreach (var branch in selected)
+                {
+                    var isLocal = local.Contains(branch, StringComparer.OrdinalIgnoreCase);
+                    var isRemote = remote.Contains(branch, StringComparer.OrdinalIgnoreCase);
+                    var location = isLocal && isRemote
+                        ? "local & remote"
+                        : isLocal
+                            ? "local"
+                            : "remote";
+                    ConsoleHelper.WriteLine($"  {branch} ({location})");
+                }
+
+                if (!string.IsNullOrWhiteSpace(contains))
+                {
+                    ConsoleHelper.WriteWarning($"Delete {selected.Count} matching branch(es)? Type 'yes' to continue:");
+                    if (!string.Equals(Console.ReadLine(), "yes", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ConsoleHelper.WriteInfo("Deletion cancelled.");
+                        return 0;
+                    }
+                }
+
+                if (dryRun)
+                {
+                    ConsoleHelper.WriteInfo($"Dry run: would delete {selected.Count} branch(es).");
+                    return 0;
+                }
+
+                var failures = 0;
+                foreach (var branch in selected)
+                {
+                    if (local.Contains(branch, StringComparer.OrdinalIgnoreCase) && !git.DeleteBranch(branch))
+                    {
+                        failures++;
+                    }
+
+                    if (remote.Contains(branch, StringComparer.OrdinalIgnoreCase) && !git.DeleteRemoteBranch(branch))
+                    {
+                        failures++;
+                    }
+                }
+
+                return failures == 0 ? 0 : 1;
+            });
+            Subcommands.Add(branchCommand);
         }
 
         private void AddCloneCommand(Option<bool> verboseOption)
