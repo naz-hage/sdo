@@ -1803,7 +1803,7 @@ namespace Sdo.Commands
                 var stageResult = gitWrapper.StageFile(filePath);
                 if (stageResult.Code != 0)
                 {
-                    ConsoleHelper.WriteError($"git add failed: {string.Join(Environment.NewLine, stageResult.Output)}");
+                    ConsoleHelper.WriteError($"Failed to stage file '{filePath}': {string.Join(Environment.NewLine, stageResult.Output)}");
                     return 1;
                 }
 
@@ -1817,7 +1817,7 @@ namespace Sdo.Commands
                 // Push to remote
                 if (!gitWrapper.Push(branch))
                 {
-                    ConsoleHelper.WriteError($"git push failed");
+                    ConsoleHelper.WriteError("Failed to push pipeline/workflow changes.");
                     return 1;
                 }
 
