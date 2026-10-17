@@ -1800,7 +1800,7 @@ namespace Sdo.Commands
                 var gitWrapper = new GitWrapper(verbose: verbose);
 
                 // Stage the file
-                var stageResult = gitWrapper.CallGitCommand($"add \"{filePath.Replace("\"", "\\\"")}\"");
+                var stageResult = gitWrapper.StageFile(filePath);
                 if (stageResult.Code != 0)
                 {
                     ConsoleHelper.WriteError($"git add failed: {string.Join(Environment.NewLine, stageResult.Output)}");

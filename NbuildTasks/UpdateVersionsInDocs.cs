@@ -241,8 +241,7 @@ namespace NbuildTasks
         {
             var git = new GitWrapper();
             git.WorkingDirectory = WorkingDirectory;
-            var result = git.CallGitCommand("status --porcelain");
-            return result.Code == 0 ? string.Join(Environment.NewLine, result.Output) : string.Empty;
+            return git.GetStatusPorcelain();
         }
 
         private static List<(string Status, string File)> ParseGitStatus(string gitOutput)

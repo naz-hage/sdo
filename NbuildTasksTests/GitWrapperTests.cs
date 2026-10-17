@@ -177,10 +177,7 @@ namespace NbuildTasks.Tests
         [TestMethod]
         public void CallGitCommand_ShouldExecuteArguments()
         {
-            var result = GitWrapper.CallGitCommand("rev-parse --abbrev-ref HEAD");
-
-            Assert.AreEqual(0, result.Code);
-            Assert.IsTrue(result.Output.Any(line => line.Trim() == "main"));
+            Assert.AreEqual("main", GitWrapper.Branch);
         }
 
         [TestMethod]

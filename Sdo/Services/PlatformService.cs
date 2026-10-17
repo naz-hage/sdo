@@ -128,13 +128,7 @@ namespace Sdo.Services
         {
             try
             {
-                var result = new NbuildTasks.GitWrapper().CallGitCommand("remote get-url origin");
-                if (result.Code == 0 && result.Output.Count > 0)
-                {
-                    return string.Join(Environment.NewLine, result.Output).Trim();
-                }
-
-                return null;
+                return new NbuildTasks.GitWrapper().GetRemoteUrl();
             }
             catch
             {

@@ -913,9 +913,7 @@ namespace Sdo.Commands
         {
             try
             {
-                var result = new GitWrapper().CallGitCommand(
-                    $"ls-remote --exit-code --heads origin \"{branchName.Replace("\"", "\\\"")}\"");
-                return result.Code == 0;
+                return new GitWrapper().BranchExistsOnRemote(branchName);
             }
             catch (Exception)
             {
