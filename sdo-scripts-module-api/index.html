@@ -1314,8 +1314,12 @@
 <td>Download SDO release artifacts. <code>Invoke-SdoDownload -Version 1.2.3 -DownloadsDirectory C:\Downloads</code></td>
 </tr>
 <tr>
+<td><code>Get-LatestSdoReleaseVersion</code></td>
+<td>Find the highest stable SDO release whose version ends in <code>.0</code>.</td>
+</tr>
+<tr>
 <td><code>Install-Sdo</code></td>
-<td>Install an SDO version from a release. <code>Install-Sdo -Version 1.74.0</code></td>
+<td>Install an SDO version from a release. If <code>-Version</code> is omitted, the highest stable release ending in <code>.0</code> is selected.</td>
 </tr>
 </tbody>
 </table>

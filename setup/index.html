@@ -1396,8 +1396,8 @@ the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools
 <div class="highlight"><pre><span></span><code><span class="c"># Import the module</span>
 <span class="nb">Import-Module</span> <span class="s2">"./scripts/module-package/sdo-scripts.psm1"</span> <span class="n">-Force</span>
 
-<span class="c"># Install SDO using the module (recommended approach)</span>
-<span class="nb">Install-Sdo</span> <span class="n">-SdoYamlPath</span> <span class="s2">"./dev-setup/sdo.yaml"</span>
+<span class="c"># Install the latest stable SDO release ending in .0</span>
+<span class="nb">Install-Sdo</span>
 
 <span class="c"># Set up development environment</span>
 <span class="nb">Set-DevelopmentEnvironment</span>
@@ -1519,7 +1519,7 @@ the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools
 <p>This PowerShell script automates the installation of tools and sets up the development environment.</p>
 <p><strong>Key Responsibilities:</strong></p>
 <ul>
-<li>Installs SDO using sdo.yaml.</li>
+<li>Installs the latest stable SDO release ending in <code>.0</code>.</li>
 <li>Installs other tools listed in apps.yaml  .</li>
 <li>Verifies administrative privileges before proceeding.</li>
 </ul>
@@ -1531,7 +1531,7 @@ the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools
 <span class="nb">Import-Module</span> <span class="p">./</span><span class="n">install</span><span class="p">.</span><span class="n">psm1</span> <span class="n">-Force</span>
 
 <span class="c"># Install SDO</span>
-<span class="nb">Install-Sdo</span> <span class="n">-SdoYamlPath</span> <span class="p">.\</span><span class="n">sdo</span><span class="p">.</span><span class="n">yaml</span>
+<span class="nb">Install-Sdo</span>
 <span class="k">if</span> <span class="p">(</span><span class="nv">$LASTEXITCODE</span> <span class="o">-ne</span> <span class="n">0</span><span class="p">)</span> <span class="p">{</span>
     <span class="nb">Write-OutputMessage</span> <span class="s2">"Error: Installation of SDO failed. Exiting script."</span>
     <span class="n">exit</span> <span class="n">1</span>
