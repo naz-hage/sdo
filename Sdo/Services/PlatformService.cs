@@ -7,7 +7,6 @@
 // to determine the DevOps platform (GitHub or Azure DevOps).
 
 using Sdo.Interfaces;
-using System.Diagnostics;
 
 namespace Sdo.Services
 {
@@ -129,31 +128,7 @@ namespace Sdo.Services
         {
             try
             {
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "git",
-                        Arguments = "remote get-url origin",
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        WorkingDirectory = Environment.CurrentDirectory
-                    }
-                };
-
-                process.Start();
-                var output = process.StandardOutput.ReadToEnd();
-                var error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-
-                if (process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
-                {
-                    return output.Trim();
-                }
-
-                return null;
+                return new NbuildTasks.GitWrapper().GetRemoteUrl();
             }
             catch
             {

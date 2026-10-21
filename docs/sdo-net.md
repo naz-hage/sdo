@@ -661,9 +661,10 @@ sdo pr update --pr-id 12 --title "New title" --status merged
 
 ### repo: Repository management
 
-Create, delete, list, inspect, clone, and tag repositories.
+Create, delete, list, inspect, clone, and tag repositories, and manage Git branches.
 
 **Subcommands:**
+- `branch` — Delete selected local and remote Git branches
 - `list` — List repositories
 - `info` — Display current Git branch, tag, and remote repository information
 - `clone` — Clone a Git repository
@@ -707,6 +708,29 @@ sdo repo info --verbose
 ```
 
 `repo info` combines the local Git branch, project/tag details, and repository metadata from the current Git remote. Use `--dry-run` to display the local information without contacting the hosting service.
+
+#### repo branch
+
+Manage local and remote Git branches. The current branch, `main`, and `master` are always protected.
+
+```bash
+sdo repo branch --list
+sdo repo branch --list --local
+sdo repo branch --list --remote
+sdo repo branch --delete --name feature-123
+sdo repo branch --delete --contains 123
+```
+
+**Options:**
+- `--list` — List branches; defaults to both local and remote branches
+- `--local` — With `--list`, show local branches only
+- `--remote` — With `--list`, show remote branches only
+- `--delete` — Delete matching local and remote branches
+- `--name <name>` — Select one branch by exact name
+- `--contains <text>` — Select branches whose names contain the supplied text
+- `--verbose` — Show detailed Git command output
+
+When `--contains` is used, SDO always prompts for an explicit `yes` confirmation before deleting any matching branches. Declining the prompt leaves all branches unchanged.
 
 #### repo clone
 

@@ -239,23 +239,9 @@ namespace NbuildTasks
 
         private string GetGitStatus()
         {
-            var process = new System.Diagnostics.Process
-            {
-                StartInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "git",
-                    Arguments = "status --porcelain",
-                    WorkingDirectory = WorkingDirectory,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true
-                }
-            };
-
-            process.Start();
-            var output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-            return output;
+            var git = new GitWrapper();
+            git.WorkingDirectory = WorkingDirectory;
+            return git.GetStatusPorcelain();
         }
 
         private static List<(string Status, string File)> ParseGitStatus(string gitOutput)

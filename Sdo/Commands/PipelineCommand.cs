@@ -11,7 +11,6 @@ using NbuildTasks;
 using Sdo.Interfaces;
 using Sdo.Services;
 using System.CommandLine;
-using System.Diagnostics;
 
 namespace Sdo.Commands
 {
@@ -1801,28 +1800,11 @@ namespace Sdo.Commands
                 var gitWrapper = new GitWrapper(verbose: verbose);
 
                 // Stage the file
-                ProcessStartInfo stagePsi = new System.Diagnostics.ProcessStartInfo
+                var stageResult = gitWrapper.StageFile(filePath);
+                if (stageResult.Code != 0)
                 {
-                    FileName = "git",
-                    Arguments = $"add \"{filePath}\"",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using (var stageProc = System.Diagnostics.Process.Start(stagePsi))
-                {
-                    if (stageProc != null)
-                    {
-                        var sErr = await stageProc.StandardError.ReadToEndAsync();
-                        await stageProc.WaitForExitAsync();
-                        if (stageProc.ExitCode != 0)
-                        {
-                            ConsoleHelper.WriteError($"git add failed: {sErr.Trim()}");
-                            return 1;
-                        }
-                    }
+                    ConsoleHelper.WriteError($"Failed to stage file '{filePath}': {string.Join(Environment.NewLine, stageResult.Output)}");
+                    return 1;
                 }
 
                 // Commit changes
@@ -1835,7 +1817,7 @@ namespace Sdo.Commands
                 // Push to remote
                 if (!gitWrapper.Push(branch))
                 {
-                    ConsoleHelper.WriteError($"git push failed");
+                    ConsoleHelper.WriteError("Failed to push pipeline/workflow changes.");
                     return 1;
                 }
 
