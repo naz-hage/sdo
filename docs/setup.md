@@ -13,8 +13,8 @@ the `Install-Sdo` command in place of the legacy `Install-NTools` command.
 # Import the module
 Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
 
-# Install SDO using the module (recommended approach)
-Install-Sdo -SdoYamlPath "./dev-setup/sdo.yaml"
+# Install the latest stable SDO release ending in .0
+Install-Sdo
 
 # Set up development environment
 Set-DevelopmentEnvironment
@@ -104,7 +104,7 @@ This PowerShell script automates the installation of tools and sets up the devel
 
 **Key Responsibilities:**
 
-- Installs SDO using sdo.yaml.
+- Installs the latest stable SDO release ending in `.0`.
 - Installs other tools listed in apps.yaml  .
 - Verifies administrative privileges before proceeding.
 
@@ -117,7 +117,7 @@ Invoke-WebRequest -Uri $url -OutFile $output
 Import-Module ./install.psm1 -Force
 
 # Install SDO
-Install-Sdo -SdoYamlPath .\sdo.yaml
+Install-Sdo
 if ($LASTEXITCODE -ne 0) {
     Write-OutputMessage "Error: Installation of SDO failed. Exiting script."
     exit 1

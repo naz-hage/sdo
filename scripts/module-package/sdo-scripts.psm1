@@ -599,13 +599,54 @@ function Invoke-SdoDownload {
     }
 }
 
+function Get-LatestSdoReleaseVersion {
+    [CmdletBinding()]
+    param()
+
+    $releaseApiUrl = "https://api.github.com/repos/naz-hage/sdo/releases"
+    $page = 1
+    $releases = @()
+
+    try {
+        do {
+            $pageReleases = Invoke-RestMethod -Uri "${releaseApiUrl}?per_page=100&page=$page" -Headers @{ "User-Agent" = "sdo-scripts" } -ErrorAction Stop
+            $releases += $pageReleases
+            $page++
+        } while ($pageReleases.Count -gt 0)
+    }
+    catch {
+        throw "Failed to enumerate Sdo releases from $releaseApiUrl : $($_.Exception.Message)"
+    }
+
+    $versionedReleases = @(
+        $releases |
+            Where-Object {
+                -not $_.draft -and
+                -not $_.prerelease -and
+                $_.tag_name -match '^\d+(?:\.\d+)*\.0$'
+            } |
+            ForEach-Object {
+                [PSCustomObject]@{
+                    TagName = $_.tag_name
+                    Version = [version]$_.tag_name
+                }
+            }
+    )
+
+    if ($versionedReleases.Count -eq 0) {
+        throw "No Sdo release with a version ending in .0 was found."
+    }
+
+    return ($versionedReleases | Sort-Object Version -Descending | Select-Object -First 1).TagName
+}
+
 function Install-Sdo {
     param (
-        [Parameter(Mandatory=$false, HelpMessage = "The version of Sdo to install. If not specified, the version is read from sdo.yaml.")]
+        [Parameter(Mandatory=$false, HelpMessage = "The version of Sdo to install. If not specified, the latest release ending in .0 is installed.")]
         [string]$Version,
         [Parameter(Mandatory=$false, HelpMessage = "The directory to download the Sdo zip file to. Defaults to 'c:\\sdo-downloads'.")]
         [string]$DownloadsDirectory = "c:\sdo-downloads",
-        [Parameter(Mandatory=$false, HelpMessage = "Path to the sdo.yaml file. If not specified, looks for sdo.yaml relative to script location.")]
+        [Parameter(Mandatory=$false, HelpMessage = "Deprecated. This parameter is ignored when Version is not specified.")]
         [string]$SdoYamlPath
     )
 
@@ -617,32 +658,11 @@ function Install-Sdo {
     Write-Host "Downloads directory: $DownloadsDirectory"
     Write-Host "sdo.yaml path: $SdoYamlPath"
 
-    # If Version is not specified, read it from sdo.yaml
+    # If Version is not specified, install the highest stable release ending in .0.
     if (-not $Version) {
-        # Determine sdo.yaml path
-        if (-not $SdoYamlPath) {
-            $scriptDir = Split-Path -Parent $PSCommandPath
-            $SdoYamlPath = "$scriptDir\..\sdo.yaml"
-            Write-Host "No SdoYamlPath specified, using default: $SdoYamlPath"
-        }
-
-        Write-Host "Reading version from $SdoYamlPath ..."
-        
-        if (Test-Path -Path $SdoYamlPath) {
-            $versionInfo = Get-VersionFromYaml -YamlPath $SdoYamlPath
-            if ($versionInfo.Found) {
-                $Version = $versionInfo.Version
-                Write-Host "Version read from sdo.yaml: $Version"
-            }
-            else {
-                Write-Warning "Failed to read version from sdo.yaml. Please specify the version manually."
-                return $false
-            }
-        }
-        else {
-            Write-Warning "sdo.yaml not found at '$SdoYamlPath'. Please specify the version manually or provide a valid SdoYamlPath."
-            return $false
-        }
+        Write-Host "No Version specified. Finding the latest Sdo release ending in .0 ..."
+        $Version = Get-LatestSdoReleaseVersion
+        Write-Host "Latest Sdo release selected: $Version"
     }
 
     # Download the specified version of Sdo
@@ -940,6 +960,6 @@ function Set-CodeSigningTrust {
 
 #region Exports
 # Final export of public functions (including merged signing functions)
-Export-ModuleMember -Function Get-SdoScriptsVersion, Publish-AllProjects, Get-VersionFromYaml, Write-TestResult, Test-TargetExists, Test-TargetDependencies, Test-TargetDelegation, Get-FileHash256, Get-FileVersionInfo, Invoke-FastForward, Write-OutputMessage, Get-SdoFileVersion, Add-DeploymentPathToEnvironment, Invoke-SdoDownload, Install-Sdo, Set-DevelopmentEnvironment, Get-AgentPublicIp, Add-WafAllowRule, Remove-WafCustomRule, Test-IsAdministrator, Test-MicrosoftPowerShellSecurityModuleLoaded, Test-CertificateStore, New-SelfSignedCodeCertificate, Export-CertificateToPfx, Export-CertificateToCer, Import-CertificateToRoot, Import-CertificateToCurrentUser, Set-ScriptSignature, Get-ScriptSignature, Set-CodeSigningTrust
+Export-ModuleMember -Function Get-SdoScriptsVersion, Publish-AllProjects, Get-VersionFromYaml, Write-TestResult, Test-TargetExists, Test-TargetDependencies, Test-TargetDelegation, Get-FileHash256, Get-FileVersionInfo, Invoke-FastForward, Write-OutputMessage, Get-SdoFileVersion, Add-DeploymentPathToEnvironment, Invoke-SdoDownload, Get-LatestSdoReleaseVersion, Install-Sdo, Set-DevelopmentEnvironment, Get-AgentPublicIp, Add-WafAllowRule, Remove-WafCustomRule, Test-IsAdministrator, Test-MicrosoftPowerShellSecurityModuleLoaded, Test-CertificateStore, New-SelfSignedCodeCertificate, Export-CertificateToPfx, Export-CertificateToCer, Import-CertificateToRoot, Import-CertificateToCurrentUser, Set-ScriptSignature, Get-ScriptSignature, Set-CodeSigningTrust
 
 #endregion

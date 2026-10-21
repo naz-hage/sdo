@@ -15,8 +15,8 @@ Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
 # Check the module version
 Get-SdoScriptsVersion
 
-# Install SDO using a local configuration file
-Install-Sdo -SdoYamlPath "./dev-setup/sdo.yaml"
+# Install the latest stable SDO release ending in .0
+Install-Sdo
 ```
 
 ## Table of contents
@@ -78,10 +78,8 @@ Get-Command -Module sdo-scripts | Select-Object Name | Format-Table -AutoSize
 
 ### Install SDO with Custom Configuration
 ```powershell
-# Install using a specific sdo.yaml file
-# Prefer the cross-platform Python script for CI and cross-platform installs:
-# python atools/install-sdo.py --version 1.32.0 --yaml dev-setup/sdo.yaml
-Install-Sdo -SdoYamlPath "./dev-setup/sdo.yaml"
+# Install the latest stable release ending in .0
+Install-Sdo
 
 # Install specific version
 Install-Sdo -Version "1.29.7" -DownloadsDirectory "C:\MyDownloads"
