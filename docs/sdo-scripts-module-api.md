@@ -19,7 +19,8 @@ This is the canonical reference for functions exported by the `sdo-scripts` Powe
 | `Get-SdoFileVersion` | Read the SDO product version from a binary. `Get-SdoFileVersion -FilePath C:\Artifacts\sdo.exe` |
 | `Add-DeploymentPathToEnvironment` | Add a deployment path to `PATH`. `Add-DeploymentPathToEnvironment -Path C:\My\deploy\bin` |
 | `Invoke-SdoDownload` | Download SDO release artifacts. `Invoke-SdoDownload -Version 1.2.3 -DownloadsDirectory C:\Downloads` |
-| `Install-Sdo` | Install an SDO version from a release. `Install-Sdo -Version 1.74.0` |
+| `Get-LatestSdoReleaseVersion` | Find the highest stable SDO release whose version ends in `.0`. |
+| `Install-Sdo` | Install an SDO version from a release. If `-Version` is omitted, the highest stable release ending in `.0` is selected. |
 
 For runtime discovery:
 

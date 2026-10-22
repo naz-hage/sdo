@@ -32,6 +32,7 @@ $expectedFunctions = @(
     'Get-SdoFileVersion',
     'Add-DeploymentPathToEnvironment',
     'Invoke-SdoDownload',
+    'Get-LatestSdoReleaseVersion',
     'Install-Sdo'
 )
 

@@ -85,10 +85,10 @@ jobs:
         # Fail fast on any non-terminating errors
         $ErrorActionPreference = 'Stop'
 
-        # Install SDO using the dev-setup/sdo.yaml file and ensure CI step fails on error
-        Write-Host "Installing SDO using dev-setup/sdo.yaml..."
+        # Install the latest stable SDO release and ensure the CI step fails on error
+        Write-Host "Installing the latest stable SDO release..."
         try {
-          Install-Sdo -SdoYamlPath "./dev-setup/sdo.yaml"
+          Install-Sdo
         }
         catch {
           Write-Host "Install-Sdo failed: $($_.Exception.Message)"
