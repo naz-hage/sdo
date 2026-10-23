@@ -3260,10 +3260,21 @@ sdo<span class="w"> </span>repo<span class="w"> </span>tag<span class="w"> </spa
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>repo<span class="w"> </span>list<span class="w">                       </span><span class="c1"># List repos</span>
 sdo<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>--top<span class="w"> </span><span class="m">10</span><span class="w">              </span><span class="c1"># Limit to 10</span>
 sdo<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>--verbose<span class="w">             </span><span class="c1"># Show API commands</span>
+sdo<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>--save<span class="w"> </span>repos.yaml<span class="w">     </span><span class="c1"># Save the repository list as YAML</span>
 </code></pre></div></p>
 <p><strong>Options:</strong>
 - <code>--top &lt;top&gt;</code> — Return top N repositories
+- <code>--save &lt;file&gt;</code> — Write the repository list to a consumable YAML file
 - <code>--verbose</code> — Show mapping</p>
+<p>The <code>--save</code> path is resolved relative to the current directory unless an absolute
+path is provided. SDO displays the repository list as usual and reports the number
+of repositories written to the file. The YAML document contains the list under a
+top-level <code>repositories</code> key:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">repositories</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sample</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">owner</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://example.com/owner/sample</span>
+</code></pre></div>
 <h4 id="repo-create">repo create<a class="headerlink" href="#repo-create" title="Anchor link to this section for reference">&para;</a></h4>
 <p>Create a new repository.</p>
 <p><strong>Usage:</strong>
