@@ -1004,25 +1004,35 @@ namespace GitHubRelease
         {
             await ApiService.SetupHeadersAsync($"https://github.com/{Repo}", GitHubOperation.Read);
             var uri = $"{Constants.GitHubApiPrefix}/{Repo}/releases";
-            var response = await ApiService.GetAsync(uri);
+            const int maxAttempts = 3;
 
-            if (!response.IsSuccessStatusCode)
+            for (var attempt = 1; attempt <= maxAttempts; attempt++)
             {
-                await HandleErrorResponse(response);
-                return new List<Release>();
+                var response = await ApiService.GetAsync(uri);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    await HandleErrorResponse(response);
+                    return new List<Release>();
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                var releases = JsonDocument.Parse(content).RootElement.EnumerateArray().ToList();
+
+                if (releases.Any())
+                {
+                    var finalReleases = SelectLatestReleases(releases);
+                    return ParseReleases(finalReleases, verbose);
+                }
+
+                if (attempt < maxAttempts)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(250));
+                }
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var releases = JsonDocument.Parse(content).RootElement.EnumerateArray().ToList();
-
-            if (!releases.Any())
-            {
-                ConsoleHelper.WriteInfo("No releases found.");
-                return new List<Release>();
-            }
-
-            var finalReleases = SelectLatestReleases(releases);
-            return ParseReleases(finalReleases, verbose);
+            ConsoleHelper.WriteInfo("No releases found.");
+            return new List<Release>();
         }
 
         private async Task HandleErrorResponse(HttpResponseMessage response)

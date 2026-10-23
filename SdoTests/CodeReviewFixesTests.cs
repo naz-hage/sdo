@@ -1,7 +1,3 @@
-using Xunit;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Sdo.Commands;
 using Sdo.Utilities;
 using System.CommandLine;
@@ -12,6 +8,7 @@ namespace SdoTests
     /// Comprehensive unit tests for all code review fixes (Issues #1-10).
     /// Validates that each fix works correctly and doesn't regress.
     /// </summary>
+    [TestClass]
     public class CodeReviewFixesTests
     {
         private readonly string _testDirectory = Path.Combine(Path.GetTempPath(), "CodeReviewFixesTests");
@@ -24,7 +21,7 @@ namespace SdoTests
 
         #region Issue #4 - ConfigurationManager State Management Bug Tests
 
-        [Fact]
+        [TestMethod]
         public void ConfigurationManager_Load_ResetsStateOnReload()
         {
             // Arrange
@@ -45,10 +42,10 @@ namespace SdoTests
                 var value2 = config.GetValue("setting2");
 
                 // Assert
-                Assert.NotEqual(loadedPath1, loadedPath2);
-                Assert.Equal("value1", value1);
-                Assert.Equal("value2", value2);
-                Assert.Null(config.GetValue("setting1")); // Should be cleared after second load
+                Assert.AreNotEqual(loadedPath1, loadedPath2);
+                Assert.AreEqual("value1", value1);
+                Assert.AreEqual("value2", value2);
+                Assert.IsNull(config.GetValue("setting1")); // Should be cleared after second load
             }
             finally
             {
@@ -57,7 +54,7 @@ namespace SdoTests
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ConfigurationManager_Load_ClearsErrorsOnReload()
         {
             // Arrange
@@ -70,15 +67,15 @@ namespace SdoTests
                 // Act - Load invalid config
                 config.Load(invalidPath);
                 var errors1 = config.GetErrors();
-                Assert.NotEmpty(errors1); // Should have errors from invalid path
+                Assert.IsNotEmpty(errors1); // Should have errors from invalid path
 
                 // Load valid config - should clear previous errors
                 config.Load(validFilePath);
                 var errors2 = config.GetErrors();
 
                 // Assert
-                Assert.Empty(errors2); // Errors should be cleared
-                Assert.True(config.IsValid());
+                Assert.IsEmpty(errors2); // Errors should be cleared
+                Assert.IsTrue(config.IsValid());
             }
             finally
             {
@@ -90,7 +87,7 @@ namespace SdoTests
 
         #region Issue #5 - Silent Config Error Handling Tests
 
-        [Fact]
+        [TestMethod]
         public void WorkItemCommand_ListWithInvalidConfig_ReturnsErrorCode()
         {
             // Arrange
@@ -103,10 +100,10 @@ namespace SdoTests
             var result = command.Parse(args).Invoke();
 
             // Assert
-            Assert.Equal(1, result); // Should fail with invalid config
+            Assert.AreEqual(1, result); // Should fail with invalid config
         }
 
-        [Fact]
+        [TestMethod]
         public void ConfigurationManager_LoadInvalidFile_ReturnsFailure()
         {
             // Arrange
@@ -117,16 +114,16 @@ namespace SdoTests
             var result = config.Load(invalidPath);
 
             // Assert
-            Assert.False(result); // Should return false on failure
-            Assert.NotEmpty(config.GetErrors()); // Should contain error messages
-            Assert.False(config.IsValid()); // Should be invalid
+            Assert.IsFalse(result); // Should return false on failure
+            Assert.IsNotEmpty(config.GetErrors()); // Should contain error messages
+            Assert.IsFalse(config.IsValid()); // Should be invalid
         }
 
         #endregion
 
         #region Issue #6 - Documentation Tests
 
-        [Fact]
+        [TestMethod]
         public void MarkdownParser_HasCorrectDocumentation()
         {
             // Arrange
@@ -136,14 +133,14 @@ namespace SdoTests
             // Assert
             // Verify the class has proper XML documentation by checking it's instantiable
             var parser = new MarkdownParser();
-            Assert.NotNull(parser);
+            Assert.IsNotNull(parser);
         }
 
         #endregion
 
         #region Issue #7 - Default Value Tests
 
-        [Fact]
+        [TestMethod]
         public void WorkItemCommand_ListCommand_TopOptionHasDescription()
         {
             // Arrange
@@ -155,8 +152,8 @@ namespace SdoTests
             var topOption = listCmd.Options.FirstOrDefault(o => o.Name.Contains("top"));
 
             // Assert
-            Assert.NotNull(topOption);
-            Assert.Contains("default: 50", topOption.Description);
+            Assert.IsNotNull(topOption);
+            StringAssert.Contains(topOption.Description, "default: 50");
         }
 
         #endregion

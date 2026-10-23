@@ -1,15 +1,10 @@
-using System;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Text;
-using System.IO;
-using Xunit;
 using Sdo.Services;
+using System.Net;
+using System.Text;
 
 namespace SdoTests.Services
 {
+    [TestClass]
     public class AzureDevOpsClientPipelineTests
     {
         private class TestHttpMessageHandler : HttpMessageHandler
@@ -27,13 +22,13 @@ namespace SdoTests.Services
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task ListPipelineDefinitionsAsync_ReturnsPipelineDefinitions()
         {
             var organization = "org";
             var project = "proj";
 
-                        var definitionsJson = @"{
+            var definitionsJson = @"{
     ""value"": [
         {
             ""id"": 123,
@@ -67,22 +62,22 @@ namespace SdoTests.Services
 
             var defs = await client.ListPipelineDefinitionsAsync(project);
 
-            Assert.NotNull(defs);
-            Assert.Single(defs!);
+            Assert.IsNotNull(defs);
+            Assert.AreEqual(1, (defs!).Count());
             var first = defs![0];
-            Assert.Equal("123", first.PlatformId);
-            Assert.Equal("CI", first.Name);
-            Assert.Equal(".github/workflows/ci.yml", first.Path);
-            Assert.Equal("build", first.Type);
+            Assert.AreEqual("123", first.PlatformId);
+            Assert.AreEqual("CI", first.Name);
+            Assert.AreEqual(".github/workflows/ci.yml", first.Path);
+            Assert.AreEqual("build", first.Type);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task ListPipelineRunsAsync_ReturnsPipelineRuns()
         {
             var organization = "org";
             var project = "proj";
 
-                        var buildsJson = @"{
+            var buildsJson = @"{
     ""value"": [
         {
             ""id"": 456,
@@ -119,18 +114,18 @@ namespace SdoTests.Services
 
             var runs = await client.ListPipelineRunsAsync(project, top: 1);
 
-            Assert.NotNull(runs);
-            Assert.Single(runs!);
+            Assert.IsNotNull(runs);
+            Assert.AreEqual(1, (runs!).Count());
             var run = runs![0];
-            Assert.Equal("456", run.PlatformId);
-            Assert.Equal("2026.1", run.Name);
-            Assert.Contains("main", run.Branch ?? string.Empty);
-            Assert.Equal("completed", run.Status);
-            Assert.Equal("succeeded", run.Result);
-            Assert.Equal("https://dev.azure.com/org/proj/_build/results?buildId=456", run.Url);
+            Assert.AreEqual("456", run.PlatformId);
+            Assert.AreEqual("2026.1", run.Name);
+            StringAssert.Contains(run.Branch ?? string.Empty, "main");
+            Assert.AreEqual("completed", run.Status);
+            Assert.AreEqual("succeeded", run.Result);
+            Assert.AreEqual("https://dev.azure.com/org/proj/_build/results?buildId=456", run.Url);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetPipelineRunLogsAsync_ReturnsConcatenatedLogs()
         {
             var organization = "org";
@@ -174,11 +169,11 @@ namespace SdoTests.Services
 
             var text = await client.GetPipelineRunLogsAsync(project, buildId);
 
-            Assert.NotNull(text);
-            Assert.Contains("===== Log 1 =====", text);
-            Assert.Contains("log entry one", text);
-            Assert.Contains("===== Log 2 =====", text);
-            Assert.Contains("log entry two", text);
+            Assert.IsNotNull(text);
+            StringAssert.Contains(text, "===== Log 1 =====");
+            StringAssert.Contains(text, "log entry one");
+            StringAssert.Contains(text, "===== Log 2 =====");
+            StringAssert.Contains(text, "log entry two");
         }
     }
 }

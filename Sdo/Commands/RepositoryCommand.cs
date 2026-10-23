@@ -9,8 +9,11 @@
 using Launcher.Services;
 using NbuildTasks;
 using Sdo.Interfaces;
+using Sdo.Models;
 using Sdo.Services;
 using System.CommandLine;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Sdo.Commands
 {
@@ -467,15 +470,18 @@ namespace Sdo.Commands
         {
             var listCommand = new System.CommandLine.Command("list", "List repositories");
             var topOption = new Option<int>("--top") { Description = "Return top N repositories" };
+            var saveOption = new Option<string?>("--save") { Description = "Save repositories to a YAML file" };
 
             listCommand.Add(topOption);
+            listCommand.Add(saveOption);
             listCommand.Add(verboseOption);
 
             listCommand.SetAction(async (parseResult) =>
             {
                 var top = parseResult.GetValue(topOption);
+                var savePath = parseResult.GetValue(saveOption);
                 var verbose = parseResult.GetValue(verboseOption);
-                return await ListRepositories(top, verbose);
+                return await ListRepositories(top, savePath, verbose);
             });
 
             Subcommands.Add(listCommand);
@@ -517,7 +523,7 @@ namespace Sdo.Commands
             return firstLine;
         }
 
-        private async Task<int> ListRepositories(int top, bool verbose)
+        private async Task<int> ListRepositories(int top, string? savePath, bool verbose)
         {
             try
             {
@@ -562,6 +568,7 @@ namespace Sdo.Commands
                         string visibility = repo.IsPrivate ? "Private" : "Public";
                         Console.WriteLine($"    Visibility: {visibility}");
                     }
+                    await SaveRepositoriesAsync(repos, savePath);
                     return 0;
                 }
                 else if (platform == Platform.AzureDevOps)
@@ -604,6 +611,7 @@ namespace Sdo.Commands
                             Console.WriteLine($"    Branch: {repo.DefaultBranch}");
                         }
                     }
+                    await SaveRepositoriesAsync(repos, savePath);
                     return 0;
                 }
 
@@ -615,6 +623,34 @@ namespace Sdo.Commands
                 ConsoleHelper.WriteError($"Error: {ex.Message}");
                 return 1;
             }
+        }
+
+        internal static string SerializeRepositoriesToYaml(IEnumerable<Repository> repositories)
+        {
+            return new SerializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build()
+                .Serialize(new RepositoryListDocument
+                {
+                    Repositories = repositories.ToList()
+                });
+        }
+
+        private static async Task SaveRepositoriesAsync(IReadOnlyCollection<Repository> repositories, string? savePath)
+        {
+            if (string.IsNullOrWhiteSpace(savePath))
+            {
+                return;
+            }
+
+            var yaml = SerializeRepositoriesToYaml(repositories);
+            await File.WriteAllTextAsync(savePath, yaml);
+            ConsoleHelper.WriteSuccess($"Saved {repositories.Count} repositories to {savePath}");
+        }
+
+        private sealed class RepositoryListDocument
+        {
+            public List<Repository> Repositories { get; set; } = [];
         }
 
         private async Task<int> ShowRepository(bool verbose)

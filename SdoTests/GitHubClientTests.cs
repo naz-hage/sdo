@@ -5,7 +5,6 @@
 //
 // Unit tests for GitHubClient class.
 
-using Xunit;
 using Sdo.Services;
 
 namespace SdoTests;
@@ -13,10 +12,11 @@ namespace SdoTests;
 /// <summary>
 /// Unit tests for the GitHubClient class.
 /// </summary>
-[Trait("Category", "Integration")]
+[TestCategory("Integration")]
+[TestClass]
 public class GitHubClientTests
 {
-    [Fact]
+    [TestMethod]
     public async Task VerifyAuthenticationAsync_WithValidToken_ReturnsTrue()
     {
         // Arrange
@@ -37,10 +37,10 @@ public class GitHubClientTests
             return; // Skip test if token doesn't work
         }
 
-        Assert.True(result);
+        Assert.IsTrue(result);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task VerifyAuthenticationAsync_WithInvalidToken_ReturnsFalse()
     {
         // Arrange
@@ -50,10 +50,10 @@ public class GitHubClientTests
         var result = await client.VerifyAuthenticationAsync();
 
         // Assert
-        Assert.False(result);
+        Assert.IsFalse(result);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task GetUserAsync_WithValidToken_ReturnsUser()
     {
         // Arrange
@@ -74,11 +74,11 @@ public class GitHubClientTests
             return; // Skip test if token doesn't work
         }
 
-        Assert.NotNull(user);
-        Assert.NotNull(user.Login);
+        Assert.IsNotNull(user);
+        Assert.IsNotNull(user.Login);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task GetUserAsync_WithInvalidToken_ReturnsNull()
     {
         // Arrange
@@ -88,6 +88,6 @@ public class GitHubClientTests
         var user = await client.GetUserAsync();
 
         // Assert
-        Assert.Null(user);
+        Assert.IsNull(user);
     }
 }

@@ -5,7 +5,6 @@
 //
 // Unit tests for AzureDevOpsClient class.
 
-using Xunit;
 using Sdo.Services;
 
 namespace SdoTests;
@@ -13,10 +12,11 @@ namespace SdoTests;
 /// <summary>
 /// Unit tests for the AzureDevOpsClient class.
 /// </summary>
-[Trait("Category", "Integration")]
+[TestCategory("Integration")]
+[TestClass]
 public class AzureDevOpsClientTests
 {
-    [Fact]
+    [TestMethod]
     public async Task VerifyAuthenticationAsync_WithValidToken_ReturnsTrue()
     {
         // Arrange
@@ -39,10 +39,10 @@ public class AzureDevOpsClientTests
             return; // Skip test if credentials don't work
         }
 
-        Assert.True(result);
+        Assert.IsTrue(result);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task VerifyAuthenticationAsync_WithInvalidToken_ReturnsFalse()
     {
         // Arrange
@@ -52,10 +52,10 @@ public class AzureDevOpsClientTests
         var result = await client.VerifyAuthenticationAsync();
 
         // Assert
-        Assert.False(result);
+        Assert.IsFalse(result);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task GetUserAsync_WithValidToken_ReturnsUser()
     {
         // Arrange
@@ -78,12 +78,12 @@ public class AzureDevOpsClientTests
             return; // Skip test if credentials don't work
         }
 
-        Assert.NotNull(user);
+        Assert.IsNotNull(user);
         // Remove this assertion if not needed for your test scenario
-        //Assert.NotNull(user.UniqueName);
+        //Assert.IsNotNull(user.UniqueName);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task GetUserAsync_WithInvalidToken_ReturnsNull()
     {
         // Arrange
@@ -93,10 +93,10 @@ public class AzureDevOpsClientTests
         var user = await client.GetUserAsync();
 
         // Assert
-        Assert.Null(user);
+        Assert.IsNull(user);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task AdHoc_GetPipelineAsync_WithConfiguredEnvironment_ReturnsPipeline()
     {
         // Arrange (ad hoc integration style)
@@ -127,12 +127,12 @@ public class AzureDevOpsClientTests
             : await client.GetPipelineAsync(project, first.Name);
 
         // Assert
-        Assert.NotNull(byId);
-        Assert.Equal(first.Id, byId!.Id);
+        Assert.IsNotNull(byId);
+        Assert.AreEqual(first.Id, byId!.Id);
         if (!string.IsNullOrWhiteSpace(first.Name))
         {
-            Assert.NotNull(byName);
-            Assert.Equal(first.Id, byName!.Id);
+            Assert.IsNotNull(byName);
+            Assert.AreEqual(first.Id, byName!.Id);
         }
     }
 }

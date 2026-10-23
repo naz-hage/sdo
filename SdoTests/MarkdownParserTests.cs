@@ -1,10 +1,6 @@
 // Copyright (c) 2020-2026 naz-hage. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using Xunit;
 using Sdo.Utilities;
 
 namespace SdoTests
@@ -13,6 +9,7 @@ namespace SdoTests
     /// Unit tests for MarkdownParser class.
     /// Tests YAML frontmatter, titles, metadata, code blocks, and acceptance criteria parsing.
     /// </summary>
+    [TestClass]
     public class MarkdownParserTests
     {
         private readonly string _testDirectory = Path.Combine(Path.GetTempPath(), "MarkdownParserTests");
@@ -34,7 +31,7 @@ namespace SdoTests
             if (File.Exists(filePath)) File.Delete(filePath);
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithSimpleTitleAndDescription_ParsesCorrectly()
         {
             // Arrange
@@ -49,10 +46,10 @@ This is the description.";
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.Equal("Work Item Title", result.Title);
-                Assert.Equal("This is the description.", result.Description);
-                Assert.Empty(result.Errors);
+                Assert.IsTrue(result.Success);
+                Assert.AreEqual("Work Item Title", result.Title);
+                Assert.AreEqual("This is the description.", result.Description);
+                Assert.IsEmpty(result.Errors);
             }
             finally
             {
@@ -60,7 +57,7 @@ This is the description.";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithYamlFrontmatter_ParsesMetadata()
         {
             // Arrange
@@ -80,11 +77,11 @@ Description here.";
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.Equal("PBI Title", result.Title);
-                Assert.Equal("PBI", result.Metadata["work_item_type"]);
-                Assert.Equal("user@example.com", result.Metadata["assignee"]);
-                Assert.Equal("feature, backlog", result.Metadata["labels"]);
+                Assert.IsTrue(result.Success);
+                Assert.AreEqual("PBI Title", result.Title);
+                Assert.AreEqual("PBI", result.Metadata["work_item_type"]);
+                Assert.AreEqual("user@example.com", result.Metadata["assignee"]);
+                Assert.AreEqual("feature, backlog", result.Metadata["labels"]);
             }
             finally
             {
@@ -92,7 +89,7 @@ Description here.";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithMetadataHeaders_ParsesMetadata()
         {
             // Arrange
@@ -111,11 +108,11 @@ Description here.";
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.Equal("Work Item Title", result.Title);
-                Assert.Equal("PBI", result.Metadata["work_item_type"]);
-                Assert.Equal("High", result.Metadata["priority"]);
-                Assert.Equal("user@example.com", result.Metadata["assignee"]);
+                Assert.IsTrue(result.Success);
+                Assert.AreEqual("Work Item Title", result.Title);
+                Assert.AreEqual("PBI", result.Metadata["work_item_type"]);
+                Assert.AreEqual("High", result.Metadata["priority"]);
+                Assert.AreEqual("user@example.com", result.Metadata["assignee"]);
             }
             finally
             {
@@ -123,7 +120,7 @@ Description here.";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithAcceptanceCriteria_ParsesCorrectly()
         {
             // Arrange
@@ -143,11 +140,11 @@ This feature does X.
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.Equal(3, result.AcceptanceCriteria.Count);
-                Assert.Equal("Criterion 1", result.AcceptanceCriteria[0]);
-                Assert.Equal("Criterion 2 (completed)", result.AcceptanceCriteria[1]);
-                Assert.Equal("Criterion 3 (no checkbox)", result.AcceptanceCriteria[2]);
+                Assert.IsTrue(result.Success);
+                Assert.AreEqual(3, result.AcceptanceCriteria.Count);
+                Assert.AreEqual("Criterion 1", result.AcceptanceCriteria[0]);
+                Assert.AreEqual("Criterion 2 (completed)", result.AcceptanceCriteria[1]);
+                Assert.AreEqual("Criterion 3 (no checkbox)", result.AcceptanceCriteria[2]);
             }
             finally
             {
@@ -155,7 +152,7 @@ This feature does X.
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithCodeBlocks_ExtractsCodeBlocks()
         {
             // Arrange
@@ -181,10 +178,10 @@ npm run build
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.Equal(2, result.CodeBlocks.Count);
-                Assert.Contains("npm install", result.CodeBlocks[0]);
-                Assert.Contains("status", result.CodeBlocks[1]);
+                Assert.IsTrue(result.Success);
+                Assert.AreEqual(2, result.CodeBlocks.Count);
+                StringAssert.Contains(result.CodeBlocks[0], "npm install");
+                StringAssert.Contains(result.CodeBlocks[1], "status");
             }
             finally
             {
@@ -192,7 +189,7 @@ npm run build
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithMalformedHeader_WarnsButParses()
         {
             // Arrange
@@ -207,9 +204,9 @@ Description here.";
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.NotEmpty(result.Warnings);
-                Assert.Contains("Malformed header", result.Warnings[0].Message);
+                Assert.IsTrue(result.Success);
+                Assert.IsNotEmpty(result.Warnings);
+                StringAssert.Contains(result.Warnings[0].Message, "Malformed header");
             }
             finally
             {
@@ -217,7 +214,7 @@ Description here.";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithMissingTitle_ReturnsError()
         {
             // Arrange
@@ -230,9 +227,9 @@ Description here.";
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.False(result.Success);
-                Assert.NotEmpty(result.Errors);
-                Assert.Contains("Title is required", result.Errors[0].Message);
+                Assert.IsFalse(result.Success);
+                Assert.IsNotEmpty(result.Errors);
+                StringAssert.Contains(result.Errors[0].Message, "Title is required");
             }
             finally
             {
@@ -240,19 +237,19 @@ Description here.";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithNonexistentFile_ReturnsError()
         {
             // Act
             var result = MarkdownParser.ParseFile("/nonexistent/path/file.md");
 
             // Assert
-            Assert.False(result.Success);
-            Assert.NotEmpty(result.Errors);
-            Assert.Contains("File not found", result.Errors[0].Message);
+            Assert.IsFalse(result.Success);
+            Assert.IsNotEmpty(result.Errors);
+            StringAssert.Contains(result.Errors[0].Message, "File not found");
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithEmptyFile_ReturnsError()
         {
             // Arrange
@@ -264,9 +261,9 @@ Description here.";
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.False(result.Success);
-                Assert.NotEmpty(result.Errors);
-                Assert.Contains("empty", result.Errors[0].Message.ToLower());
+                Assert.IsFalse(result.Success);
+                Assert.IsNotEmpty(result.Errors);
+                StringAssert.Contains(result.Errors[0].Message.ToLower(), "empty");
             }
             finally
             {
@@ -274,7 +271,7 @@ Description here.";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithComplexDocument_ParsesAllSections()
         {
             // Arrange
@@ -311,13 +308,13 @@ public void ConfigureAuth(IServiceCollection services)
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.Equal("Epic: Authentication System", result.Title);
-                Assert.Equal("Epic", result.Metadata["type"]);
-                Assert.Equal("High", result.Metadata["priority"]);
-                Assert.Equal(3, result.AcceptanceCriteria.Count);
-                Assert.NotEmpty(result.CodeBlocks);
-                Assert.Contains("ConfigureAuth", result.CodeBlocks[0]);
+                Assert.IsTrue(result.Success);
+                Assert.AreEqual("Epic: Authentication System", result.Title);
+                Assert.AreEqual("Epic", result.Metadata["type"]);
+                Assert.AreEqual("High", result.Metadata["priority"]);
+                Assert.AreEqual(3, result.AcceptanceCriteria.Count);
+                Assert.IsNotEmpty(result.CodeBlocks);
+                StringAssert.Contains(result.CodeBlocks[0], "ConfigureAuth");
             }
             finally
             {
@@ -325,7 +322,7 @@ public void ConfigureAuth(IServiceCollection services)
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithUnclosedCodeBlock_WarnsButIncludesBlock()
         {
             // Arrange
@@ -345,10 +342,10 @@ public void DoSomething()
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.NotEmpty(result.Warnings);
-                Assert.Contains("Unclosed code block", result.Warnings[0].Message);
-                Assert.NotEmpty(result.CodeBlocks);
+                Assert.IsTrue(result.Success);
+                Assert.IsNotEmpty(result.Warnings);
+                StringAssert.Contains(result.Warnings[0].Message, "Unclosed code block");
+                Assert.IsNotEmpty(result.CodeBlocks);
             }
             finally
             {
@@ -356,7 +353,7 @@ public void DoSomething()
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithMultipleMetadataFormats_MergesAll()
         {
             // Arrange
@@ -377,10 +374,10 @@ Content here.";
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.Equal("yaml", result.Metadata["source"]);
-                Assert.Equal("azdo", result.Metadata["target"]);
-                Assert.Equal("MyProject", result.Metadata["project"]);
+                Assert.IsTrue(result.Success);
+                Assert.AreEqual("yaml", result.Metadata["source"]);
+                Assert.AreEqual("azdo", result.Metadata["target"]);
+                Assert.AreEqual("MyProject", result.Metadata["project"]);
             }
             finally
             {
@@ -388,7 +385,7 @@ Content here.";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithVerboseMode_IncludesDetailedErrors()
         {
             // Arrange
@@ -398,12 +395,12 @@ Content here.";
             var result = MarkdownParser.ParseFile(filePath, verbose: true);
 
             // Assert
-            Assert.False(result.Success);
-            Assert.NotEmpty(result.Errors);
+            Assert.IsFalse(result.Success);
+            Assert.IsNotEmpty(result.Errors);
             // Verbose mode may include stack traces
         }
 
-        [Fact]
+        [TestMethod]
         public void ParseFile_WithSpecialCharactersInMetadata_ParsesCorrectly()
         {
             // Arrange
@@ -421,8 +418,8 @@ Content.";
                 var result = MarkdownParser.ParseFile(filePath);
 
                 // Assert
-                Assert.True(result.Success);
-                Assert.Contains("Complex value with: colons and quotes", result.Metadata["description"]);
+                Assert.IsTrue(result.Success);
+                StringAssert.Contains(result.Metadata["description"], "Complex value with: colons and quotes");
             }
             finally
             {

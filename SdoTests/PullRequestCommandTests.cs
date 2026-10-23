@@ -1,12 +1,10 @@
-using System;
-using System.CommandLine;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
-using Xunit;
 using Sdo.Commands;
+using System.CommandLine;
+using System.Reflection;
 
 namespace SdoTests;
+
+[TestClass]
 
 public class PullRequestCommandTests
 {
@@ -41,213 +39,213 @@ public class PullRequestCommandTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_CreatesCommandWithCorrectName()
     {
         var command = new PullRequestCommand(_verboseOption);
-        Assert.Equal("pr", command.Name);
+        Assert.AreEqual("pr", command.Name);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsCreateSubcommand()
     {
         var command = new PullRequestCommand(_verboseOption);
-        var createCmd = Assert.Single(command.Subcommands, s => s.Name == "create");
-        Assert.NotNull(createCmd);
+        var createCmd = command.Subcommands.Single(s => s.Name == "create");
+        Assert.IsNotNull(createCmd);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsLsSubcommand()
     {
         var command = new PullRequestCommand(_verboseOption);
-        var lsCmd = Assert.Single(command.Subcommands, s => s.Name == "list");
-        Assert.NotNull(lsCmd);
+        var lsCmd = command.Subcommands.Single(s => s.Name == "list");
+        Assert.IsNotNull(lsCmd);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsShowSubcommand()
     {
         var command = new PullRequestCommand(_verboseOption);
-        var showCmd = Assert.Single(command.Subcommands, s => s.Name == "show");
-        Assert.NotNull(showCmd);
+        var showCmd = command.Subcommands.Single(s => s.Name == "show");
+        Assert.IsNotNull(showCmd);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsStatusSubcommand()
     {
         var command = new PullRequestCommand(_verboseOption);
-        var statusCmd = Assert.Single(command.Subcommands, s => s.Name == "status");
-        Assert.NotNull(statusCmd);
+        var statusCmd = command.Subcommands.Single(s => s.Name == "status");
+        Assert.IsNotNull(statusCmd);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsUpdateSubcommand()
     {
         var command = new PullRequestCommand(_verboseOption);
-        var updateCmd = Assert.Single(command.Subcommands, s => s.Name == "update");
-        Assert.NotNull(updateCmd);
+        var updateCmd = command.Subcommands.Single(s => s.Name == "update");
+        Assert.IsNotNull(updateCmd);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_RegistersSubcommandsInAlphabeticalOrder()
     {
         var command = new PullRequestCommand(_verboseOption);
         var subcommandNames = command.Subcommands.Select(s => s.Name).ToList();
-        Assert.Equal(new[] { "create", "list", "show", "status", "update" }, subcommandNames);
+        Assert.IsTrue(new[] { "create", "list", "show", "status", "update" }.SequenceEqual(subcommandNames));
     }
 
-    [Fact]
+    [TestMethod]
     public void CreateSubcommand_HasFileOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var createCmd = command.Subcommands.First(s => s.Name == "create");
         var fileOption = createCmd.Options.FirstOrDefault(o => o.Name.Contains("file"));
-        Assert.NotNull(fileOption);
+        Assert.IsNotNull(fileOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void CreateSubcommand_HasWorkItemOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var createCmd = command.Subcommands.First(s => s.Name == "create");
         var workItemOption = createCmd.Options.FirstOrDefault(o => o.Name.Contains("work-item"));
-        Assert.NotNull(workItemOption);
+        Assert.IsNotNull(workItemOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void CreateSubcommand_HasDraftOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var createCmd = command.Subcommands.First(s => s.Name == "create");
         var draftOption = createCmd.Options.FirstOrDefault(o => o.Name.Contains("draft"));
-        Assert.NotNull(draftOption);
+        Assert.IsNotNull(draftOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void CreateSubcommand_HasDryRunOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var createCmd = command.Subcommands.First(s => s.Name == "create");
         var dryRunOption = createCmd.Options.FirstOrDefault(o => o.Name.Contains("dry-run"));
-        Assert.NotNull(dryRunOption);
+        Assert.IsNotNull(dryRunOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void LsSubcommand_HasStatusOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var lsCmd = command.Subcommands.First(s => s.Name == "list");
         var statusOption = lsCmd.Options.FirstOrDefault(o => o.Name.Contains("status"));
-        Assert.NotNull(statusOption);
+        Assert.IsNotNull(statusOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void LsSubcommand_HasTopOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var lsCmd = command.Subcommands.First(s => s.Name == "list");
         var topOption = lsCmd.Options.FirstOrDefault(o => o.Name.Contains("top"));
-        Assert.NotNull(topOption);
+        Assert.IsNotNull(topOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void ShowSubcommand_HasPrIdArgument()
     {
         var command = new PullRequestCommand(_verboseOption);
         var showCmd = command.Subcommands.First(s => s.Name == "show");
         var prIdArg = showCmd.Arguments.FirstOrDefault(a => a.Name == "pr-id");
-        Assert.NotNull(prIdArg);
+        Assert.IsNotNull(prIdArg);
     }
 
-    [Fact]
+    [TestMethod]
     public void StatusSubcommand_HasPrNumberArgument()
     {
         var command = new PullRequestCommand(_verboseOption);
         var statusCmd = command.Subcommands.First(s => s.Name == "status");
         var prArg = statusCmd.Arguments.FirstOrDefault(a => a.Name == "pr-id");
-        Assert.NotNull(prArg);
+        Assert.IsNotNull(prArg);
     }
 
-    [Fact]
+    [TestMethod]
     public void UpdateSubcommand_HasPrIdOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var updateCmd = command.Subcommands.First(s => s.Name == "update");
         var prIdOption = updateCmd.Options.FirstOrDefault(o => o.Name.Contains("pr-id"));
-        Assert.NotNull(prIdOption);
+        Assert.IsNotNull(prIdOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void UpdateSubcommand_HasFileOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var updateCmd = command.Subcommands.First(s => s.Name == "update");
         var fileOption = updateCmd.Options.FirstOrDefault(o => o.Name.Contains("file"));
-        Assert.NotNull(fileOption);
+        Assert.IsNotNull(fileOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void UpdateSubcommand_HasTitleOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var updateCmd = command.Subcommands.First(s => s.Name == "update");
         var titleOption = updateCmd.Options.FirstOrDefault(o => o.Name.Contains("title"));
-        Assert.NotNull(titleOption);
+        Assert.IsNotNull(titleOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void UpdateSubcommand_HasStatusOption()
     {
         var command = new PullRequestCommand(_verboseOption);
         var updateCmd = command.Subcommands.First(s => s.Name == "update");
         var statusOption = updateCmd.Options.FirstOrDefault(o => o.Name.Contains("status"));
-        Assert.NotNull(statusOption);
+        Assert.IsNotNull(statusOption);
     }
 
     // Error Handling Tests for PR ID Validation
 
-    [Fact]
+    [TestMethod]
     public async Task UpdatePullRequest_WithZeroPrId_ReturnsErrorCode()
     {
         using (new ConsoleOutputCapture())
         {
             var command = new PullRequestCommand(_verboseOption);
             var method = typeof(PullRequestCommand).GetMethod("UpdatePullRequest", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             var task = (Task<int>)method!.Invoke(command, new object[] { 0, null!, null!, null!, false })!;
             var result = await task;
 
             // Should return error code 1
-            Assert.Equal(1, result);
+            Assert.AreEqual(1, result);
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task UpdatePullRequest_WithNegativePrId_ReturnsErrorCode()
     {
         using (new ConsoleOutputCapture())
         {
             var command = new PullRequestCommand(_verboseOption);
             var method = typeof(PullRequestCommand).GetMethod("UpdatePullRequest", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             var task = (Task<int>)method!.Invoke(command, new object[] { -1, null!, null!, null!, false })!;
             var result = await task;
 
             // Should return error code 1
-            Assert.Equal(1, result);
+            Assert.AreEqual(1, result);
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task UpdatePullRequest_WithZeroPrId_DisplaysHelpfulErrorMessage()
     {
         using (var capture = new ConsoleOutputCapture())
         {
             var command = new PullRequestCommand(_verboseOption);
             var method = typeof(PullRequestCommand).GetMethod("UpdatePullRequest", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             var task = (Task<int>)method!.Invoke(command, new object[] { 0, null!, null!, null!, false })!;
             await task;
@@ -255,55 +253,55 @@ public class PullRequestCommandTests
             var output = capture.GetOutput();
             
             // Verify error message contains key information
-            Assert.Contains("PR ID is required", output);
-            Assert.Contains("--pr-id", output);
-            Assert.Contains("Example:", output);
-            Assert.Contains("sdo pr update --pr-id 123", output);
+            StringAssert.Contains(output, "PR ID is required");
+            StringAssert.Contains(output, "--pr-id");
+            StringAssert.Contains(output, "Example:");
+            StringAssert.Contains(output, "sdo pr update --pr-id 123");
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task ShowPullRequest_WithZeroPrId_ReturnsErrorCode()
     {
         using (new ConsoleOutputCapture())
         {
             var command = new PullRequestCommand(_verboseOption);
             var method = typeof(PullRequestCommand).GetMethod("ShowPullRequest", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             var task = (Task<int>)method.Invoke(command, new object[] { 0, false })!;
             var result = await task;
 
             // Should return error code 1
-            Assert.Equal(1, result);
+            Assert.AreEqual(1, result);
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task ShowPullRequest_WithNegativePrId_ReturnsErrorCode()
     {
         using (new ConsoleOutputCapture())
         {
             var command = new PullRequestCommand(_verboseOption);
             var method = typeof(PullRequestCommand).GetMethod("ShowPullRequest", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             var task = (Task<int>)method.Invoke(command, new object[] { -1, false })!;
             var result = await task;
 
             // Should return error code 1
-            Assert.Equal(1, result);
+            Assert.AreEqual(1, result);
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task ShowPullRequest_WithZeroPrId_DisplaysHelpfulErrorMessage()
     {
         using (var capture = new ConsoleOutputCapture())
         {
             var command = new PullRequestCommand(_verboseOption);
             var method = typeof(PullRequestCommand).GetMethod("ShowPullRequest", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             var task = (Task<int>)method.Invoke(command, new object[] { 0, false })!;
             await task;
@@ -311,22 +309,22 @@ public class PullRequestCommandTests
             var output = capture.GetOutput();
             
             // Verify error message contains key information
-            Assert.Contains("PR ID is required", output);
-            Assert.Contains("positional argument", output);
-            Assert.Contains("--pr-id", output);
-            Assert.Contains("Example:", output);
-            Assert.Contains("sdo pr show 123", output);
+            StringAssert.Contains(output, "PR ID is required");
+            StringAssert.Contains(output, "positional argument");
+            StringAssert.Contains(output, "--pr-id");
+            StringAssert.Contains(output, "Example:");
+            StringAssert.Contains(output, "sdo pr show 123");
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task UpdatePullRequest_WithZeroPrId_ShowsExamples()
     {
         using (var capture = new ConsoleOutputCapture())
         {
             var command = new PullRequestCommand(_verboseOption);
             var method = typeof(PullRequestCommand).GetMethod("UpdatePullRequest", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             var task = (Task<int>)method!.Invoke(command, new object[] { 0, null!, null!, null!, false })!;
             await task;
@@ -334,19 +332,19 @@ public class PullRequestCommandTests
             var output = capture.GetOutput();
             
             // Verify both examples are shown
-            Assert.Contains("sdo pr update --pr-id 123 -f ./pr-message.md", output);
-            Assert.Contains("sdo pr update --pr-id 123 --title", output);
+            StringAssert.Contains(output, "sdo pr update --pr-id 123 -f ./pr-message.md");
+            StringAssert.Contains(output, "sdo pr update --pr-id 123 --title");
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task ShowPullRequest_WithZeroPrId_ShowsExamples()
     {
         using (var capture = new ConsoleOutputCapture())
         {
             var command = new PullRequestCommand(_verboseOption);
             var method = typeof(PullRequestCommand).GetMethod("ShowPullRequest", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             var task = (Task<int>)method.Invoke(command, new object[] { 0, false })!;
             await task;
@@ -354,14 +352,15 @@ public class PullRequestCommandTests
             var output = capture.GetOutput();
             
             // Verify both examples are shown
-            Assert.Contains("sdo pr show 123", output);
-            Assert.Contains("sdo pr show --pr-id 123", output);
+            StringAssert.Contains(output, "sdo pr show 123");
+            StringAssert.Contains(output, "sdo pr show --pr-id 123");
         }
     }
 
     /// <summary>
     /// Tests for PR auto-detection feature
     /// </summary>
+    [TestClass]
     public class PullRequestAutoDetectionTests
     {
         private readonly Option<bool> _verboseOption;
@@ -373,139 +372,138 @@ public class PullRequestCommandTests
             _command = new PullRequestCommand(_verboseOption);
         }
 
-        [Theory]
-        [InlineData("244-issue", 244)]
-        [InlineData("123-feature-name", 123)]
-        [InlineData("1-bugfix", 1)]
-        [InlineData("001-test", 1)]
-        [InlineData("999-very-long-branch-name-with-many-words", 999)]
+        [DataTestMethod]
+        [DataRow("244-issue", 244)]
+        [DataRow("123-feature-name", 123)]
+        [DataRow("1-bugfix", 1)]
+        [DataRow("001-test", 1)]
+        [DataRow("999-very-long-branch-name-with-many-words", 999)]
         public void ExtractWorkItemIdFromBranch_WithValidBranch_ReturnsCorrectId(string branchName, int expectedId)
         {
             // Arrange
             var method = typeof(PullRequestCommand).GetMethod("ExtractWorkItemIdFromBranch",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             // Act
             var result = (int?)method.Invoke(_command, new object[] { branchName });
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(expectedId, result.Value);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(expectedId, result.Value);
         }
 
-        [Theory]
-        [InlineData("main")]
-        [InlineData("feature")]
-        [InlineData("develop")]
-        [InlineData("")]
-        [InlineData("no-number-here")]
-        [InlineData("-123-starts-with-dash")]
+        [DataTestMethod]
+        [DataRow("main")]
+        [DataRow("feature")]
+        [DataRow("develop")]
+        [DataRow("")]
+        [DataRow("no-number-here")]
+        [DataRow("-123-starts-with-dash")]
         public void ExtractWorkItemIdFromBranch_WithInvalidBranch_ReturnsNull(string branchName)
         {
             // Arrange
             var method = typeof(PullRequestCommand).GetMethod("ExtractWorkItemIdFromBranch",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             // Act
             var result = (int?)method.Invoke(_command, new object[] { branchName });
 
             // Assert
-            Assert.Null(result);
+            Assert.IsNull(result);
         }
 
-        [Fact]
+        [TestMethod]
         public void ExtractWorkItemIdFromBranch_WithLeadingZeros_ReturnsCorrectId()
         {
             // Arrange
             var method = typeof(PullRequestCommand).GetMethod("ExtractWorkItemIdFromBranch",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             // Act
             var result = (int?)method.Invoke(_command, new object[] { "0001-feature" });
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(1, result.Value);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.Value);
         }
 
-        [Fact]
+        [TestMethod]
         public void ExtractWorkItemIdFromBranch_WithNullBranch_ReturnsNull()
         {
             // Arrange
             var method = typeof(PullRequestCommand).GetMethod("ExtractWorkItemIdFromBranch",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             // Act
             var result = (int?)method.Invoke(_command, new object[] { null! });
 
             // Assert
-            Assert.Null(result);
+            Assert.IsNull(result);
         }
 
-        [Theory]
-        [InlineData(244)]
-        [InlineData(123)]
-        [InlineData(1)]
+        [DataTestMethod]
+        [DataRow(244)]
+        [DataRow(123)]
+        [DataRow(1)]
         public void ConstructDefaultFilePath_WithValidId_ReturnsCorrectPath(int workItemId)
         {
             // Arrange
             var method = typeof(PullRequestCommand).GetMethod("ConstructDefaultFilePath",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             // Act
             var result = (string?)method.Invoke(_command, new object[] { workItemId });
 
             // Assert
-            Assert.NotNull(result);
+            Assert.IsNotNull(result);
             // Normalize path separators for cross-platform compatibility
             var normalizedResult = result.Replace("/", "\\");
-            Assert.EndsWith($"{workItemId}-pr-message.md", normalizedResult);
-            Assert.Contains(".temp", normalizedResult);
+            StringAssert.EndsWith(normalizedResult, $"{workItemId}-pr-message.md");
+            StringAssert.Contains(normalizedResult, ".temp");
         }
 
-        [Fact]
+        [TestMethod]
         public void ConstructDefaultFilePath_ContainsWorkItemId()
         {
             // Arrange
             var method = typeof(PullRequestCommand).GetMethod("ConstructDefaultFilePath",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
             int workItemId = 456;
 
             // Act
             var result = (string?)method.Invoke(_command, new object[] { workItemId });
 
             // Assert
-            Assert.Contains("456", result);
-            Assert.Contains("-pr-message.md", result);
+            StringAssert.Contains(result, "456");
+            StringAssert.Contains(result, "-pr-message.md");
         }
 
-        [Fact]
+        [TestMethod]
         public void ConstructDefaultFilePath_ContainsTempDirectory()
         {
             // Arrange
             var method = typeof(PullRequestCommand).GetMethod("ConstructDefaultFilePath",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
 
             // Act
             var result = (string?)method.Invoke(_command, new object[] { 100 });
 
             // Assert
-            Assert.Contains(".temp", result);
+            StringAssert.Contains(result, ".temp");
         }
     }
 }
-
