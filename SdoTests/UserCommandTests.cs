@@ -1,12 +1,12 @@
 // Copyright (c) 2020-2026 naz-hage. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.CommandLine;
-using Xunit;
 using Sdo.Commands;
+using System.CommandLine;
 
 namespace SdoTests;
+
+[TestClass]
 
 public class UserCommandTests
 {
@@ -18,68 +18,68 @@ public class UserCommandTests
         _verboseOption.Description = "Enable verbose output";
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_CreatesCommandWithCorrectNameAndDescription()
     {
         var cmd = new UserCommand(_verboseOption);
-        Assert.Equal("user", cmd.Name);
-        Assert.Equal("User management commands for GitHub and Azure DevOps", cmd.Description);
+        Assert.AreEqual("user", cmd.Name);
+        Assert.AreEqual("User management commands for GitHub and Azure DevOps", cmd.Description);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsExpectedSubcommands()
     {
         var cmd = new UserCommand(_verboseOption);
-        Assert.NotNull(cmd.Subcommands);
-        Assert.Contains(cmd.Subcommands, s => s.Name == "show");
-        Assert.Contains(cmd.Subcommands, s => s.Name == "list");
-        Assert.Contains(cmd.Subcommands, s => s.Name == "search");
-        Assert.Contains(cmd.Subcommands, s => s.Name == "permissions");
+        Assert.IsNotNull(cmd.Subcommands);
+        Assert.IsTrue(cmd.Subcommands.Any(s => s.Name == "show"));
+        Assert.IsTrue(cmd.Subcommands.Any(s => s.Name == "list"));
+        Assert.IsTrue(cmd.Subcommands.Any(s => s.Name == "search"));
+        Assert.IsTrue(cmd.Subcommands.Any(s => s.Name == "permissions"));
     }
 
-    [Fact]
+    [TestMethod]
     public void ShowSubcommand_HasLoginOption()
     {
         var cmd = new UserCommand(_verboseOption);
-        var show = Assert.Single(cmd.Subcommands, s => s.Name == "show");
-        var opt = Assert.Single(show.Options, o => o.Name == "--login");
-        Assert.Equal("User login or id", opt.Description);
+        var show = cmd.Subcommands.Single(s => s.Name == "show");
+        var opt = show.Options.Single(o => o.Name == "--login");
+        Assert.AreEqual("User login or id", opt.Description);
     }
 
-    [Fact]
+    [TestMethod]
     public void ListSubcommand_HasTopOption()
     {
         var cmd = new UserCommand(_verboseOption);
-        var list = Assert.Single(cmd.Subcommands, s => s.Name == "list");
-        var opt = Assert.Single(list.Options, o => o.Name == "--top");
-        Assert.Equal("Limit results", opt.Description);
+        var list = cmd.Subcommands.Single(s => s.Name == "list");
+        var opt = list.Options.Single(o => o.Name == "--top");
+        Assert.AreEqual("Limit results", opt.Description);
     }
 
-    [Fact]
+    [TestMethod]
     public void SearchSubcommand_RequiresQuery()
     {
         var cmd = new UserCommand(_verboseOption);
         var args = new[] { "search" };
         var result = cmd.Parse(args).Invoke();
-        Assert.NotEqual(0, result);
+        Assert.AreNotEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void PermissionsSubcommand_HasUserOption()
     {
         var cmd = new UserCommand(_verboseOption);
-        var perms = Assert.Single(cmd.Subcommands, s => s.Name == "permissions");
-        var opt = Assert.Single(perms.Options, o => o.Name == "--user");
-        Assert.Equal("User login or id", opt.Description);
+        var perms = cmd.Subcommands.Single(s => s.Name == "permissions");
+        var opt = perms.Options.Single(o => o.Name == "--user");
+        Assert.AreEqual("User login or id", opt.Description);
     }
 
-    [Fact]
+    [TestMethod]
     public void Subcommands_HaveGlobalVerboseOption()
     {
         var cmd = new UserCommand(_verboseOption);
         foreach (var sub in cmd.Subcommands)
         {
-            Assert.Contains(sub.Options, o => o.Name == "--verbose");
+            Assert.IsTrue(sub.Options.Any(o => o.Name == "--verbose"));
         }
     }
 }

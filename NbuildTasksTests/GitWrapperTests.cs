@@ -118,6 +118,26 @@ namespace NbuildTasks.Tests
         public void GetCurrentTagTest() => Assert.AreEqual("1.0.0", GitWrapper.Tag);
 
         [TestMethod]
+        public void ProjectNameFromUrlTest()
+        {
+            Assert.AreEqual(ProjectName, GitWrapper.ProjectNameFromUrl(RepositoryUrl));
+            AssertArgumentException(() => GitWrapper.ProjectNameFromUrl(null));
+        }
+
+        [TestMethod]
+        public void WorkingDirectoryTest()
+        {
+            var wrapper = GitWrapper;
+            var originalDirectory = wrapper.WorkingDirectory;
+            var testDirectory = CreateTestDirectory();
+
+            wrapper.WorkingDirectory = testDirectory;
+
+            Assert.AreEqual(testDirectory, wrapper.WorkingDirectory);
+            wrapper.WorkingDirectory = originalDirectory;
+        }
+
+        [TestMethod]
         public void SetAutoTagTest()
         {
             var tag = GitWrapper.SetAutoTag(BuildType.STAGE.ToString());
@@ -138,6 +158,22 @@ namespace NbuildTasks.Tests
             {
                 Assert.IsFalse(GitWrapper.IsValidTag(tag));
             }
+        }
+
+        [TestMethod]
+        public void IsValid4TagTest()
+        {
+            Assert.IsTrue(GitWrapper.IsValid4Tag("1.2.3.4"));
+            Assert.IsFalse(GitWrapper.IsValid4Tag("1.2.3"));
+            Assert.IsFalse(GitWrapper.IsValid4Tag("1.2.3.x"));
+            Assert.IsFalse(GitWrapper.IsValid4Tag(null));
+        }
+
+        [TestMethod]
+        public void AutoTagTest()
+        {
+            Assert.AreEqual(string.Empty, GitWrapper.AutoTag(null));
+            AssertArgumentException(() => GitWrapper.AutoTag("unknown"));
         }
 
         [TestMethod]
@@ -163,12 +199,30 @@ namespace NbuildTasks.Tests
         }
 
         [TestMethod]
+        public void PullWithRebaseTest() => Assert.IsTrue(GitWrapper.PullWithRebase());
+
+        [TestMethod]
         public void DeleteTagTest()
         {
-            var tag = GitWrapper.Tag;
+            var tag = "9.9." + (DateTime.UtcNow.Ticks % 1000000);
+            Assert.IsTrue(GitWrapper.SetTag(tag));
 
             Assert.IsTrue(GitWrapper.DeleteTag(tag));
             Assert.IsFalse(GitWrapper.DeleteTag(tag));
+        }
+
+        [TestMethod]
+        public void TagLookupTests()
+        {
+            var tag = "8.8." + (DateTime.UtcNow.Ticks % 1000000);
+            RunGit(Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName), "tag " + tag);
+            RunGit(Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName), "push origin " + tag);
+
+            Assert.IsTrue(GitWrapper.LocalTagExists(tag));
+            Assert.IsTrue(GitWrapper.RemoteTagExists(tag));
+            Assert.IsTrue(GitWrapper.ListLocalTags().Contains(tag));
+            Assert.IsTrue(GitWrapper.ListRemoteTags().Contains(tag));
+            Assert.IsTrue(GitWrapper.DeleteTag(tag));
         }
 
         [TestMethod]
@@ -193,6 +247,61 @@ namespace NbuildTasks.Tests
 
         [TestMethod]
         public void CheckoutBranchTest2() => Assert.IsTrue(GitWrapper.CheckoutBranch("main"));
+
+        [TestMethod]
+        public void BranchOperationsTest()
+        {
+            var branch = "fixture-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+
+            Assert.IsFalse(GitWrapper.BranchExists(null));
+            Assert.IsTrue(GitWrapper.CheckoutBranch(branch, create: true));
+            Assert.IsTrue(GitWrapper.BranchExists(branch));
+            Assert.IsTrue(GitWrapper.ListBranches().Contains(branch));
+            Assert.IsTrue(GitWrapper.Push(branch));
+            Assert.IsTrue(GitWrapper.BranchExistsOnRemote(branch));
+            Assert.IsTrue(GitWrapper.ListRemoteBranches().Contains(branch));
+            Assert.IsTrue(GitWrapper.CheckoutBranch("main"));
+            Assert.IsTrue(GitWrapper.DeleteRemoteBranch(branch));
+            Assert.IsFalse(GitWrapper.BranchExistsOnRemote(branch));
+            Assert.IsTrue(GitWrapper.DeleteBranch(branch));
+        }
+
+        [TestMethod]
+        public void DeleteAllLocalBranchesTest()
+        {
+            var branch = "fixture-cleanup-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+
+            Assert.IsTrue(GitWrapper.CheckoutBranch(branch, create: true));
+            Assert.IsTrue(GitWrapper.CheckoutBranch("main"));
+            Assert.IsTrue(GitWrapper.DeleteAllLocalBranches().Contains(branch));
+            Assert.IsFalse(GitWrapper.BranchExists(branch));
+        }
+
+        [TestMethod]
+        public void GitRepositoryAndRemoteTests()
+        {
+            Assert.IsTrue(GitWrapper.IsGitRepository());
+            Assert.IsTrue(GitWrapper.GetRemoteUrl().Contains(ProjectName));
+        }
+
+        [TestMethod]
+        public void GitChangeOperationsTest()
+        {
+            var file = Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName, "fixture-change.txt");
+            File.WriteAllText(file, "staged with StageFile");
+            Assert.IsTrue(GitWrapper.StageFile("fixture-change.txt").Code == 0);
+            Assert.IsTrue(GitWrapper.GetStatusPorcelain().Contains("fixture-change.txt"));
+            Assert.IsTrue(GitWrapper.Commit("Add fixture change"));
+
+            File.WriteAllText(file, "staged with StageAllChanges");
+            Assert.IsTrue(GitWrapper.StageAllChanges());
+            Assert.IsTrue(GitWrapper.Commit("Update fixture change"));
+            Assert.IsTrue(GitWrapper.Push());
+            Assert.AreEqual(string.Empty, GitWrapper.GetStatusPorcelain());
+        }
+
+        [TestMethod]
+        public void FetchAllAndPruneTest() => Assert.IsTrue(GitWrapper.FetchAllAndPrune());
 
         [TestMethod]
         public void PushTagTest()
@@ -232,6 +341,18 @@ namespace NbuildTasks.Tests
             var path = Path.Combine(FixtureRoot, Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(path);
             return path;
+        }
+
+        private static void AssertArgumentException(Action action)
+        {
+            try
+            {
+                action();
+                Assert.Fail("Expected an ArgumentException.");
+            }
+            catch (ArgumentException)
+            {
+            }
         }
 
         private static void RunGit(string workingDirectory, string arguments)

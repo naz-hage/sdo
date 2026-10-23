@@ -1,12 +1,7 @@
-using System;
-using System.CommandLine;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
-using Xunit;
 using Sdo.Commands;
 using Sdo.Mapping;
-using Sdo.Services;
+using System.CommandLine;
+using System.Reflection;
 
 namespace SdoTests
 {
@@ -19,11 +14,13 @@ namespace SdoTests
         }
     }
 
+    [TestClass]
+
     public class PullRequestCommandMappingTests
     {
         private readonly Option<bool> _verboseOption = new Option<bool>("--verbose");
 
-        [Fact]
+        [TestMethod]
         public async Task CreateCommand_DryRun_PresentsMapping()
         {
             var presenter = new TestMappingPresenter();
@@ -36,9 +33,9 @@ namespace SdoTests
 
             // Force platform detector internals to GitHub with owner/repo
             var platField = typeof(PullRequestCommand).GetField("_platformDetector", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(platField);
+            Assert.IsNotNull(platField);
             var platInstance = platField.GetValue(cmd);
-            Assert.NotNull(platInstance);
+            Assert.IsNotNull(platInstance);
             // Set private fields on PlatformService
             var detField = platInstance.GetType().GetField("_detectedPlatform", BindingFlags.NonPublic | BindingFlags.Instance);
             var orgField = platInstance.GetType().GetField("_organization", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -49,21 +46,21 @@ namespace SdoTests
 
             // Invoke private CreatePullRequest with dryRun=true and verbose=true
             var method = typeof(PullRequestCommand).GetMethod("CreatePullRequest", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(method);
+            Assert.IsNotNull(method);
             var task = (Task<int>)method.Invoke(cmd, new object[] { tmp, 1, false, true, true })!;
             var result = await task;
-            Assert.Equal(0, result);
+            Assert.AreEqual(0, result);
 
             // For dry-run with verbose, the presenter should have received the mapping
             // Verify that a mapping was presented (non-null and contains gh pr create command)
-            Assert.NotNull(presenter.Last);
-            Assert.Contains("gh pr create", presenter.Last);
-            Assert.Contains("ownerX/repoY", presenter.Last);
+            Assert.IsNotNull(presenter.Last);
+            StringAssert.Contains(presenter.Last, "gh pr create");
+            StringAssert.Contains(presenter.Last, "ownerX/repoY");
 
             File.Delete(tmp);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task ListCommand_Verbose_PresentsMapping()
         {
             // Ensure env token exists so GetGitHubTokenAsync returns a non-null value
@@ -89,10 +86,10 @@ namespace SdoTests
 
             // mapping should have been presented
             var expected = generator.PrListGitHub("ownerA", "repoB", "open", 5);
-            Assert.Equal(expected, presenter.Last);
+            Assert.AreEqual(expected, presenter.Last);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task ShowCommand_Verbose_PresentsMapping()
         {
             Environment.SetEnvironmentVariable("GITHUB_TOKEN", "fake-token-for-tests");
@@ -114,10 +111,10 @@ namespace SdoTests
             var result = await task;
 
             var expected = $"gh pr view -R ownerA/repoB 123";
-            Assert.Equal(expected, presenter.Last);
+            Assert.AreEqual(expected, presenter.Last);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task UpdateCommand_Verbose_PresentsMapping()
         {
             Environment.SetEnvironmentVariable("GITHUB_TOKEN", "fake-token-for-tests");
@@ -139,10 +136,10 @@ namespace SdoTests
             var result = await task;
 
             var expectedStart = $"gh pr edit -R ownerA/repoB 321";
-            Assert.NotNull(presenter.Last);
-            Assert.StartsWith(expectedStart, presenter.Last!);
-            Assert.Contains("--title \"New Title\"", presenter.Last);
-            Assert.Contains("--state closed", presenter.Last);
+            Assert.IsNotNull(presenter.Last);
+            StringAssert.StartsWith(presenter.Last!, expectedStart);
+            StringAssert.Contains(presenter.Last, "--title \"New Title\"");
+            StringAssert.Contains(presenter.Last, "--state closed");
         }
     }
 }

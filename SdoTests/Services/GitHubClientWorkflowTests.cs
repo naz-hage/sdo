@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sdo.Services;
 
 namespace SdoTests.Services
 {
+    [TestClass]
     public class GitHubClientWorkflowTests
     {
         private class TestHttpMessageHandler : HttpMessageHandler
@@ -28,7 +29,7 @@ namespace SdoTests.Services
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetWorkflowAsync_ReturnsWorkflow()
         {
             var owner = "owner";
@@ -56,13 +57,13 @@ namespace SdoTests.Services
 
             var wf = await client.GetWorkflowAsync(owner, repo, workflowId);
 
-            Assert.NotNull(wf);
-            Assert.Equal(workflowId, wf!.Id);
-            Assert.Equal("CI", wf.Name);
-            Assert.Equal("active", wf.State);
+            Assert.IsNotNull(wf);
+            Assert.AreEqual(workflowId, wf!.Id);
+            Assert.AreEqual("CI", wf.Name);
+            Assert.AreEqual("active", wf.State);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task TriggerWorkflowAsync_ReturnsTrue_OnNoContent()
         {
             var owner = "owner";
@@ -83,10 +84,10 @@ namespace SdoTests.Services
             using var client = new GitHubClient(httpClient);
 
             var success = await client.TriggerWorkflowAsync(owner, repo, workflowId, "main");
-            Assert.True(success);
+            Assert.IsTrue(success);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetWorkflowLogsAsync_ReturnsExtractedText()
         {
             var owner = "owner";
@@ -125,9 +126,9 @@ namespace SdoTests.Services
 
             var text = await client.GetWorkflowLogsAsync(owner, repo, runId);
 
-            Assert.NotNull(text);
-            Assert.Contains("===== logs/job1.txt =====", text);
-            Assert.Contains("hello logs", text);
+            Assert.IsNotNull(text);
+            StringAssert.Contains(text, "===== logs/job1.txt =====");
+            StringAssert.Contains(text, "hello logs");
         }
     }
 }

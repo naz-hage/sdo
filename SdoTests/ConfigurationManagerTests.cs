@@ -1,10 +1,6 @@
 // Copyright (c) 2020-2026 naz-hage. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using Xunit;
 using Sdo.Utilities;
 
 namespace SdoTests
@@ -13,6 +9,7 @@ namespace SdoTests
     /// Unit tests for ConfigurationManager.
     /// Tests YAML parsing, environment variable interpolation, and configuration management.
     /// </summary>
+    [TestClass]
     public class ConfigurationManagerTests
     {
         private readonly string _testDirectory = Path.Combine(Path.GetTempPath(), "ConfigurationManagerTests");
@@ -34,7 +31,7 @@ namespace SdoTests
             if (File.Exists(filePath)) File.Delete(filePath);
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_WithValidYamlFile_LoadsConfiguration()
         {
             // Arrange
@@ -54,10 +51,10 @@ batch_size: 10";
                 var result = config.Load(filePath);
 
                 // Assert
-                Assert.True(result);
-                Assert.Equal("github", config.GetValue("platform"));
-                Assert.Equal("my-org", config.GetValue("organization"));
-                Assert.Equal("10", config.GetValue("batch_size"));
+                Assert.IsTrue(result);
+                Assert.AreEqual("github", config.GetValue("platform"));
+                Assert.AreEqual("my-org", config.GetValue("organization"));
+                Assert.AreEqual("10", config.GetValue("batch_size"));
             }
             finally
             {
@@ -65,7 +62,7 @@ batch_size: 10";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_WithSections_ParsesSectionedConfiguration()
         {
             // Arrange - Using YAML nested structure instead of INI [section] format
@@ -85,9 +82,9 @@ azure_devops:
                 var result = config.Load(filePath);
 
                 // Assert
-                Assert.True(result);
-                Assert.Equal("ghp_xxxxxxxxxxxx", config.GetValue("github:token"));
-                Assert.Equal("my-org", config.GetValue("azure_devops:organization"));
+                Assert.IsTrue(result);
+                Assert.AreEqual("ghp_xxxxxxxxxxxx", config.GetValue("github:token"));
+                Assert.AreEqual("my-org", config.GetValue("azure_devops:organization"));
             }
             finally
             {
@@ -95,7 +92,7 @@ azure_devops:
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetValue_WithEnvironmentVariable_InterpolatesCorrectly()
         {
             // Arrange
@@ -113,7 +110,7 @@ other_value: static";
                 var value = config.GetValue("config_value");
 
                 // Assert
-                Assert.Equal("test_value", value);
+                Assert.AreEqual("test_value", value);
             }
             finally
             {
@@ -122,7 +119,7 @@ other_value: static";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetInt_WithValidInteger_ReturnsInt()
         {
             // Arrange
@@ -137,7 +134,7 @@ other_value: static";
                 var value = config.GetInt("batch_size");
 
                 // Assert
-                Assert.Equal(25, value);
+                Assert.AreEqual(25, value);
             }
             finally
             {
@@ -145,7 +142,7 @@ other_value: static";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetInt_WithInvalidValue_ReturnsDefault()
         {
             // Arrange
@@ -160,7 +157,7 @@ other_value: static";
                 var value = config.GetInt("batch_size", 10);
 
                 // Assert
-                Assert.Equal(10, value);
+                Assert.AreEqual(10, value);
             }
             finally
             {
@@ -168,7 +165,7 @@ other_value: static";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetBool_WithTrueVariations_ReturnsTrue()
         {
             // Arrange
@@ -185,9 +182,9 @@ option_c: 1";
                 config.Load(filePath);
 
                 // Assert
-                Assert.True(config.GetBool("option_a"));
-                Assert.True(config.GetBool("option_b"));
-                Assert.True(config.GetBool("option_c"));
+                Assert.IsTrue(config.GetBool("option_a"));
+                Assert.IsTrue(config.GetBool("option_b"));
+                Assert.IsTrue(config.GetBool("option_c"));
             }
             finally
             {
@@ -195,7 +192,7 @@ option_c: 1";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetBool_WithFalseVariations_ReturnsFalse()
         {
             // Arrange
@@ -212,9 +209,9 @@ option_c: 0";
                 config.Load(filePath);
 
                 // Assert
-                Assert.False(config.GetBool("option_a"));
-                Assert.False(config.GetBool("option_b"));
-                Assert.False(config.GetBool("option_c"));
+                Assert.IsFalse(config.GetBool("option_a"));
+                Assert.IsFalse(config.GetBool("option_b"));
+                Assert.IsFalse(config.GetBool("option_c"));
             }
             finally
             {
@@ -222,7 +219,7 @@ option_c: 0";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void SetValue_OverridesConfigurationValue()
         {
             // Arrange
@@ -238,7 +235,7 @@ option_c: 0";
                 var value = config.GetValue("platform");
 
                 // Assert
-                Assert.Equal("azure_devops", value);
+                Assert.AreEqual("azure_devops", value);
             }
             finally
             {
@@ -246,7 +243,7 @@ option_c: 0";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetKeys_ReturnsAllConfigurationKeys()
         {
             // Arrange
@@ -264,9 +261,9 @@ project: my-project";
                 var keys = config.GetKeys();
 
                 // Assert
-                Assert.Contains("platform", keys);
-                Assert.Contains("organization", keys);
-                Assert.Contains("project", keys);
+                Assert.IsTrue(keys.Contains("platform"));
+                Assert.IsTrue(keys.Contains("organization"));
+                Assert.IsTrue(keys.Contains("project"));
             }
             finally
             {
@@ -274,7 +271,7 @@ project: my-project";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_WithComments_IgnoresCommentLines()
         {
             // Arrange
@@ -292,9 +289,9 @@ project: my-project";
                 config.Load(filePath);
 
                 // Assert
-                Assert.Equal("github", config.GetValue("platform"));
-                Assert.Null(config.GetValue("organization"));
-                Assert.Equal("my-project", config.GetValue("project"));
+                Assert.AreEqual("github", config.GetValue("platform"));
+                Assert.IsNull(config.GetValue("organization"));
+                Assert.AreEqual("my-project", config.GetValue("project"));
             }
             finally
             {
@@ -302,7 +299,7 @@ project: my-project";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_WithQuotedValues_StripsQuotes()
         {
             // Arrange
@@ -319,9 +316,9 @@ value_unquoted: unquoted";
                 config.Load(filePath);
 
                 // Assert
-                Assert.Equal("single quoted", config.GetValue("value_single"));
-                Assert.Equal("double quoted", config.GetValue("value_double"));
-                Assert.Equal("unquoted", config.GetValue("value_unquoted"));
+                Assert.AreEqual("single quoted", config.GetValue("value_single"));
+                Assert.AreEqual("double quoted", config.GetValue("value_double"));
+                Assert.AreEqual("unquoted", config.GetValue("value_unquoted"));
             }
             finally
             {
@@ -329,7 +326,7 @@ value_unquoted: unquoted";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_WithNonexistentFile_ReturnsFalse()
         {
             // Arrange
@@ -339,11 +336,11 @@ value_unquoted: unquoted";
             var result = config.Load("/nonexistent/path/.sdo.yaml");
 
             // Assert
-            Assert.False(result);
-            Assert.NotEmpty(config.GetErrors());
+            Assert.IsFalse(result);
+            Assert.IsNotEmpty(config.GetErrors());
         }
 
-        [Fact]
+        [TestMethod]
         public void GetValue_WithMissingKey_ReturnsDefault()
         {
             // Arrange
@@ -358,7 +355,7 @@ value_unquoted: unquoted";
                 var value = config.GetValue("missing_key", "default_value");
 
                 // Assert
-                Assert.Equal("default_value", value);
+                Assert.AreEqual("default_value", value);
             }
             finally
             {
@@ -366,7 +363,7 @@ value_unquoted: unquoted";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetAllValues_WithSensitiveKeys_RedactsValues()
         {
             // Arrange
@@ -384,9 +381,9 @@ azure_pat: dev.azure.com_token";
                 var allValues = config.GetAllValues(includeSensitive: false);
 
                 // Assert
-                Assert.Equal("github", allValues["platform"]);
-                Assert.Equal("***REDACTED***", allValues["github_token"]);
-                Assert.Equal("***REDACTED***", allValues["azure_pat"]);
+                Assert.AreEqual("github", allValues["platform"]);
+                Assert.AreEqual("***REDACTED***", allValues["github_token"]);
+                Assert.AreEqual("***REDACTED***", allValues["azure_pat"]);
             }
             finally
             {
@@ -394,7 +391,7 @@ azure_pat: dev.azure.com_token";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void IsValid_WithLoadedConfiguration_ReturnsTrue()
         {
             // Arrange
@@ -408,8 +405,8 @@ azure_pat: dev.azure.com_token";
                 config.Load(filePath);
 
                 // Assert
-                Assert.True(config.IsValid());
-                Assert.Empty(config.GetErrors());
+                Assert.IsTrue(config.IsValid());
+                Assert.IsEmpty(config.GetErrors());
             }
             finally
             {
@@ -417,7 +414,7 @@ azure_pat: dev.azure.com_token";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void ExportAsJson_ExportsConfigurationAsJson()
         {
             // Arrange
@@ -434,10 +431,10 @@ organization: my-org";
                 var json = config.ExportAsJson();
 
                 // Assert
-                Assert.Contains("platform", json);
-                Assert.Contains("github", json);
-                Assert.Contains("organization", json);
-                Assert.Contains("my-org", json);
+                StringAssert.Contains(json, "platform");
+                StringAssert.Contains(json, "github");
+                StringAssert.Contains(json, "organization");
+                StringAssert.Contains(json, "my-org");
             }
             finally
             {
@@ -445,7 +442,7 @@ organization: my-org";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_WithoutFile_UsesDefaults()
         {
             // Arrange
@@ -455,13 +452,13 @@ organization: my-org";
             var result = config.Load();
 
             // Assert
-            Assert.True(result); // Should succeed with no errors even if file not found
-            Assert.True(config.IsValid());
+            Assert.IsTrue(result); // Should succeed with no errors even if file not found
+            Assert.IsTrue(config.IsValid());
         }
 
         #region Nested YAML and Config Defaults Tests
 
-        [Fact]
+        [TestMethod]
         public void Load_WithNestedYaml_FlattensTooDotNotation()
         {
             // Arrange
@@ -482,10 +479,10 @@ organization: my-org";
                 config.Load(filePath);
 
                 // Assert
-                Assert.Equal("Proto", config.GetValue("commands:wi:list:project"));
-                Assert.Equal("Proto\\Warriors", config.GetValue("commands:wi:list:area_path"));
-                Assert.Equal("To Do,In Progress", config.GetValue("commands:wi:list:state"));
-                Assert.Equal("50", config.GetValue("commands:wi:list:top"));
+                Assert.AreEqual("Proto", config.GetValue("commands:wi:list:project"));
+                Assert.AreEqual("Proto\\Warriors", config.GetValue("commands:wi:list:area_path"));
+                Assert.AreEqual("To Do,In Progress", config.GetValue("commands:wi:list:state"));
+                Assert.AreEqual("50", config.GetValue("commands:wi:list:top"));
             }
             finally
             {
@@ -493,7 +490,7 @@ organization: my-org";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void LoadedConfigPath_AfterLoad_StoresAbsolutePath()
         {
             // Arrange
@@ -507,9 +504,9 @@ organization: my-org";
                 config.Load(filePath);
 
                 // Assert
-                Assert.NotNull(config.LoadedConfigPath);
-                Assert.Equal(Path.GetFullPath(filePath), config.LoadedConfigPath);
-                Assert.True(Path.IsPathRooted(config.LoadedConfigPath));
+                Assert.IsNotNull(config.LoadedConfigPath);
+                Assert.AreEqual(Path.GetFullPath(filePath), config.LoadedConfigPath);
+                Assert.IsTrue(Path.IsPathRooted(config.LoadedConfigPath));
             }
             finally
             {
@@ -517,7 +514,7 @@ organization: my-org";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void LoadedConfigPath_WithoutLoad_ReturnsNull()
         {
             // Arrange
@@ -526,10 +523,10 @@ organization: my-org";
             // Act - don't call Load()
 
             // Assert
-            Assert.Null(config.LoadedConfigPath);
+            Assert.IsNull(config.LoadedConfigPath);
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_WithCustomPath_StoresLoadedPath()
         {
             // Arrange
@@ -543,8 +540,8 @@ organization: my-org";
                 config.Load(filePath);
 
                 // Assert
-                Assert.NotNull(config.LoadedConfigPath);
-                Assert.Contains("ConfigurationManagerTests", config.LoadedConfigPath);
+                Assert.IsNotNull(config.LoadedConfigPath);
+                StringAssert.Contains(config.LoadedConfigPath, "ConfigurationManagerTests");
             }
             finally
             {
@@ -552,7 +549,7 @@ organization: my-org";
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetValue_WithDotNotation_RetrievesNestedValues()
         {
             // Arrange
@@ -573,9 +570,9 @@ commands:
                 config.Load(filePath);
 
                 // Assert
-                Assert.Equal("myorg", config.GetValue("azure_devops.organization"));
-                Assert.Equal("myproject", config.GetValue("azure_devops.project"));
-                Assert.Equal("To Do,In Progress", config.GetValue("commands.wi.list.state"));
+                Assert.AreEqual("myorg", config.GetValue("azure_devops.organization"));
+                Assert.AreEqual("myproject", config.GetValue("azure_devops.project"));
+                Assert.AreEqual("To Do,In Progress", config.GetValue("commands.wi.list.state"));
             }
             finally
             {
@@ -583,7 +580,7 @@ commands:
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetValue_WithColonNotation_RetrievesNestedValues()
         {
             // Arrange
@@ -603,8 +600,8 @@ commands:
                 config.Load(filePath);
 
                 // Assert
-                Assert.Equal("myorg", config.GetValue("azure_devops:organization"));
-                Assert.Equal("To Do,In Progress", config.GetValue("commands:wi:list:state"));
+                Assert.AreEqual("myorg", config.GetValue("azure_devops:organization"));
+                Assert.AreEqual("To Do,In Progress", config.GetValue("commands:wi:list:state"));
             }
             finally
             {
@@ -612,7 +609,7 @@ commands:
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetInt_WithNestedYamlValue_ParsesInteger()
         {
             // Arrange
@@ -631,7 +628,7 @@ commands:
                 var top = config.GetInt("commands:wi:list:top");
 
                 // Assert
-                Assert.Equal(50, top);
+                Assert.AreEqual(50, top);
             }
             finally
             {
@@ -639,7 +636,7 @@ commands:
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_WithComplexNestedStructure_HandlesMultipleLevels()
         {
             // Arrange
@@ -670,11 +667,11 @@ commands:
 
                 // Assert
                 // Verify all nested values are accessible
-                Assert.Equal("TestProject", config.GetValue("project:name"));
-                Assert.Equal("testorg", config.GetValue("azure_devops:organization"));
-                Assert.Equal("TestProject\\Team", config.GetValue("azure_devops:area_path"));
-                Assert.Equal("To Do,In Progress", config.GetValue("commands:wi:list:state"));
-                Assert.Equal("100", config.GetValue("commands:wi:list:top"));
+                Assert.AreEqual("TestProject", config.GetValue("project:name"));
+                Assert.AreEqual("testorg", config.GetValue("azure_devops:organization"));
+                Assert.AreEqual("TestProject\\Team", config.GetValue("azure_devops:area_path"));
+                Assert.AreEqual("To Do,In Progress", config.GetValue("commands:wi:list:state"));
+                Assert.AreEqual("100", config.GetValue("commands:wi:list:top"));
             }
             finally
             {
@@ -682,7 +679,7 @@ commands:
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_WithTempFolderStructure_FindsConfigInTempFolder()
         {
             // Arrange
@@ -708,11 +705,11 @@ commands:
                 var result = config.Load(); // Should find config in .temp subfolder
 
                 // Assert
-                Assert.True(result);
-                Assert.NotNull(config.LoadedConfigPath);
-                Assert.Contains(".temp", config.LoadedConfigPath);
-                Assert.Equal("TestProject", config.GetValue("commands:wi:list:project"));
-                Assert.Equal("To Do,In Progress", config.GetValue("commands:wi:list:state"));
+                Assert.IsTrue(result);
+                Assert.IsNotNull(config.LoadedConfigPath);
+                StringAssert.Contains(config.LoadedConfigPath, ".temp");
+                Assert.AreEqual("TestProject", config.GetValue("commands:wi:list:project"));
+                Assert.AreEqual("To Do,In Progress", config.GetValue("commands:wi:list:state"));
             }
             finally
             {
@@ -745,7 +742,7 @@ commands:
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Load_SearchOrder_CurrentDirectoryFirst()
         {
             // Arrange
@@ -770,7 +767,7 @@ commands:
                 config.Load(); // Should prefer current directory
 
                 // Assert
-                Assert.Equal("current_directory", config.GetValue("location"));
+                Assert.AreEqual("current_directory", config.GetValue("location"));
             }
             finally
             {

@@ -5,17 +5,15 @@
 //
 // Unit tests for the MapCommand class.
 
-using System;
-using System.CommandLine;
-using System.IO;
-using Xunit;
 using Sdo.Commands;
+using System.CommandLine;
 
 namespace SdoTests;
 
 /// <summary>
 /// Unit tests for the MapCommand class.
 /// </summary>
+[TestClass]
 public class MapCommandTests
 {
     private readonly Option<bool> _verboseOption;
@@ -26,40 +24,40 @@ public class MapCommandTests
         _verboseOption.Description = "Enable verbose output";
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_CreatesCommandWithCorrectNameAndDescription()
     {
         // Act
         var command = new MapCommand(_verboseOption);
 
         // Assert
-        Assert.Equal("map", command.Name);
-        Assert.Equal("Show command mappings between SDO and gh/az native CLI tools", command.Description);
+        Assert.AreEqual("map", command.Name);
+        Assert.AreEqual("Show command mappings between SDO and gh/az native CLI tools", command.Description);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsPlatformOption()
     {
         // Act
         var command = new MapCommand(_verboseOption);
 
         // Assert
-        var platformOption = Assert.Single(command.Options, o => o.Name == "--platform");
-        Assert.Equal("Platform to show mappings for (gh=github, azdo=azure-devops, leave empty for auto-detect)", platformOption.Description);
+        var platformOption = command.Options.Single(o => o.Name == "--platform");
+        Assert.AreEqual("Platform to show mappings for (gh=github, azdo=azure-devops, leave empty for auto-detect)", platformOption.Description);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsAllOption()
     {
         // Act
         var command = new MapCommand(_verboseOption);
 
         // Assert
-        var allOption = Assert.Single(command.Options, o => o.Name == "--all");
-        Assert.Equal("Show all mappings for both platforms", allOption.Description);
+        var allOption = command.Options.Single(o => o.Name == "--all");
+        Assert.AreEqual("Show all mappings for both platforms", allOption.Description);
     }
 
-    [Fact]
+    [TestMethod]
     public void Execute_WithNoOptions_ReturnsSuccess()
     {
         // Arrange
@@ -70,10 +68,10 @@ public class MapCommandTests
         var result = command.Parse(args).Invoke();
 
         // Assert
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Execute_WithPlatformGhOption_ReturnsSuccess()
     {
         // Arrange
@@ -84,10 +82,10 @@ public class MapCommandTests
         var result = command.Parse(args).Invoke();
 
         // Assert
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Execute_WithPlatformAzdoOption_ReturnsSuccess()
     {
         // Arrange
@@ -98,10 +96,10 @@ public class MapCommandTests
         var result = command.Parse(args).Invoke();
 
         // Assert
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Execute_WithAllOption_ReturnsSuccess()
     {
         // Arrange
@@ -112,10 +110,10 @@ public class MapCommandTests
         var result = command.Parse(args).Invoke();
 
         // Assert
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Execute_WithInvalidPlatform_ShowsErrorMessage()
     {
         // Arrange
@@ -126,10 +124,10 @@ public class MapCommandTests
         var result = command.Parse(args).Invoke();
 
         // Assert
-        Assert.Equal(0, result); // The command still succeeds but shows an error message
+        Assert.AreEqual(0, result); // The command still succeeds but shows an error message
     }
 
-    [Fact]
+    [TestMethod]
     public void Command_HasActionSet()
     {
         // Arrange
@@ -138,14 +136,14 @@ public class MapCommandTests
         // Act & Assert
         // The fact that we can parse and invoke without exceptions means the action is set
         var result = command.Parse(Array.Empty<string>()).Invoke();
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Theory]
-    [InlineData("gh")]
-    [InlineData("azdo")]
-    [InlineData("")]
-    [InlineData("auto")]
+    [DataTestMethod]
+    [DataRow("gh")]
+    [DataRow("azdo")]
+    [DataRow("")]
+    [DataRow("auto")]
     public void Execute_WithVariousPlatformValues_ReturnsSuccess(string platform)
     {
         // Arrange
@@ -156,10 +154,10 @@ public class MapCommandTests
         var result = command.Parse(args).Invoke();
 
         // Assert
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void EmbeddedResource_Exists()
     {
         // Arrange
@@ -171,6 +169,6 @@ public class MapCommandTests
         var exists = resourceNames.Contains(resourceName);
 
         // Assert
-        Assert.True(exists, $"Embedded resource '{resourceName}' not found. Available resources: {string.Join(", ", resourceNames)}");
+        Assert.IsTrue(exists, $"Embedded resource '{resourceName}' not found. Available resources: {string.Join(", ", resourceNames)}");
     }
 }

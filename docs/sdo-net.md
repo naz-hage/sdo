@@ -761,11 +761,25 @@ List repositories for your organization.
 sdo repo list                       # List repos
 sdo repo list --top 10              # Limit to 10
 sdo repo list --verbose             # Show API commands
+sdo repo list --save repos.yaml     # Save the repository list as YAML
 ```
 
 **Options:**
 - `--top <top>` — Return top N repositories
+- `--save <file>` — Write the repository list to a consumable YAML file
 - `--verbose` — Show mapping
+
+The `--save` path is resolved relative to the current directory unless an absolute
+path is provided. SDO displays the repository list as usual and reports the number
+of repositories written to the file. The YAML document contains the list under a
+top-level `repositories` key:
+
+```yaml
+repositories:
+  - name: sample
+    owner: owner
+    url: https://example.com/owner/sample
+```
 
 #### repo create
 

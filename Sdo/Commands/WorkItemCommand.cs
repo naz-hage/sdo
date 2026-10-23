@@ -55,8 +55,8 @@ namespace Sdo.Commands
         {
             var closeCommand = new Command("close", "Close a work item and clean up feature branch");
 
-            var idArgument = new Argument<int?>("id") 
-            { 
+            var idArgument = new Argument<int?>("id")
+            {
                 Description = "Work item ID (optional; auto-detected from branch name if not on main)",
                 Arity = ArgumentArity.ZeroOrOne
             };
@@ -155,9 +155,9 @@ namespace Sdo.Commands
         {
             var updateCommand = new Command("update", "Update work item properties");
 
-            var idOption = new Option<int?>("--id") 
-            { 
-                Description = "Work item ID (optional; auto-detected from branch name if not on main)" 
+            var idOption = new Option<int?>("--id")
+            {
+                Description = "Work item ID (optional; auto-detected from branch name if not on main)"
             };
             var titleOption = new Option<string?>("--title") { Description = "Update work item title" };
             var stateOption = new Option<string?>("--state") { Description = "Update work item state" };
@@ -194,8 +194,8 @@ namespace Sdo.Commands
         {
             var startCommand = new Command("start", "Start work on a work item by creating a feature branch and PR template");
 
-            var idArgument = new Argument<int?>("id") 
-            { 
+            var idArgument = new Argument<int?>("id")
+            {
                 Description = "Work item ID (optional; auto-detected from branch name if not on main)",
                 Arity = ArgumentArity.ZeroOrOne
             };
@@ -249,9 +249,9 @@ namespace Sdo.Commands
         {
             var createCommand = new Command("create", "Create a new work item");
             // Only allow markdown-file-driven creation; all fields must be in the file
-            var filePathOption = new Option<string?>("--file-path", ["-f"]) 
-            { 
-                Description = "Path to markdown file containing work item details (auto-detected as .temp/wi.md if not provided)" 
+            var filePathOption = new Option<string?>("--file-path", ["-f"])
+            {
+                Description = "Path to markdown file containing work item details (auto-detected as .temp/wi.md if not provided)"
             };
             var dryRunOption = new Option<bool>("--dry-run") { Description = "Parse and preview work item creation without creating it" };
 
@@ -455,7 +455,7 @@ namespace Sdo.Commands
         /// <summary>
         /// Handles listing work items with filtering.
         /// </summary>
-        private async Task<int> ListWorkItems(string? type, string? state, string? assignedTo, 
+        private async Task<int> ListWorkItems(string? type, string? state, string? assignedTo,
             bool assignedToMe, string? areaPath, string? iteration, int top, string? configPath, bool verbose)
         {
             // Load configuration defaults from sdo-config.yaml (if not provided via CLI)
@@ -469,13 +469,13 @@ namespace Sdo.Commands
                 }
                 return 1;
             }
-            
+
             // Display config file location
             if (_configManager.LoadedConfigPath != null)
             {
                 Console.WriteLine($"Config: {_configManager.LoadedConfigPath}");
             }
-            
+
             // Apply configuration defaults only if CLI values were not provided
             if (string.IsNullOrEmpty(type))
             {
@@ -799,7 +799,7 @@ namespace Sdo.Commands
                         if (!string.IsNullOrEmpty(client.LastError))
                         {
                             ConsoleHelper.WriteLine($"  Error: {client.LastError}");
-                            
+
                             // Provide specific guidance for common errors
                             if (client.LastError.Contains("Unauthorized"))
                             {
@@ -853,7 +853,7 @@ namespace Sdo.Commands
                 // Filter by assigned-to if specified
                 if (!string.IsNullOrEmpty(assignedTo))
                 {
-                    workItems = workItems.Where(w => !string.IsNullOrEmpty(w.AssignedTo) && 
+                    workItems = workItems.Where(w => !string.IsNullOrEmpty(w.AssignedTo) &&
                         w.AssignedTo.Equals(assignedTo, StringComparison.OrdinalIgnoreCase)).ToList();
                 }
 
@@ -866,7 +866,7 @@ namespace Sdo.Commands
                         ConsoleHelper.WriteError("Error: Could not determine current Azure DevOps user. Make sure your authentication token is valid.");
                         return 1;
                     }
-                    workItems = workItems.Where(w => !string.IsNullOrEmpty(w.AssignedTo) && 
+                    workItems = workItems.Where(w => !string.IsNullOrEmpty(w.AssignedTo) &&
                         w.AssignedTo.Equals(currentUser, StringComparison.OrdinalIgnoreCase)).ToList();
                 }
 
@@ -1265,7 +1265,7 @@ namespace Sdo.Commands
                 if (string.IsNullOrEmpty(sourceFilePath))
                 {
                     sourceFilePath = Path.Combine(".temp", "wi.md");
-                    
+
                     if (verbose)
                     {
                         ConsoleHelper.WriteVerbose($"[VERBOSE] Auto-detected file path: {sourceFilePath}");
@@ -1426,7 +1426,7 @@ namespace Sdo.Commands
                         ConsoleHelper.WriteSuccess($"Created GitHub issue #{createdIssue.Number}: {title}");
                         if (!string.IsNullOrEmpty(createdIssue.HtmlUrl))
                             ConsoleHelper.WriteSuccess($"   URL: {createdIssue.HtmlUrl}");
-                        
+
                         // Rename file if it was auto-detected from default path
                         if (string.IsNullOrEmpty(filePath) && sourceFilePath != null)
                         {
@@ -1446,7 +1446,7 @@ namespace Sdo.Commands
                                 // Don't fail the operation if renaming fails
                             }
                         }
-                        
+
                         // Display next steps
                         Console.WriteLine();
                         ConsoleHelper.WriteInfo("Next steps:");
@@ -1454,7 +1454,7 @@ namespace Sdo.Commands
                         ConsoleHelper.WriteInfo($"  2. Implement changes for issue {createdIssue.Number}");
                         ConsoleHelper.WriteInfo($"  3. Edit .temp/{createdIssue.Number}-pr-message.md with PR details (optional)");
                         ConsoleHelper.WriteInfo($"  4. Run: sdo pr create");
-                        
+
                         return 0;
                     }
 
@@ -1472,7 +1472,7 @@ namespace Sdo.Commands
                     }
 
                     var organization = _platformDetector.GetOrganization();
-                    
+
                     // Allow markdown metadata to override the detected organization
                     if (parsed?.Metadata != null && parsed.Metadata.TryGetValue("organization", out var metadataOrg) && !string.IsNullOrEmpty(metadataOrg))
                     {
@@ -1482,7 +1482,7 @@ namespace Sdo.Commands
                             ConsoleHelper.WriteVerbose($"[VERBOSE] Organization overridden from metadata: {organization}");
                         }
                     }
-                    
+
                     if (string.IsNullOrEmpty(organization))
                     {
                         ConsoleHelper.WriteError("Could not determine Azure DevOps organization");
@@ -1490,7 +1490,7 @@ namespace Sdo.Commands
                     }
 
                     var project = _platformDetector.GetProject();
-                    
+
                     // Allow markdown metadata to override the detected project
                     if (parsed?.Metadata != null && parsed.Metadata.TryGetValue("project", out var metadataProject) && !string.IsNullOrEmpty(metadataProject))
                     {
@@ -1567,7 +1567,7 @@ namespace Sdo.Commands
                             {
                                 ConsoleHelper.WriteWarning($"  URL: {urlObj}");
                             }
-                            
+
                             // Rename file if it was auto-detected from default path
                             if (string.IsNullOrEmpty(filePath) && sourceFilePath != null && idObj is int workItemId)
                             {
@@ -1582,7 +1582,7 @@ namespace Sdo.Commands
                                     "feature" => "feature",
                                     _ => normalizedType.ToLowerInvariant()
                                 };
-                                
+
                                 string newFileName = Path.Combine(".temp", $"{workItemId}-{typeSuffix}.md");
                                 try
                                 {
@@ -1599,15 +1599,15 @@ namespace Sdo.Commands
                                     // Don't fail the operation if renaming fails
                                 }
                             }
-                            
+
                             // Display context-aware next steps
                             Console.WriteLine();
                             ConsoleHelper.WriteInfo("Next steps:");
-                            
+
                             // Check if this is a Task or Bug type - these are implementation items
-                            bool isImplementationItem = normalizedType.Equals("Task", StringComparison.OrdinalIgnoreCase) || 
+                            bool isImplementationItem = normalizedType.Equals("Task", StringComparison.OrdinalIgnoreCase) ||
                                                       normalizedType.Equals("Bug", StringComparison.OrdinalIgnoreCase);
-                            
+
                             if (isImplementationItem)
                             {
                                 // Task/Bug workflow - start working immediately
@@ -1619,18 +1619,18 @@ namespace Sdo.Commands
                             else
                             {
                                 // PBI/Feature/Epic workflow - create child items first
-                                string nextItemType = normalizedType.Equals("Feature", StringComparison.OrdinalIgnoreCase) || 
-                                                     normalizedType.Equals("Epic", StringComparison.OrdinalIgnoreCase) 
+                                string nextItemType = normalizedType.Equals("Feature", StringComparison.OrdinalIgnoreCase) ||
+                                                     normalizedType.Equals("Epic", StringComparison.OrdinalIgnoreCase)
                                     ? "PBI" : "Task";
-                                string tempFileName = nextItemType.Equals("PBI", StringComparison.OrdinalIgnoreCase) 
+                                string tempFileName = nextItemType.Equals("PBI", StringComparison.OrdinalIgnoreCase)
                                     ? ".temp/pbi.md" : ".temp/wi.md";
-                                
+
                                 ConsoleHelper.WriteInfo($"  1. Create a {nextItemType} as a child item");
                                 ConsoleHelper.WriteLine($"  2. Create {nextItemType} markdown in {tempFileName}");
                                 ConsoleHelper.WriteLine($"  3. Run: sdo wi create");
                                 ConsoleHelper.WriteLine($"  4. Then follow the workflow for the {nextItemType}");
                             }
-                            
+
                             return 0;
                         }
                     }
@@ -1676,7 +1676,7 @@ namespace Sdo.Commands
             Console.WriteLine($"State:       {issue.State}");
             Console.WriteLine($"Created:     {issue.CreatedAt:O}");
             Console.WriteLine($"Updated:     {issue.UpdatedAt:O}");
-            
+
             // Display Assigned To field
             Console.WriteLine($"Assigned To: {issue.Assignee?.Login ?? "Not assigned"}");
 
@@ -1723,7 +1723,7 @@ namespace Sdo.Commands
             Console.WriteLine($"State:       {workItem.State}");
             Console.WriteLine($"Created:     {workItem.CreatedDate:O}");
             Console.WriteLine($"Updated:     {workItem.ChangedDate:O}");
-            
+
             // Display Area, Iteration, and Assigned To fields
             Console.WriteLine($"Area:        {workItem.Area ?? "Not assigned"}");
             Console.WriteLine($"Iteration:   {workItem.Sprint ?? "Not assigned"}");
@@ -1758,10 +1758,10 @@ namespace Sdo.Commands
             }
 
             // Validate acceptance criteria for PBI and Epic types
-            var isPBIOrEpic = workItem.Type != null && 
-                (workItem.Type.Equals("PBI", StringComparison.OrdinalIgnoreCase) || 
+            var isPBIOrEpic = workItem.Type != null &&
+                (workItem.Type.Equals("PBI", StringComparison.OrdinalIgnoreCase) ||
                  workItem.Type.Equals("Epic", StringComparison.OrdinalIgnoreCase));
-            
+
             if (isPBIOrEpic && string.IsNullOrEmpty(workItem.AcceptanceCriteria))
             {
                 Console.WriteLine();
@@ -1831,7 +1831,7 @@ namespace Sdo.Commands
             const int stateWidth = 12;
             const int labelsWidth = 30;
             const int assigneeWidth = 15;
-            
+
             int totalWidth = numberWidth + titleWidth + stateWidth + labelsWidth + assigneeWidth + 5; // +5 for separators
 
             // Print header separator
@@ -1906,7 +1906,7 @@ namespace Sdo.Commands
             const int stateWidth = 12;
             const int sprintWidth = 20;
             const int assignedToWidth = 15;
-            
+
             int totalWidth = idWidth + typeWidth + titleWidth + stateWidth + sprintWidth + assignedToWidth + 6; // +6 for separators
 
             // Print header separator
@@ -1970,7 +1970,7 @@ namespace Sdo.Commands
 
                 // Use the robust MarkdownParser utility class
                 var parseResult = Utilities.MarkdownParser.ParseFile(filePath, verbose: false);
-                
+
                 if (!parseResult.Success)
                 {
                     if (parseResult.Errors.Any())
@@ -2014,7 +2014,7 @@ namespace Sdo.Commands
         private string StripTypePrefix(string title)
         {
             if (string.IsNullOrEmpty(title)) return title;
-            
+
             // Pattern: Type-Number: Title
             // Examples: Bug-001: ..., Epic-001: ..., Task-001: ..., PBI-001: ..., etc.
             var match = System.Text.RegularExpressions.Regex.Match(title, @"^(Bug|Epic|Task|PBI|Feature|Story)-\d+:\s*(.+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
@@ -2022,7 +2022,7 @@ namespace Sdo.Commands
             {
                 return match.Groups[2].Value; // Return everything after the colon and space
             }
-            
+
             return title; // Return unchanged if no prefix found
         }
 
@@ -2136,7 +2136,7 @@ namespace Sdo.Commands
                 if (platform == Platform.GitHub)
                 {
                     if (verbose) ConsoleHelper.WriteVerbose("\nValidating: GitHub Prerequisites");
-                    
+
                     var repoInfo = _platformDetector.GetRepositoryInfo();
                     if (repoInfo == null || repoInfo.Owner == null || repoInfo.Repo == null)
                     {
@@ -2166,7 +2166,7 @@ namespace Sdo.Commands
                 else if (platform == Platform.AzureDevOps)
                 {
                     if (verbose) ConsoleHelper.WriteVerbose("\nValidating: Azure DevOps Prerequisites");
-                    
+
                     var pat = await GetAuthenticationTokenAsync(Platform.AzureDevOps);
                     if (string.IsNullOrEmpty(pat))
                     {
@@ -2251,7 +2251,7 @@ namespace Sdo.Commands
                 // Validate: Git is available and main branch exists
                 if (verbose) ConsoleHelper.WriteVerbose("\nValidating: Git Environment");
                 var gitWrapper = new GitWrapper(verbose: verbose);
-                
+
                 if (!gitWrapper.BranchExists("main"))
                 {
                     ConsoleHelper.WriteError("Main branch not found in repository");
@@ -2388,7 +2388,7 @@ namespace Sdo.Commands
                 if (platform == Platform.GitHub)
                 {
                     if (verbose) ConsoleHelper.WriteVerbose("\nValidating: GitHub Prerequisites");
-                    
+
                     var repoInfo = _platformDetector.GetRepositoryInfo();
                     if (repoInfo == null || repoInfo.Owner == null || repoInfo.Repo == null)
                     {
@@ -2426,7 +2426,7 @@ namespace Sdo.Commands
                 else if (platform == Platform.AzureDevOps)
                 {
                     if (verbose) ConsoleHelper.WriteVerbose("\nValidating: Azure DevOps Prerequisites");
-                    
+
                     var pat = await GetAuthenticationTokenAsync(Platform.AzureDevOps);
                     if (string.IsNullOrEmpty(pat))
                     {
@@ -2470,7 +2470,7 @@ namespace Sdo.Commands
 
                 // Validate: Git is available and main branch exists
                 if (verbose) ConsoleHelper.WriteVerbose("\nValidating: Git Environment");
-                
+
                 if (!gitWrapper.BranchExists("main"))
                 {
                     ConsoleHelper.WriteError("Main branch not found in repository");
@@ -2501,6 +2501,13 @@ namespace Sdo.Commands
                 }
                 if (verbose) ConsoleHelper.WriteSuccess("Switched to main branch");
 
+                // Fetch all and prune
+                if (verbose) ConsoleHelper.WriteInfo("Git fetch all and prune");
+                if (!gitWrapper.FetchAllAndPrune())
+                {
+                    ConsoleHelper.WriteWarning(" Git fecth encountered an issue, but continuing...");
+                }
+                if (verbose) ConsoleHelper.WriteSuccess("Main branch synchronized");
                 // Pull latest from origin
                 if (verbose) ConsoleHelper.WriteInfo("\nStep 2: Pulling latest changes from main");
                 if (!gitWrapper.PullWithRebase())
@@ -2550,7 +2557,7 @@ namespace Sdo.Commands
             var slug = System.Text.RegularExpressions.Regex.Replace(title, @"[^a-z0-9\s-]", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-").ToLowerInvariant();
             slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-").Trim('-');
-            
+
             // Limit slug length to avoid excessively long branch names
             if (slug.Length > 50)
             {
