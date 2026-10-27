@@ -2267,7 +2267,7 @@ namespace Sdo.Commands
 
                 // Switch to main branch
                 if (verbose) ConsoleHelper.WriteVerbose("\nStep 1: Switching to main branch");
-                if (!gitWrapper.CheckoutBranch("main"))
+                if (!gitWrapper.SwitchBranch("main"))
                 {
                     ConsoleHelper.WriteError("Failed to switch to main branch");
                     return 1;
@@ -2284,7 +2284,7 @@ namespace Sdo.Commands
 
                 // Create feature branch
                 if (verbose) ConsoleHelper.WriteVerbose("\nStep 3: Creating feature branch");
-                if (!gitWrapper.CheckoutBranch(branchName, create: true))
+                if (!gitWrapper.SwitchBranch(branchName, create: true))
                 {
                     ConsoleHelper.WriteWarning($"Failed to create branch {branchName}");
                     return 1;
@@ -2494,7 +2494,7 @@ namespace Sdo.Commands
 
                 // Switch to main branch
                 if (verbose) ConsoleHelper.WriteInfo("\nStep 1: Switching to main branch");
-                if (!gitWrapper.CheckoutBranch("main"))
+                if (!gitWrapper.SwitchBranch("main"))
                 {
                     ConsoleHelper.WriteError("Failed to switch to main branch");
                     return 1;

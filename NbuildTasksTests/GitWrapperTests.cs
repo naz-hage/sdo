@@ -246,7 +246,7 @@ namespace NbuildTasks.Tests
         }
 
         [TestMethod]
-        public void CheckoutBranchTest2() => Assert.IsTrue(GitWrapper.CheckoutBranch("main"));
+        public void SwitchBranchTest2() => Assert.IsTrue(GitWrapper.SwitchBranch("main"));
 
         [TestMethod]
         public void BranchOperationsTest()
@@ -254,13 +254,13 @@ namespace NbuildTasks.Tests
             var branch = "fixture-" + Guid.NewGuid().ToString("N").Substring(0, 8);
 
             Assert.IsFalse(GitWrapper.BranchExists(null));
-            Assert.IsTrue(GitWrapper.CheckoutBranch(branch, create: true));
+            Assert.IsTrue(GitWrapper.SwitchBranch(branch, create: true));
             Assert.IsTrue(GitWrapper.BranchExists(branch));
             Assert.IsTrue(GitWrapper.ListBranches().Contains(branch));
             Assert.IsTrue(GitWrapper.Push(branch));
             Assert.IsTrue(GitWrapper.BranchExistsOnRemote(branch));
             Assert.IsTrue(GitWrapper.ListRemoteBranches().Contains(branch));
-            Assert.IsTrue(GitWrapper.CheckoutBranch("main"));
+            Assert.IsTrue(GitWrapper.SwitchBranch("main"));
             Assert.IsTrue(GitWrapper.DeleteRemoteBranch(branch));
             Assert.IsFalse(GitWrapper.BranchExistsOnRemote(branch));
             Assert.IsTrue(GitWrapper.DeleteBranch(branch));
@@ -271,8 +271,8 @@ namespace NbuildTasks.Tests
         {
             var branch = "fixture-cleanup-" + Guid.NewGuid().ToString("N").Substring(0, 8);
 
-            Assert.IsTrue(GitWrapper.CheckoutBranch(branch, create: true));
-            Assert.IsTrue(GitWrapper.CheckoutBranch("main"));
+            Assert.IsTrue(GitWrapper.SwitchBranch(branch, create: true));
+            Assert.IsTrue(GitWrapper.SwitchBranch("main"));
             Assert.IsTrue(GitWrapper.DeleteAllLocalBranches().Contains(branch));
             Assert.IsFalse(GitWrapper.BranchExists(branch));
         }

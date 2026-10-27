@@ -440,27 +440,27 @@ namespace NbuildTasks
         }
 
         /// <summary>
-        /// Checks out a specified branch in the Git repository.
+        /// Switches to a specified branch in the Git repository.
         /// </summary>
-        /// <param name="branch">The branch to check out.</param>
+        /// <param name="branch">The branch to switch to.</param>
         /// <param name="create">If <c>true</c>, creates the branch if it does not exist.</param>
-        /// <returns><c>true</c> if the checkout is successful; otherwise, <c>false</c>.</returns>
+        /// <returns><c>true</c> if the switch is successful; otherwise, <c>false</c>.</returns>
         /// <remarks>
-        /// This method uses the `git checkout` command to switch to the specified branch.
+        /// This method uses the `git switch` command to switch to the specified branch.
         /// If the branch does not exist and <paramref name="create"/> is <c>true</c>, it creates a new branch.
         /// </remarks>
         /// <exception cref="ArgumentException">Thrown if the branch name is null or empty.</exception>
-        public bool CheckoutBranch(string branch, bool create = false)
+        public bool SwitchBranch(string branch, bool create = false)
         {
             ResultHelper result;
             if (create && !BranchExists(branch))
             {
-                result = ExecuteGitCommand($"checkout -b {branch}");
+                result = ExecuteGitCommand($"switch -c {branch}");
             }
             else
             {
-                // checkout
-                result = ExecuteGitCommand($"checkout {branch}");
+                // switch
+                result = ExecuteGitCommand($"switch {branch}");
             }
 
             if (result.Code == 0 && result.Output.Count >= 1)
