@@ -327,26 +327,6 @@ namespace NbuildTasks
             return result.Code == 0 && result.Output.Count >= 1 ? result.Output.ToList() : new List<string>();
         }
 
-        private List<string> DeleteRemoteTags(string url)
-        {
-            var tags = new List<string>();
-            var result = ExecuteGitCommand($"ls-remote --tags {url}");
-            if (result.Code == 0 && result.Output.Count >= 1)
-            {
-                foreach (var line in result.Output)
-                {
-                    // extract tag from line
-                    var items = line.Split('/');
-                    var tag = items.Last();
-                    Console.WriteLine($"{line} -deleting {tag}");
-                    DeleteRemoteTag(tag);
-                    tags.Add(line);
-                }
-            }
-
-            return tags;
-        }
-
         public List<string> ListRemoteTags()
         {
             var tags = new List<string>();
@@ -393,72 +373,6 @@ namespace NbuildTasks
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Clones a Git repository from the specified URL into the default source directory.
-        /// /// </summary>
-        /// <param name="url">The URL of the Git repository to clone.</param>
-        /// <returns>A <see cref="ResultHelper"/> indicating the success or failure of the operation.</returns>
-        /// <remarks>
-        /// This method checks if the specified source directory exists. If it does not, it creates the directory.
-        /// If the project already exists in the source directory, it returns a failure result.
-        /// If the clone operation is successful, it sets the working directory to the cloned project directory.
-        /// Differences between the two <c>CloneProject</c> methods:
-        /// 1. This method does not accept a custom source directory as a parameter. It uses the default source directory.
-        /// 2. The other <c>CloneProject</c> method allows specifying a custom source directory, providing more flexibility.
-        /// 3. Both methods perform similar operations, but the second method is more versatile due to the additional parameter.
-        /// </remarks>
-        public ResultHelper CloneProject(string url)
-        {
-            if (string.IsNullOrEmpty(url))
-            {
-                return ResultHelper.Fail(ResultHelper.InvalidParameter, $"Invalid url: {url}");
-            }
-
-            // extract project name from url
-            var projectName = ProjectNameFromUrl(url);
-            if (string.IsNullOrEmpty(projectName))
-            {
-                return ResultHelper.Fail(ResultHelper.InvalidParameter, $"Invalid url: {url}");
-            }
-            // check if dev drive exists
-            if (!Directory.Exists(DevDrive))
-            {
-                return ResultHelper.Fail(ResultHelper.InvalidParameter, $"Invalid DevDrive: {DevDrive}");
-            }
-
-            ResultHelper result;
-            // change to project directory
-            var sourceDir = this.SourceDir;
-            var clonePath = Path.Combine(sourceDir, projectName);
-            var dirExists = Directory.Exists(clonePath);
-            if (!dirExists)
-            {
-                if (!Directory.Exists(sourceDir))
-                {
-                    Directory.CreateDirectory(sourceDir);
-                }
-
-                Process.StartInfo.WorkingDirectory = sourceDir;
-                result = ExecuteGitCommand($"clone {url} ");
-                if ((result.Code == 0) && (result.Output.Count > 0))
-                {
-                    if (CheckForErrorAndDisplayOutput(result.Output))
-                    {
-                        return ResultHelper.Fail((int)RetCode.CloneProjectFailed, $"Failed to clone project: {projectName}");
-                    }
-                    // reset working directory so other dir commands can be executed
-                    SetWorkingDir(url);
-                }
-            }
-            else
-            {
-                return ResultHelper.Fail((int)RetCode.CloneProjectFailed, $"Project already exists: {clonePath}");
-            }
-            // change to solution directory 
-            Directory.SetCurrentDirectory(clonePath);
-            return result;
         }
 
         /// <remarks>
@@ -526,27 +440,27 @@ namespace NbuildTasks
         }
 
         /// <summary>
-        /// Checks out a specified branch in the Git repository.
+        /// Switches to a specified branch in the Git repository.
         /// </summary>
-        /// <param name="branch">The branch to check out.</param>
+        /// <param name="branch">The branch to switch to.</param>
         /// <param name="create">If <c>true</c>, creates the branch if it does not exist.</param>
-        /// <returns><c>true</c> if the checkout is successful; otherwise, <c>false</c>.</returns>
+        /// <returns><c>true</c> if the switch is successful; otherwise, <c>false</c>.</returns>
         /// <remarks>
-        /// This method uses the `git checkout` command to switch to the specified branch.
+        /// This method uses the `git switch` command to switch to the specified branch.
         /// If the branch does not exist and <paramref name="create"/> is <c>true</c>, it creates a new branch.
         /// </remarks>
         /// <exception cref="ArgumentException">Thrown if the branch name is null or empty.</exception>
-        public bool CheckoutBranch(string branch, bool create = false)
+        public bool SwitchBranch(string branch, bool create = false)
         {
             ResultHelper result;
             if (create && !BranchExists(branch))
             {
-                result = ExecuteGitCommand($"checkout -b {branch}");
+                result = ExecuteGitCommand($"switch -c {branch}");
             }
             else
             {
-                // checkout
-                result = ExecuteGitCommand($"checkout {branch}");
+                // switch
+                result = ExecuteGitCommand($"switch {branch}");
             }
 
             if (result.Code == 0 && result.Output.Count >= 1)
@@ -840,12 +754,11 @@ namespace NbuildTasks
         /// <summary>
         /// Checks if the current directory is a Git repository.
         /// </summary>
-        /// <param name="currentDirectory">The current directory to check.</param>
         /// <returns><c>true</c> if the current directory is a Git repository; otherwise, <c>false</c>.</returns>
         /// <remarks>
         /// This method uses the `git rev-parse --is-inside-work-tree` command to determine if the current directory is a Git repository.
         /// </remarks>
-        public bool IsGitRepository(string currentDirectory)
+        public bool IsGitRepository()
         {
             var result = ExecuteGitCommand("rev-parse --is-inside-work-tree");
             if ((result.Code == 0) && (result.Output.Count >= 0))
@@ -1006,7 +919,6 @@ namespace NbuildTasks
         /// <remarks>
         /// This method uses the <see cref="StageTag"/> and <see cref="ProdTag"/> methods to generate the tag.
         /// </remarks>
-        /// <exception cref="ArgumentException">Thrown if the build type is null or empty.</exception>
         public string AutoTag(string buildType)
         {
             if (string.IsNullOrEmpty(buildType))
@@ -1084,6 +996,7 @@ namespace NbuildTasks
             }
         }
 
+        /// <summary>
         /// Generates a production tag based on the current tag.
         /// </summary>
         /// <returns>
@@ -1100,8 +1013,6 @@ namespace NbuildTasks
         /// 6. Repeats step 5 until finding a tag that doesn't exist on remote.
         /// 7. Validates the final constructed production tag. If valid, returns it; otherwise, returns <c>null</c>.
         /// 
-        /// If an exception occurs during the construction of the production tag, it logs the exception message 
-        /// and returns <c>null</c>.
         /// </remarks>
         public string ProdTag()
         {
@@ -1148,6 +1059,28 @@ namespace NbuildTasks
                     return null;
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Fetches all remote branches and prunes deleted branches.
+        /// </summary>
+        /// <returns>True if the fetch and prune operation succeeded, false otherwise.</returns>
+        public bool FetchAllAndPrune()
+        {
+            var result = ExecuteGitCommand("fetch --all --prune");
+            if (result.Code == 0)
+            {
+                return true;
+            }
+
+            Console.WriteLine("Failed to fetch all remote branches and prune deleted branches.");
+            foreach (var line in result.Output)
+            {
+                if (Verbose) Console.WriteLine(line);
+            }
+
+            return false;
         }
         #endregion
     }

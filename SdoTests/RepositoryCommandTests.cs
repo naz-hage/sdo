@@ -1,8 +1,9 @@
 using Sdo.Commands;
 using System.CommandLine;
-using Xunit;
 
 namespace SdoTests;
+
+[TestClass]
 
 public class RepositoryCommandTests
 {
@@ -13,56 +14,56 @@ public class RepositoryCommandTests
         _verboseOption = new Option<bool>("--verbose");
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_CreatesCommandWithCorrectName()
     {
         var command = new RepositoryCommand(_verboseOption);
-        Assert.Equal("repo", command.Name);
+        Assert.AreEqual("repo", command.Name);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsCreateSubcommand()
     {
         var command = new RepositoryCommand(_verboseOption);
-        var createCmd = Assert.Single(command.Subcommands, s => s.Name == "create");
-        Assert.NotNull(createCmd);
+        var createCmd = command.Subcommands.Single(s => s.Name == "create");
+        Assert.IsNotNull(createCmd);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsBranchSubcommand()
     {
         var command = new RepositoryCommand(_verboseOption);
-        var branchCmd = Assert.Single(command.Subcommands, s => s.Name == "branch");
+        var branchCmd = command.Subcommands.Single(s => s.Name == "branch");
 
-        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--list"));
-        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--local"));
-        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--remote"));
-        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--delete"));
-        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--contains"));
-        Assert.NotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--name"));
+        Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--list"));
+        Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--local"));
+        Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--remote"));
+        Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--delete"));
+        Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--contains"));
+        Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--name"));
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsCloneSubcommandWithUrlAndPathOptions()
     {
         var command = new RepositoryCommand(_verboseOption, dryRunOption: new Option<bool>("--dry-run"));
-        var cloneCmd = Assert.Single(command.Subcommands, s => s.Name == "clone");
+        var cloneCmd = command.Subcommands.Single(s => s.Name == "clone");
 
-        Assert.NotNull(cloneCmd.Options.FirstOrDefault(o => o.Name == "--url"));
-        Assert.NotNull(cloneCmd.Options.FirstOrDefault(o => o.Name == "--path"));
+        Assert.IsNotNull(cloneCmd.Options.FirstOrDefault(o => o.Name == "--url"));
+        Assert.IsNotNull(cloneCmd.Options.FirstOrDefault(o => o.Name == "--path"));
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsTagSubcommandWithNestedCommands()
     {
         var command = new RepositoryCommand(_verboseOption, dryRunOption: new Option<bool>("--dry-run"));
-        var tagCmd = Assert.Single(command.Subcommands, s => s.Name == "tag");
+        var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
         var nestedNames = tagCmd.Subcommands.Select(s => s.Name).ToList();
 
-        Assert.Equal(new[] { "auto", "delete", "push-auto", "set" }, nestedNames);
+        Assert.IsTrue(new[] { "auto", "delete", "push-auto", "set" }.SequenceEqual(nestedNames));
     }
 
-    [Fact]
+    [TestMethod]
     public void AutoTagSubcommand_HasBuildTypeShortAlias()
     {
         var command = new RepositoryCommand(_verboseOption);
@@ -70,87 +71,87 @@ public class RepositoryCommandTests
         var autoCmd = tagCmd.Subcommands.First(s => s.Name == "auto");
         var buildTypeOption = autoCmd.Options.First(o => o.Name == "--buildtype");
 
-        Assert.Contains("-b", buildTypeOption.Aliases);
+        Assert.IsTrue(buildTypeOption.Aliases.Contains("-b"));
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsDeleteSubcommand()
     {
         var command = new RepositoryCommand(_verboseOption);
-        var deleteCmd = Assert.Single(command.Subcommands, s => s.Name == "delete");
-        Assert.NotNull(deleteCmd);
+        var deleteCmd = command.Subcommands.Single(s => s.Name == "delete");
+        Assert.IsNotNull(deleteCmd);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsListSubcommand()
     {
         var command = new RepositoryCommand(_verboseOption);
-        var listCmd = Assert.Single(command.Subcommands, s => s.Name == "list");
-        Assert.NotNull(listCmd);
+        var listCmd = command.Subcommands.Single(s => s.Name == "list");
+        Assert.IsNotNull(listCmd);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_AddsInfoSubcommand()
     {
         var command = new RepositoryCommand(_verboseOption);
-        var infoCmd = Assert.Single(command.Subcommands, s => s.Name == "info");
-        Assert.NotNull(infoCmd);
+        var infoCmd = command.Subcommands.Single(s => s.Name == "info");
+        Assert.IsNotNull(infoCmd);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_RegistersSubcommandsInAlphabeticalOrder()
     {
         var command = new RepositoryCommand(_verboseOption);
         var subcommandNames = command.Subcommands.Select(s => s.Name).ToList();
-        Assert.Equal(new[] { "branch", "clone", "create", "delete", "info", "list", "tag" }, subcommandNames);
+        Assert.IsTrue(new[] { "branch", "clone", "create", "delete", "info", "list", "tag" }.SequenceEqual(subcommandNames));
     }
 
-    [Fact]
+    [TestMethod]
     public void CreateSubcommand_HasNameArgument()
     {
         var command = new RepositoryCommand(_verboseOption);
         var createCmd = command.Subcommands.First(s => s.Name == "create");
         var nameArg = createCmd.Arguments.FirstOrDefault(a => a.Name == "name");
-        Assert.NotNull(nameArg);
+        Assert.IsNotNull(nameArg);
     }
 
-    [Fact]
+    [TestMethod]
     public void CreateSubcommand_HasOptionalDescriptionOption()
     {
         var command = new RepositoryCommand(_verboseOption);
         var createCmd = command.Subcommands.First(s => s.Name == "create");
         var descOption = createCmd.Options.FirstOrDefault(o =>
             o.Name.Contains("description"));
-        Assert.NotNull(descOption);
+        Assert.IsNotNull(descOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void CreateSubcommand_HasPrivateOption()
     {
         var command = new RepositoryCommand(_verboseOption);
         var createCmd = command.Subcommands.First(s => s.Name == "create");
         var privateOption = createCmd.Options.FirstOrDefault(o =>
             o.Name.Contains("private"));
-        Assert.NotNull(privateOption);
+        Assert.IsNotNull(privateOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void DeleteSubcommand_HasForceOption()
     {
         var command = new RepositoryCommand(_verboseOption);
         var deleteCmd = command.Subcommands.First(s => s.Name == "delete");
         var forceOption = deleteCmd.Options.FirstOrDefault(o =>
             o.Name.Contains("force"));
-        Assert.NotNull(forceOption);
+        Assert.IsNotNull(forceOption);
     }
 
-    [Fact]
+    [TestMethod]
     public void ListSubcommand_HasTopOption()
     {
         var command = new RepositoryCommand(_verboseOption);
         var listCmd = command.Subcommands.First(s => s.Name == "list");
         var topOption = listCmd.Options.FirstOrDefault(o =>
             o.Name.Contains("top"));
-        Assert.NotNull(topOption);
+        Assert.IsNotNull(topOption);
     }
 }

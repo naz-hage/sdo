@@ -1,4 +1,3 @@
-using Xunit;
 using Sdo;
 
 namespace SdoTests;
@@ -6,89 +5,90 @@ namespace SdoTests;
 /// <summary>
 /// Tests for the Sdo CLI Program class
 /// </summary>
+[TestClass]
 public class ProgramTests
 {
-    [Fact]
+    [TestMethod]
     public void Main_WithNoArgs_ReturnsNonZero()
     {
         // Act - No arguments should return error (1) because a command is required
         var result = Program.Main();
 
         // Assert
-        Assert.Equal(1, result);
+        Assert.AreEqual(1, result);
     }
 
-    [Fact(Skip = "System.CommandLine v2.0.2 limitation: --help returns 1 instead of 0")]
+    [Ignore("System.CommandLine v2.0.2 limitation: --help returns 1 instead of 0")]
     public void Main_WithHelpOption_ReturnsZero()
     {
         // Act
         var result = Program.Main("--help");
 
         // Assert
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithVersionOption_ReturnsZero()
     {
         // Act
         var result = Program.Main("--version");
 
         // Assert
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithInvalidOption_ReturnsNonZero()
     {
         // Act
         var result = Program.Main("--invalid-option");
 
         // Assert
-        Assert.NotEqual(0, result);
+        Assert.AreNotEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithUnmatchedTargetWithoutBuildFile_ReturnsBuildFailure()
     {
         var result = Program.Main($"missing-target-{Guid.NewGuid():N}");
 
-        Assert.Equal(-1, result);
+        Assert.AreEqual(-1, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithEnvironmentPathCommand_ReturnsZero()
     {
         var result = Program.Main("env", "path");
 
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithBuildTargetsCommand_ReturnsZero()
     {
         var result = Program.Main("build", "targets");
 
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithRepositoryInfoCommand_ReturnsZero()
     {
         var result = Program.Main("repo", "info", "--dry-run");
 
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithRepositoryInfoDryRun_ReturnsZero()
     {
         var result = Program.Main("repo", "info", "--dry-run");
 
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithRepositoryCloneDryRun_ReturnsZero()
     {
         var result = Program.Main(
@@ -100,22 +100,22 @@ public class ProgramTests
             "C:\\temp\\repo",
             "--dry-run");
 
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithRepositoryTagDryRunCommands_ReturnZero()
     {
         var setResult = Program.Main("repo", "tag", "set", "--tag", "1.2.3", "--dry-run");
         var deleteResult = Program.Main("repo", "tag", "delete", "--tag", "1.2.3", "--dry-run");
         var pushAutoResult = Program.Main("repo", "tag", "push-auto", "--buildtype", "stage", "--dry-run");
 
-        Assert.Equal(0, setResult);
-        Assert.Equal(0, deleteResult);
-        Assert.Equal(0, pushAutoResult);
+        Assert.AreEqual(0, setResult);
+        Assert.AreEqual(0, deleteResult);
+        Assert.AreEqual(0, pushAutoResult);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithBuildTypeOnRepositoryTagSet_ReturnsNonZero()
     {
         var result = Program.Main(
@@ -124,18 +124,18 @@ public class ProgramTests
             "--buildtype", "stage",
             "--dry-run");
 
-        Assert.NotEqual(0, result);
+        Assert.AreNotEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithToolListInvalidManifest_ReturnsNonZero()
     {
         var result = Program.Main("tool", "list", "--manifest", "missing-apps.yaml");
 
-        Assert.NotEqual(0, result);
+        Assert.AreNotEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithToolManifestOnRun_ReturnsNonZero()
     {
         var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-apps-{Guid.NewGuid():N}.yaml");
@@ -145,7 +145,7 @@ public class ProgramTests
         {
             var result = Program.Main("run", "--manifest", manifestPath);
 
-            Assert.NotEqual(0, result);
+            Assert.AreNotEqual(0, result);
         }
         finally
         {
@@ -153,15 +153,15 @@ public class ProgramTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithMissingManifestPath_ReturnsNonZero()
     {
         var result = Program.Main("run", "--manifest", "--stage", "stage");
 
-        Assert.NotEqual(0, result);
+        Assert.AreNotEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithoutManifest_UsesSdoYamlInCurrentDirectory()
     {
         var originalDirectory = Environment.CurrentDirectory;
@@ -180,7 +180,7 @@ steps:
         {
             var result = Program.Main("run");
 
-            Assert.Equal(0, result);
+            Assert.AreEqual(0, result);
         }
         finally
         {
@@ -189,7 +189,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithVerboseWorkflow_NumbersStepsIncrementallyAndPrintsOutputOnce()
     {
         var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-output-{Guid.NewGuid():N}.yaml");
@@ -214,13 +214,13 @@ steps:
 
         try
         {
-            Assert.Equal(0, Program.Main("run", "--manifest", manifestPath));
+            Assert.AreEqual(0, Program.Main("run", "--manifest", manifestPath));
 
             var text = output.ToString();
-            Assert.Contains("Step 1: first", text);
-            Assert.Contains("Step 2: second", text);
-            Assert.Equal(1, CountLines(text, "first-output"));
-            Assert.Equal(1, CountLines(text, "second-output"));
+            StringAssert.Contains(text, "Step 1: first");
+            StringAssert.Contains(text, "Step 2: second");
+            Assert.AreEqual(1, CountLines(text, "first-output"));
+            Assert.AreEqual(1, CountLines(text, "second-output"));
         }
         finally
         {
@@ -230,7 +230,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithStopOnFirstErrorFalse_ContinuesAfterFailure()
     {
         var manifestPath = CreateFailureManifest(stopOnFirstError: false, includeExecution: true, out var markerPath);
@@ -239,8 +239,8 @@ steps:
         {
             var result = Program.Main("run", "--manifest", manifestPath);
 
-            Assert.Equal(1, result);
-            Assert.True(File.Exists(markerPath));
+            Assert.AreEqual(1, result);
+            Assert.IsTrue(File.Exists(markerPath));
         }
         finally
         {
@@ -248,7 +248,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithStopOnFirstErrorTrue_StopsAfterFailure()
     {
         var manifestPath = CreateFailureManifest(stopOnFirstError: true, includeExecution: true, out var markerPath);
@@ -257,8 +257,8 @@ steps:
         {
             var result = Program.Main("run", "--manifest", manifestPath);
 
-            Assert.Equal(1, result);
-            Assert.False(File.Exists(markerPath));
+            Assert.AreEqual(1, result);
+            Assert.IsFalse(File.Exists(markerPath));
         }
         finally
         {
@@ -266,7 +266,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithoutStopOnFirstError_StopsRegardlessOfExecutionSection()
     {
         var manifestWithoutExecution = CreateFailureManifest(null, includeExecution: false, out var markerWithoutExecution);
@@ -274,10 +274,10 @@ steps:
 
         try
         {
-            Assert.Equal(1, Program.Main("run", "--manifest", manifestWithoutExecution));
-            Assert.Equal(1, Program.Main("run", "--manifest", manifestWithExecution));
-            Assert.False(File.Exists(markerWithoutExecution));
-            Assert.False(File.Exists(markerWithExecution));
+            Assert.AreEqual(1, Program.Main("run", "--manifest", manifestWithoutExecution));
+            Assert.AreEqual(1, Program.Main("run", "--manifest", manifestWithExecution));
+            Assert.IsFalse(File.Exists(markerWithoutExecution));
+            Assert.IsFalse(File.Exists(markerWithExecution));
         }
         finally
         {
@@ -285,7 +285,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithNamedStage_ExecutesReferencedStepsInStageOrder()
     {
         var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-stage-{Guid.NewGuid():N}.yaml");
@@ -310,8 +310,8 @@ stages:
         {
             var result = Program.Main("run", "--manifest", manifestPath, "--stage", "release");
 
-            Assert.Equal(0, result);
-            Assert.Equal(["second", "first"], File.ReadAllLines(markerPath));
+            Assert.AreEqual(0, result);
+            Assert.AreSequenceEqual(["second", "first"], File.ReadAllLines(markerPath));
         }
         finally
         {
@@ -319,7 +319,7 @@ stages:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithStepIndices_ExecutesRequestedOrder()
     {
         var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-index-{Guid.NewGuid():N}.yaml");
@@ -341,8 +341,8 @@ steps:
                 "run", "--manifest", manifestPath,
                 "--step-index", "1", "0");
 
-            Assert.Equal(0, result);
-            Assert.Equal(["second", "first"], File.ReadAllLines(markerPath));
+            Assert.AreEqual(0, result);
+            Assert.AreSequenceEqual(["second", "first"], File.ReadAllLines(markerPath));
         }
         finally
         {
@@ -350,7 +350,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithNamedStep_ExecutesOnlyThatStep()
     {
         var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-step-{Guid.NewGuid():N}.yaml");
@@ -370,8 +370,8 @@ steps:
         {
             var result = Program.Main("run", "--manifest", manifestPath, "--step", "selected");
 
-            Assert.Equal(0, result);
-            Assert.Equal(["selected"], File.ReadAllLines(markerPath));
+            Assert.AreEqual(0, result);
+            Assert.AreSequenceEqual(["selected"], File.ReadAllLines(markerPath));
         }
         finally
         {
@@ -379,7 +379,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithUnknownStage_ReturnsNonZeroBeforeExecutingSteps()
     {
         var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-invalid-stage-{Guid.NewGuid():N}.yaml");
@@ -396,8 +396,8 @@ steps:
         {
             var result = Program.Main("run", "--manifest", manifestPath, "--stage", "missing");
 
-            Assert.NotEqual(0, result);
-            Assert.False(File.Exists(markerPath));
+            Assert.AreNotEqual(0, result);
+            Assert.IsFalse(File.Exists(markerPath));
         }
         finally
         {
@@ -405,7 +405,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithMultipleRunSelections_ReturnsNonZero()
     {
         var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-selection-{Guid.NewGuid():N}.yaml");
@@ -427,7 +427,7 @@ stages:
                 "run", "--manifest", manifestPath,
                 "--stage", "release", "--step", "build");
 
-            Assert.NotEqual(0, result);
+            Assert.AreNotEqual(0, result);
         }
         finally
         {
@@ -474,7 +474,7 @@ version: '1.0'
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithTestMetadataFile_RunsSharedLauncherRunner()
     {
         var metadataPath = Path.Combine(Path.GetTempPath(), $"sdo-test-{Guid.NewGuid():N}.yaml");
@@ -493,7 +493,7 @@ steps:
         {
             var result = Program.Main("e2e", "--test-case", metadataPath);
 
-            Assert.Equal(0, result);
+            Assert.AreEqual(0, result);
         }
         finally
         {
@@ -501,7 +501,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithWorkflowMetadataOnTest_ReturnsNonZero()
     {
         var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-workflow-{Guid.NewGuid():N}.yaml");
@@ -517,7 +517,7 @@ steps:
         {
             var result = Program.Main("e2e", "--test-case", manifestPath);
 
-            Assert.NotEqual(0, result);
+            Assert.AreNotEqual(0, result);
         }
         finally
         {
@@ -525,7 +525,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithTestMetadataDirectory_RunsDiscoveredTests()
     {
         var metadataPath = Path.Combine(Path.GetTempPath(), $"sdo-metadata-{Guid.NewGuid():N}");
@@ -545,7 +545,7 @@ steps:
         {
             var result = Program.Main("e2e", "--metadata-path", metadataPath);
 
-            Assert.Equal(0, result);
+            Assert.AreEqual(0, result);
         }
         finally
         {
@@ -553,7 +553,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithFileCommands_SearchesFilesAndFolders()
     {
         var testRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -569,10 +569,10 @@ steps:
             var filesResult = Program.Main("file", "files", "-d", testRoot, "-e", ".md");
             var foldersResult = Program.Main("file", "folders", "-d", testRoot, "-n", "plans");
 
-            Assert.Equal(0, filesResult);
-            Assert.Equal(0, foldersResult);
-            Assert.Contains("plan.md", output.ToString());
-            Assert.Contains("plans", output.ToString());
+            Assert.AreEqual(0, filesResult);
+            Assert.AreEqual(0, foldersResult);
+            StringAssert.Contains(output.ToString(), "plan.md");
+            StringAssert.Contains(output.ToString(), "plans");
         }
         finally
         {
@@ -581,15 +581,15 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithReleaseListWithoutRepository_ReturnsNonZero()
     {
         var result = Program.Main("release", "list");
 
-        Assert.NotEqual(0, result);
+        Assert.AreNotEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithReleaseCreateDryRun_ReturnsZero()
     {
         var result = Program.Main(
@@ -600,10 +600,10 @@ steps:
             "--file", "release.zip",
             "--dry-run");
 
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithReleaseDownloadDryRun_ReturnsZero()
     {
         var result = Program.Main(
@@ -612,30 +612,30 @@ steps:
             "--tag", "v1.0.0",
             "--dry-run");
 
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithToolInstallUninstallAndDownloadDryRun_ReturnZero()
     {
         var installResult = Program.Main("tool", "install", "--manifest", "missing-apps.yaml", "--dry-run");
         var uninstallResult = Program.Main("tool", "uninstall", "--manifest", "missing-apps.yaml", "--dry-run");
         var downloadResult = Program.Main("tool", "download", "--manifest", "missing-apps.yaml", "--dry-run");
 
-        Assert.Equal(0, installResult);
-        Assert.Equal(0, uninstallResult);
-        Assert.Equal(0, downloadResult);
+        Assert.AreEqual(0, installResult);
+        Assert.AreEqual(0, uninstallResult);
+        Assert.AreEqual(0, downloadResult);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithToolInstallNameShortAliasAndDryRun_ReturnsZero()
     {
         var result = Program.Main("tool", "install", "-n", "NonExistentApp", "-dr");
 
-        Assert.Equal(0, result);
+        Assert.AreEqual(0, result);
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithBackupInitAndRunDryRun_ReturnZero()
     {
         var outputPath = Path.Combine(Path.GetTempPath(), $"sdo-backup-{Guid.NewGuid():N}.json");
@@ -645,9 +645,9 @@ steps:
             var initResult = Program.Main("backup", "init", "--output", outputPath);
             var runResult = Program.Main("backup", "run", "--input", outputPath, "--dry-run");
 
-            Assert.Equal(0, initResult);
-            Assert.Equal(0, runResult);
-            Assert.True(File.Exists(outputPath));
+            Assert.AreEqual(0, initResult);
+            Assert.AreEqual(0, runResult);
+            Assert.IsTrue(File.Exists(outputPath));
         }
         finally
         {
@@ -658,7 +658,7 @@ steps:
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Main_WithBackupDirectExecutionDryRun_ReturnsZero()
     {
         var outputPath = Path.Combine(Path.GetTempPath(), $"sdo-backup-{Guid.NewGuid():N}.json");
@@ -668,8 +668,8 @@ steps:
             var initResult = Program.Main("backup", "init", "--output", outputPath);
             var runResult = Program.Main("backup", "-i", outputPath, "-v", "-dr");
 
-            Assert.Equal(0, initResult);
-            Assert.Equal(0, runResult);
+            Assert.AreEqual(0, initResult);
+            Assert.AreEqual(0, runResult);
         }
         finally
         {

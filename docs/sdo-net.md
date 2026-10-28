@@ -265,6 +265,7 @@ Display full details of a work item. The `--id` option is optional; if omitted, 
 sdo wi show                         # Auto-detect from branch name
 sdo wi show --id 243                # Show item details with explicit ID
 sdo wi show --id 243 --comments     # Include comments
+sdo wi show --id 243 --save         # Save details to .temp/243-issue.md or .temp/243-work-item.md
 sdo wi show --id 243 --verbose      # Show API command
 ```
 
@@ -277,6 +278,7 @@ When no `--id` is provided:
 **Options:**
 - `--id <id>` — Work item ID (optional; auto-detected from branch name if not on main)
 - `-c, --comments` — Show comments/discussion
+- `--save` — Save the retrieved item as `.temp/<id>-issue.md` on GitHub or `.temp/<id>-work-item.md` on Azure DevOps
 - `--verbose` — Show mapping
 
 **Branch Name Format:**
@@ -761,11 +763,25 @@ List repositories for your organization.
 sdo repo list                       # List repos
 sdo repo list --top 10              # Limit to 10
 sdo repo list --verbose             # Show API commands
+sdo repo list --save repos.yaml     # Save the repository list as YAML
 ```
 
 **Options:**
 - `--top <top>` — Return top N repositories
+- `--save <file>` — Write the repository list to a consumable YAML file
 - `--verbose` — Show mapping
+
+The `--save` path is resolved relative to the current directory unless an absolute
+path is provided. SDO displays the repository list as usual and reports the number
+of repositories written to the file. The YAML document contains the list under a
+top-level `repositories` key:
+
+```yaml
+repositories:
+  - name: sample
+    owner: owner
+    url: https://example.com/owner/sample
+```
 
 #### repo create
 

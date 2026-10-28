@@ -5,7 +5,7 @@
 //
 // Unit tests for AuthenticationService class.
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sdo.Services;
 
 namespace SdoTests;
@@ -13,6 +13,7 @@ namespace SdoTests;
 /// <summary>
 /// Unit tests for the AuthenticationService class.
 /// </summary>
+[TestClass]
 public class AuthenticationServiceTests
 {
     private readonly AuthenticationService _authService;
@@ -22,7 +23,7 @@ public class AuthenticationServiceTests
         _authService = new AuthenticationService();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task GetGitHubTokenAsync_WithApiGitHubKeyEnvironmentVariable_ReturnsToken()
     {
         // Arrange
@@ -33,13 +34,13 @@ public class AuthenticationServiceTests
 
         // Assert
         // Note: GitHub CLI token takes priority, so either GitHub CLI returns a token or we get the env var
-        Assert.True(!string.IsNullOrEmpty(result), "AuthenticationService should return a token from either GitHub CLI or environment variables");
+        Assert.IsTrue(!string.IsNullOrEmpty(result), "AuthenticationService should return a token from either GitHub CLI or environment variables");
 
         // Cleanup
         Environment.SetEnvironmentVariable("API_GITHUB_KEY", null);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task GetGitHubTokenAsync_WithoutEnvironmentVariables_MayReturnTokenFromOtherSources()
     {
         // Arrange - Clear environment variables but other sources (GitHub CLI, Credential Manager) may still provide tokens
@@ -51,10 +52,10 @@ public class AuthenticationServiceTests
 
         // Assert - May return token from GitHub CLI or other sources, or null if none available
         // This test verifies the authentication service tries multiple sources as designed
-        Assert.True(result == null || !string.IsNullOrEmpty(result));
+        Assert.IsTrue(result == null || !string.IsNullOrEmpty(result));
     }
 
-    [Fact]
+    [TestMethod]
     public async Task GetAzureDevOpsTokenAsync_WithEnvironmentVariable_ReturnsToken()
     {
         // Arrange
@@ -64,13 +65,13 @@ public class AuthenticationServiceTests
         var result = await _authService.GetAzureDevOpsTokenAsync();
 
         // Assert
-        Assert.Equal("test-azure-token", result);
+        Assert.AreEqual("test-azure-token", result);
 
         // Cleanup
         Environment.SetEnvironmentVariable("AZURE_DEVOPS_PAT", null);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task GetAzureDevOpsTokenAsync_WithoutEnvironmentVariable_ReturnsNull()
     {
         // Arrange
@@ -80,6 +81,6 @@ public class AuthenticationServiceTests
         var result = await _authService.GetAzureDevOpsTokenAsync();
 
         // Assert
-        Assert.Null(result);
+        Assert.IsNull(result);
     }
 }

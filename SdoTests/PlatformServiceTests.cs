@@ -5,15 +5,15 @@
 //
 // Unit tests for the PlatformDetector service.
 
-using Xunit;
-using Sdo.Services;
 using Sdo.Interfaces;
+using Sdo.Services;
 
 namespace SdoTests;
 
 /// <summary>
 /// Unit tests for the PlatformDetector class.
 /// </summary>
+[TestClass]
 public class PlatformServiceTests : IDisposable
 {
     private readonly string _originalWorkingDirectory = Environment.CurrentDirectory;
@@ -49,7 +49,7 @@ public class PlatformServiceTests : IDisposable
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void DetectPlatform_InGitHubRepo_ReturnsGitHub()
     {
         // Arrange
@@ -60,10 +60,10 @@ public class PlatformServiceTests : IDisposable
         var platform = detector.DetectPlatform();
 
         // Assert - Current sdo repo should be detected as GitHub
-        Assert.Equal(Platform.GitHub, platform);
+        Assert.AreEqual(Platform.GitHub, platform);
     }
 
-    [Fact]
+    [TestMethod]
     public void GetOrganization_InGitHubRepo_ReturnsOrganization()
     {
         // Arrange
@@ -74,10 +74,10 @@ public class PlatformServiceTests : IDisposable
         var organization = detector.GetOrganization();
 
         // Assert - Should detect "naz-hage" from the current repo
-        Assert.Equal("naz-hage", organization);
+        Assert.AreEqual("naz-hage", organization);
     }
 
-    [Fact]
+    [TestMethod]
     public void GetProject_InGitHubRepo_ReturnsProject()
     {
         // Arrange
@@ -88,10 +88,10 @@ public class PlatformServiceTests : IDisposable
         var project = detector.GetProject();
 
         // Assert - Should detect "sdo" from the current repo
-        Assert.Equal("sdo", project);
+        Assert.AreEqual("sdo", project);
     }
 
-    [Fact]
+    [TestMethod]
     public void ParseAzureDevOpsUrl_CorrectlyExtractsOrganizationAndProject()
     {
         // This test verifies the parsing fix for Issue 1
@@ -114,26 +114,26 @@ public class PlatformServiceTests : IDisposable
         // parts[3] = "_git"
         // parts[4] = "ConsoleApp1"
 
-        Assert.Equal("dev.azure.com", parts[0]);
-        Assert.Equal("nazh", parts[1]); // organization
-        Assert.Equal("Proto", parts[2]); // project
-        Assert.Equal("_git", parts[3]);
-        Assert.Equal("ConsoleApp1", parts[4]);
+        Assert.AreEqual("dev.azure.com", parts[0]);
+        Assert.AreEqual("nazh", parts[1]); // organization
+        Assert.AreEqual("Proto", parts[2]); // project
+        Assert.AreEqual("_git", parts[3]);
+        Assert.AreEqual("ConsoleApp1", parts[4]);
 
         // Verify our parsing logic would work
-        Assert.True(parts.Length >= 5);
-        Assert.Contains("dev.azure.com", parts[0]);
-        Assert.Equal(expectedOrganization, parts[1]);
-        Assert.Equal(expectedProject, parts[2]);
+        Assert.IsTrue(parts.Length >= 5);
+        StringAssert.Contains(parts[0], "dev.azure.com");
+        Assert.AreEqual(expectedOrganization, parts[1]);
+        Assert.AreEqual(expectedProject, parts[2]);
     }
 
-    [Fact]
+    [TestMethod]
     public void PlatformDetector_CanBeInstantiated()
     {
         // Act
         var detector = new PlatformService();
 
         // Assert
-        Assert.NotNull(detector);
+        Assert.IsNotNull(detector);
     }
 }

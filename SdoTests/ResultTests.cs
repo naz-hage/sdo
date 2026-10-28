@@ -5,7 +5,6 @@
 //
 // Unit tests for the Result pattern classes.
 
-using Xunit;
 using Sdo.Services;
 
 namespace SdoTests;
@@ -13,22 +12,23 @@ namespace SdoTests;
 /// <summary>
 /// Unit tests for the Result pattern classes.
 /// </summary>
+[TestClass]
 public class ResultTests
 {
-    [Fact]
+    [TestMethod]
     public void Result_Success_CreatesSuccessfulResult()
     {
         // Act
         var result = Result.Success();
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.False(result.IsFailure);
-        Assert.Null(result.Error);
-        Assert.Equal(0, result.ExitCode);
+        Assert.IsTrue(result.IsSuccess);
+        Assert.IsFalse(result.IsFailure);
+        Assert.IsNull(result.Error);
+        Assert.AreEqual(0, result.ExitCode);
     }
 
-    [Fact]
+    [TestMethod]
     public void Result_Failure_CreatesFailedResult()
     {
         // Arrange
@@ -39,26 +39,26 @@ public class ResultTests
         var result = Result.Failure(errorMessage, exitCode);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.True(result.IsFailure);
-        Assert.Equal(errorMessage, result.Error);
-        Assert.Equal(exitCode, result.ExitCode);
+        Assert.IsFalse(result.IsSuccess);
+        Assert.IsTrue(result.IsFailure);
+        Assert.AreEqual(errorMessage, result.Error);
+        Assert.AreEqual(exitCode, result.ExitCode);
     }
 
-    [Fact]
+    [TestMethod]
     public void Result_Failure_DefaultExitCode_IsOne()
     {
         // Act
         var result = Result.Failure("Test error");
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.True(result.IsFailure);
-        Assert.Equal("Test error", result.Error);
-        Assert.Equal(1, result.ExitCode);
+        Assert.IsFalse(result.IsSuccess);
+        Assert.IsTrue(result.IsFailure);
+        Assert.AreEqual("Test error", result.Error);
+        Assert.AreEqual(1, result.ExitCode);
     }
 
-    [Fact]
+    [TestMethod]
     public void ResultT_Success_CreatesSuccessfulResultWithValue()
     {
         // Arrange
@@ -68,14 +68,14 @@ public class ResultTests
         var result = Result<string>.Success(testValue);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.False(result.IsFailure);
-        Assert.Null(result.Error);
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal(testValue, result.Value);
+        Assert.IsTrue(result.IsSuccess);
+        Assert.IsFalse(result.IsFailure);
+        Assert.IsNull(result.Error);
+        Assert.AreEqual(0, result.ExitCode);
+        Assert.AreEqual(testValue, result.Value);
     }
 
-    [Fact]
+    [TestMethod]
     public void ResultT_Failure_CreatesFailedResult()
     {
         // Arrange
@@ -86,24 +86,24 @@ public class ResultTests
         var result = Result<string>.Failure(errorMessage, exitCode);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.True(result.IsFailure);
-        Assert.Equal(errorMessage, result.Error);
-        Assert.Equal(exitCode, result.ExitCode);
-        Assert.Null(result.Value);
+        Assert.IsFalse(result.IsSuccess);
+        Assert.IsTrue(result.IsFailure);
+        Assert.AreEqual(errorMessage, result.Error);
+        Assert.AreEqual(exitCode, result.ExitCode);
+        Assert.IsNull(result.Value);
     }
 
-    [Fact]
+    [TestMethod]
     public void ResultT_Failure_DefaultExitCode_IsOne()
     {
         // Act
         var result = Result<int>.Failure("Test error");
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.True(result.IsFailure);
-        Assert.Equal("Test error", result.Error);
-        Assert.Equal(1, result.ExitCode);
-        Assert.Equal(0, result.Value); // default value for int
+        Assert.IsFalse(result.IsSuccess);
+        Assert.IsTrue(result.IsFailure);
+        Assert.AreEqual("Test error", result.Error);
+        Assert.AreEqual(1, result.ExitCode);
+        Assert.AreEqual(0, result.Value); // default value for int
     }
 }
