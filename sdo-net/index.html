@@ -3319,11 +3319,13 @@ sdo<span class="w"> </span>repo<span class="w"> </span>delete<span class="w"> </
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span>
 sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span><span class="w"> </span>--yaml<span class="w"> </span>.<span class="se">\d</span>ev-setup<span class="se">\a</span>pps.yaml
 sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span><span class="w"> </span>--dry-run
+sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Argo CD"</span><span class="w"> </span>--latest<span class="w"> </span>--dry-run<span class="w"> </span>--verbose
 </code></pre></div>
 <p>Options:
 - <code>--name &lt;name&gt;</code> — Application name (required)
 - <code>--yaml &lt;path&gt;</code> — Optional <code>apps.yaml</code> path; otherwise the current directory and default installation directory are searched
 - <code>--version &lt;version&gt;</code> — Optional version override
+- <code>--latest</code> — Discover the latest stable GitHub release instead of using the YAML version
 - <code>--dry-run</code> — Show the planned update without changing the installed application
 - <code>--verbose</code> — Enable detailed output</p>
 <h4 id="tool">tool<a class="headerlink" href="#tool" title="Anchor link to this section for reference">&para;</a></h4>
