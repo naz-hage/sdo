@@ -108,6 +108,19 @@ public class WorkItemCommandTests
     }
 
     [TestMethod]
+    public void ShowSubcommand_HasSaveOption()
+    {
+        // Act
+        var command = new WorkItemCommand(_verboseOption);
+        var showCmd = command.Subcommands.Single(s => s.Name == "show");
+
+        // Assert
+        var saveOption = showCmd.Options.Single(o => o.Name == "--save");
+        Assert.IsNotNull(saveOption);
+        Assert.AreEqual("Save details to .temp/<id>-issue.md or .temp/<id>-work-item.md", saveOption.Description);
+    }
+
+    [TestMethod]
     public void ShowSubcommand_HasVerboseOption()
     {
         // Act

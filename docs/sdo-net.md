@@ -265,6 +265,7 @@ Display full details of a work item. The `--id` option is optional; if omitted, 
 sdo wi show                         # Auto-detect from branch name
 sdo wi show --id 243                # Show item details with explicit ID
 sdo wi show --id 243 --comments     # Include comments
+sdo wi show --id 243 --save         # Save details to .temp/243-issue.md or .temp/243-work-item.md
 sdo wi show --id 243 --verbose      # Show API command
 ```
 
@@ -277,6 +278,7 @@ When no `--id` is provided:
 **Options:**
 - `--id <id>` — Work item ID (optional; auto-detected from branch name if not on main)
 - `-c, --comments` — Show comments/discussion
+- `--save` — Save the retrieved item as `.temp/<id>-issue.md` on GitHub or `.temp/<id>-work-item.md` on Azure DevOps
 - `--verbose` — Show mapping
 
 **Branch Name Format:**

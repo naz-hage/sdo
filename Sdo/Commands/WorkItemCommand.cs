@@ -85,18 +85,21 @@ namespace Sdo.Commands
 
             var idOption = new Option<int?>("--id") { Description = "Work item ID (optional; auto-detected from branch name if not on main)" };
             var commentsOption = new Option<bool>("--comments") { Description = "Show comments/discussion", Aliases = { "-c" } };
+            var saveOption = new Option<bool>("--save") { Description = "Save details to .temp/<id>-issue.md or .temp/<id>-work-item.md" };
 
             showCommand.Add(idOption);
             showCommand.Add(commentsOption);
+            showCommand.Add(saveOption);
             showCommand.Add(verboseOption);
 
             showCommand.SetAction(async (parseResult) =>
             {
                 var id = parseResult.GetValue(idOption);
                 var includeComments = parseResult.GetValue(commentsOption);
+                var save = parseResult.GetValue(saveOption);
                 var verbose = parseResult.GetValue(verboseOption);
 
-                return await ShowWorkItem(id, includeComments, verbose);
+                return await ShowWorkItem(id, includeComments, save, verbose);
             });
 
             Subcommands.Add(showCommand);
@@ -279,7 +282,7 @@ namespace Sdo.Commands
         /// <param name="includeComments">Whether to include comments/discussion.</param>
         /// <param name="verbose">Whether to enable verbose output.</param>
         /// <returns>Exit code.</returns>
-        private async Task<int> ShowWorkItem(int? id, bool includeComments, bool verbose)
+        private async Task<int> ShowWorkItem(int? id, bool includeComments, bool save, bool verbose)
         {
             try
             {
@@ -332,11 +335,11 @@ namespace Sdo.Commands
 
                 if (platform == Platform.GitHub)
                 {
-                    return await ShowGitHubIssue((int)id!, includeComments, verbose);
+                    return await ShowGitHubIssue((int)id!, includeComments, save, verbose);
                 }
                 else if (platform == Platform.AzureDevOps)
                 {
-                    return await ShowAzureDevOpsWorkItem((int)id!, includeComments, verbose);
+                    return await ShowAzureDevOpsWorkItem((int)id!, includeComments, save, verbose);
                 }
                 else
                 {
@@ -363,7 +366,7 @@ namespace Sdo.Commands
         /// <summary>
         /// Displays GitHub issue details.
         /// </summary>
-        private async Task<int> ShowGitHubIssue(int issueNumber, bool includeComments, bool verbose)
+        private async Task<int> ShowGitHubIssue(int issueNumber, bool includeComments, bool save, bool verbose)
         {
             try
             {
@@ -397,6 +400,10 @@ namespace Sdo.Commands
                 }
 
                 DisplayIssue(issue, includeComments);
+                if (save && !SaveGitHubIssue(issue))
+                {
+                    return 1;
+                }
                 return 0;
             }
             catch (Exception ex)
@@ -409,7 +416,7 @@ namespace Sdo.Commands
         /// <summary>
         /// Displays Azure DevOps work item details.
         /// </summary>
-        private async Task<int> ShowAzureDevOpsWorkItem(int workItemId, bool includeComments, bool verbose)
+        private async Task<int> ShowAzureDevOpsWorkItem(int workItemId, bool includeComments, bool save, bool verbose)
         {
             try
             {
@@ -443,6 +450,10 @@ namespace Sdo.Commands
                 }
 
                 DisplayWorkItem(workItem, includeComments);
+                if (save && !SaveAzureDevOpsWorkItem(workItem))
+                {
+                    return 1;
+                }
                 return 0;
             }
             catch (Exception ex)
@@ -1662,6 +1673,95 @@ namespace Sdo.Commands
                 }
                 return 1;
             }
+        }
+
+        private bool SaveGitHubIssue(GitHubIssue issue)
+        {
+            var labels = issue.Labels == null
+                ? string.Empty
+                : string.Join(", ", issue.Labels.Select(label => label.Name));
+            var lines = new List<string>
+            {
+                "---",
+                $"type: issue",
+                $"state: {QuoteMarkdownValue(issue.State)}",
+                $"labels: {QuoteMarkdownValue(labels)}",
+                $"assignee: {QuoteMarkdownValue(issue.Assignee?.Login)}",
+                $"url: {QuoteMarkdownValue(issue.HtmlUrl)}",
+                "---",
+                $"# {issue.Title ?? $"Issue {issue.Number}"}",
+                string.Empty
+            };
+
+            if (!string.IsNullOrEmpty(issue.Body))
+            {
+                lines.Add(issue.Body);
+            }
+
+            return SaveWorkItemMarkdown(issue.Number, "issue", lines);
+        }
+
+        private bool SaveAzureDevOpsWorkItem(AzureDevOpsWorkItem workItem)
+        {
+            var lines = new List<string>
+            {
+                "---",
+                $"type: {QuoteMarkdownValue(workItem.Type)}",
+                $"state: {QuoteMarkdownValue(workItem.State)}",
+                $"assigned_to: {QuoteMarkdownValue(workItem.AssignedTo)}",
+                $"area: {QuoteMarkdownValue(workItem.Area)}",
+                $"iteration: {QuoteMarkdownValue(workItem.Sprint)}",
+                $"url: {QuoteMarkdownValue(workItem.Url)}",
+                "---",
+                $"# {workItem.Title ?? $"Work Item {workItem.Id}"}",
+                string.Empty
+            };
+
+            if (!string.IsNullOrEmpty(workItem.Description))
+            {
+                lines.Add(StripHtmlTags(workItem.Description));
+            }
+
+            if (!string.IsNullOrEmpty(workItem.AcceptanceCriteria))
+            {
+                lines.Add(string.Empty);
+                lines.Add("## Acceptance Criteria");
+                lines.AddRange(StripHtmlTags(workItem.AcceptanceCriteria)
+                    .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(line => line.TrimStart().StartsWith("- ") ? line : $"- [ ] {line}"));
+            }
+
+            return SaveWorkItemMarkdown(workItem.Id, "work-item", lines);
+        }
+
+        private bool SaveWorkItemMarkdown(int id, string type, List<string> lines)
+        {
+            // if work exits, return early
+            var filePath = Path.Combine(".temp", $"{id}-{type}.md");
+            // if work exits, return early
+            if (File.Exists(filePath))
+            {
+                ConsoleHelper.WriteInfo($"Work item details already exist at {filePath}");
+                return true;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(".temp");
+                File.WriteAllText(filePath, string.Join(Environment.NewLine, lines) + Environment.NewLine);
+                ConsoleHelper.WriteSuccess($"Saved work item details to {filePath}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ConsoleHelper.WriteError($"Failed to save work item details to {filePath}: {ex.Message}");
+                return false;
+            }
+        }
+
+        private string QuoteMarkdownValue(string? value)
+        {
+            return $"\"{(value ?? string.Empty).Replace("\"", "\\\"")}\"";
         }
 
         /// <summary>
