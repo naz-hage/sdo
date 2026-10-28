@@ -830,12 +830,14 @@ Update a named application when the version in `apps.yaml` is newer than the ins
 sdo tool update --name "Git for Windows"
 sdo tool update --name "Git for Windows" --yaml .\dev-setup\apps.yaml
 sdo tool update --name "Git for Windows" --dry-run
+sdo tool update --name "Argo CD" --latest --dry-run --verbose
 ```
 
 Options:
 - `--name <name>` — Application name (required)
 - `--yaml <path>` — Optional `apps.yaml` path; otherwise the current directory and default installation directory are searched
 - `--version <version>` — Optional version override
+- `--latest` — Discover the latest stable GitHub release instead of using the YAML version
 - `--dry-run` — Show the planned update without changing the installed application
 - `--verbose` — Enable detailed output
 

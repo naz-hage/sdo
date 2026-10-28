@@ -22,6 +22,7 @@ namespace Nbuild
         private static string DownloadsDirectory = $"{Environment.GetEnvironmentVariable("Temp")}\\nb"; // "C:\\sdo-downloads" $"{Environment.GetEnvironmentVariable("Temp")}\\nb"
         private static bool Verbose = false;
         private static bool ValidJson = false;
+        private static readonly HttpClient LatestVersionClient = CreateLatestVersionClient();
 
         public static bool TestMode
         {
@@ -271,7 +272,13 @@ namespace Nbuild
         /// <summary>
         /// Updates a named application when the manifest version is newer than the installed version.
         /// </summary>
-        public static ResultHelper Update(string? yaml, string? name, string? version, bool verbose = false, bool dryRun = false)
+        public static ResultHelper Update(
+            string? yaml,
+            string? name,
+            string? version,
+            bool verbose = false,
+            bool dryRun = false,
+            bool latest = false)
         {
             Verbose = verbose;
 
@@ -311,13 +318,28 @@ namespace Nbuild
                 foreach (var app in apps)
                 {
                     var installedVersion = GetAppFileVersion(app);
-                    if (!IsUpdateRequired(app, installedVersion))
+                    var targetVersion = app.Version;
+                    var targetUrl = app.WebDownloadFile;
+                    if (latest)
                     {
-                        ConsoleHelper.WriteWarning($"DRY-RUN: {app.Name} {installedVersion ?? app.Version} is already up-to-date.");
+                        if (!TryGetLatestVersion(app, out targetVersion, out targetUrl, out var error))
+                        {
+                            return ResultHelper.Fail(-1, error);
+                        }
+                    }
+
+                    if (Verbose)
+                    {
+                        ConsoleHelper.WriteVerbose($"Latest version URL: {targetUrl}");
+                    }
+
+                    if (!IsUpdateRequired(app, installedVersion, targetVersion, checkHash: !latest))
+                    {
+                        ConsoleHelper.WriteWarning($"DRY-RUN: {app.Name} {installedVersion ?? targetVersion} is already up-to-date.");
                     }
                     else
                     {
-                        ConsoleHelper.WriteWarning($"DRY-RUN: would update app '{app.Name}' from {installedVersion ?? "not installed"} to {app.Version}");
+                        ConsoleHelper.WriteWarning($"DRY-RUN: would update app '{app.Name}' from {installedVersion ?? "not installed"} to {targetVersion}");
                     }
                 }
 
@@ -333,10 +355,30 @@ namespace Nbuild
             foreach (var app in apps)
             {
                 var installedVersion = GetAppFileVersion(app);
-                if (!IsUpdateRequired(app, installedVersion))
+                var targetVersion = app.Version;
+                var targetUrl = app.WebDownloadFile;
+                if (latest)
                 {
-                    ConsoleHelper.WriteWarning($"{app.Name} {installedVersion ?? app.Version} is already up-to-date.");
+                    if (!TryGetLatestVersion(app, out targetVersion, out targetUrl, out var error))
+                    {
+                        return ResultHelper.Fail(-1, error);
+                    }
+                }
+
+                if (!IsUpdateRequired(app, installedVersion, targetVersion, checkHash: !latest))
+                {
+                    if (Verbose)
+                    {
+                        ConsoleHelper.WriteVerbose($"Latest version URL: {targetUrl}");
+                    }
+
+                    ConsoleHelper.WriteWarning($"{app.Name} {installedVersion ?? targetVersion} is already up-to-date.");
                     continue;
+                }
+
+                if (Verbose)
+                {
+                    ConsoleHelper.WriteVerbose($"Latest version URL: {targetUrl}");
                 }
 
                 if (!string.IsNullOrEmpty(installedVersion))
@@ -346,6 +388,11 @@ namespace Nbuild
                     {
                         return ResultHelper.Fail(uninstallResult.Code, $"Failed to remove {app.Name} before update: {uninstallResult.GetFirstOutput()}");
                     }
+                }
+
+                if (latest)
+                {
+                    ApplyAppVersion(app, targetVersion);
                 }
 
                 finalResult = Install(app, verbose);
@@ -1051,9 +1098,13 @@ namespace Nbuild
             return currentVersionParsed == versionParsed;
         }
 
-        private static bool IsUpdateRequired(NbuildApp app, string? installedVersion)
+        private static bool IsUpdateRequired(
+            NbuildApp app,
+            string? installedVersion,
+            string? targetVersion = null,
+            bool checkHash = true)
         {
-            if (IsFileHashEqual(app.AppFileName, app.StoredHash))
+            if (checkHash && IsFileHashEqual(app.AppFileName, app.StoredHash))
             {
                 return false;
             }
@@ -1064,12 +1115,119 @@ namespace Nbuild
             }
 
             if (!Version.TryParse(installedVersion, out var current) ||
-                !Version.TryParse(app.Version, out var target))
+                !Version.TryParse(targetVersion ?? app.Version, out var target))
             {
                 return true;
             }
 
             return current < target;
+        }
+
+        private static HttpClient CreateLatestVersionClient()
+        {
+            var client = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(30)
+            };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("sdo-tool-update");
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+            return client;
+        }
+
+        private static bool TryGetLatestVersion(
+            NbuildApp app,
+            out string? latestVersion,
+            out string? latestUrl,
+            out string error)
+        {
+            latestVersion = null;
+            latestUrl = null;
+            error = string.Empty;
+
+            if (!Uri.TryCreate(app.WebDownloadFile, UriKind.Absolute, out var downloadUri) ||
+                !downloadUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+            {
+                error = $"Latest version discovery is only supported for GitHub release URLs. App '{app.Name}' has no supported release URL.";
+                return false;
+            }
+
+            var segments = downloadUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            var releasesIndex = Array.FindIndex(segments, segment =>
+                segment.Equals("releases", StringComparison.OrdinalIgnoreCase));
+            if (segments.Length < 4 || releasesIndex < 2 ||
+                releasesIndex + 2 >= segments.Length ||
+                !segments[releasesIndex + 1].Equals("download", StringComparison.OrdinalIgnoreCase))
+            {
+                error = $"Could not determine the GitHub repository from the download URL for '{app.Name}'.";
+                return false;
+            }
+
+            var repository = $"{segments[0]}/{segments[1]}";
+            var endpoint = $"https://api.github.com/repos/{repository}/releases/latest";
+
+            try
+            {
+                using var response = LatestVersionClient.GetAsync(endpoint).GetAwaiter().GetResult();
+                if (!response.IsSuccessStatusCode)
+                {
+                    error = $"Failed to discover the latest version for '{app.Name}' from GitHub ({(int)response.StatusCode} {response.ReasonPhrase}).";
+                    return false;
+                }
+
+                using var document = JsonDocument.Parse(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+                var tag = document.RootElement.TryGetProperty("tag_name", out var tagProperty)
+                    ? tagProperty.GetString()
+                    : null;
+                if (string.IsNullOrWhiteSpace(tag))
+                {
+                    error = $"GitHub did not return a release tag for '{app.Name}'.";
+                    return false;
+                }
+
+                var versionMatch = System.Text.RegularExpressions.Regex.Match(
+                    tag.TrimStart('v', 'V'),
+                    @"\d+(?:\.\d+){1,3}");
+                if (!versionMatch.Success)
+                {
+                    error = $"GitHub release tag '{tag}' for '{app.Name}' does not contain a supported version.";
+                    return false;
+                }
+
+                latestVersion = versionMatch.Value;
+                latestUrl = ReplaceAppVersion(app.WebDownloadFile, app.Version, latestVersion);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = $"Failed to discover the latest version for '{app.Name}': {ex.Message}";
+                return false;
+            }
+        }
+
+        private static string? ReplaceAppVersion(string? value, string? currentVersion, string latestVersion)
+        {
+            return string.IsNullOrEmpty(value) || string.IsNullOrEmpty(currentVersion)
+                ? value
+                : value.Replace(currentVersion, latestVersion, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void ApplyAppVersion(NbuildApp app, string? latestVersion)
+        {
+            if (string.IsNullOrEmpty(latestVersion) || string.IsNullOrEmpty(app.Version))
+            {
+                return;
+            }
+
+            var currentVersion = app.Version;
+            app.InstallPath = ReplaceAppVersion(app.InstallPath, currentVersion, latestVersion);
+            app.AppFileName = ReplaceAppVersion(app.AppFileName, currentVersion, latestVersion);
+            app.WebDownloadFile = ReplaceAppVersion(app.WebDownloadFile, currentVersion, latestVersion);
+            app.DownloadedFile = ReplaceAppVersion(app.DownloadedFile, currentVersion, latestVersion);
+            app.InstallCommand = ReplaceAppVersion(app.InstallCommand, currentVersion, latestVersion);
+            app.InstallArgs = ReplaceAppVersion(app.InstallArgs, currentVersion, latestVersion);
+            app.UninstallCommand = ReplaceAppVersion(app.UninstallCommand, currentVersion, latestVersion);
+            app.UninstallArgs = ReplaceAppVersion(app.UninstallArgs, currentVersion, latestVersion);
+            app.Version = latestVersion;
         }
 
         public static IEnumerable<NbuildApp> GetApps(string? json)

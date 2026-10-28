@@ -24,10 +24,15 @@ namespace Sdo.Commands
             {
                 Description = "Optional application version override"
             };
+            var latestOption = new Option<bool>("--latest")
+            {
+                Description = "Discover the latest stable GitHub release instead of using the YAML version"
+            };
 
             Add(nameOption);
             Add(yamlOption);
             Add(versionOption);
+            Add(latestOption);
             Add(verboseOption);
             if (dryRunOption != null)
             {
@@ -39,12 +44,13 @@ namespace Sdo.Commands
                 var name = parseResult.GetValue(nameOption);
                 var yaml = parseResult.GetValue(yamlOption);
                 var version = parseResult.GetValue(versionOption);
+                var latest = parseResult.GetValue(latestOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = dryRunOption != null && parseResult.GetValue(dryRunOption);
 
                 try
                 {
-                    return NbuildCommand.Update(yaml, name, version, verbose, dryRun).Code;
+                    return NbuildCommand.Update(yaml, name, version, verbose, dryRun, latest).Code;
                 }
                 catch (Exception exception)
                 {
