@@ -2887,6 +2887,7 @@ Summary:
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>wi<span class="w"> </span>show<span class="w">                         </span><span class="c1"># Auto-detect from branch name</span>
 sdo<span class="w"> </span>wi<span class="w"> </span>show<span class="w"> </span>--id<span class="w"> </span><span class="m">243</span><span class="w">                </span><span class="c1"># Show item details with explicit ID</span>
 sdo<span class="w"> </span>wi<span class="w"> </span>show<span class="w"> </span>--id<span class="w"> </span><span class="m">243</span><span class="w"> </span>--comments<span class="w">     </span><span class="c1"># Include comments</span>
+sdo<span class="w"> </span>wi<span class="w"> </span>show<span class="w"> </span>--id<span class="w"> </span><span class="m">243</span><span class="w"> </span>--save<span class="w">         </span><span class="c1"># Save details to .temp/243-issue.md or .temp/243-work-item.md</span>
 sdo<span class="w"> </span>wi<span class="w"> </span>show<span class="w"> </span>--id<span class="w"> </span><span class="m">243</span><span class="w"> </span>--verbose<span class="w">      </span><span class="c1"># Show API command</span>
 </code></pre></div></p>
 <p><strong>Auto-Detection:</strong></p>
@@ -2896,6 +2897,7 @@ sdo<span class="w"> </span>wi<span class="w"> </span>show<span class="w"> </span
 <p><strong>Options:</strong>
 - <code>--id &lt;id&gt;</code> — Work item ID (optional; auto-detected from branch name if not on main)
 - <code>-c, --comments</code> — Show comments/discussion
+- <code>--save</code> — Save the retrieved item as <code>.temp/&lt;id&gt;-issue.md</code> on GitHub or <code>.temp/&lt;id&gt;-work-item.md</code> on Azure DevOps
 - <code>--verbose</code> — Show mapping</p>
 <p><strong>Branch Name Format:</strong>
 - Expected format: <code>&lt;number&gt;-&lt;description&gt;</code>
