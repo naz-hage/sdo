@@ -822,6 +822,23 @@ sdo repo delete --force --verbose   # Show mapping
 
 These command groups consolidate the local build, backup, and file-search workflows into SDO.
 
+#### tool update
+
+Update a named application when the version in `apps.yaml` is newer than the installed version.
+
+```bash
+sdo tool update --name "Git for Windows"
+sdo tool update --name "Git for Windows" --yaml .\dev-setup\apps.yaml
+sdo tool update --name "Git for Windows" --dry-run
+```
+
+Options:
+- `--name <name>` — Application name (required)
+- `--yaml <path>` — Optional `apps.yaml` path; otherwise the current directory and default installation directory are searched
+- `--version <version>` — Optional version override
+- `--dry-run` — Show the planned update without changing the installed application
+- `--verbose` — Enable detailed output
+
 #### tool
 
 Environment tool installation, auditing, and manifest management. Use
@@ -830,6 +847,7 @@ Environment tool installation, auditing, and manifest management. Use
 Subcommands:
 - `install` — Install tools from a manifest or by application name
 - `list` — Display tools and versions
+- `update` — Update an installed tool to the manifest version
 - `uninstall` — Uninstall tools from a manifest
 - `download` — Download tools from a manifest
 

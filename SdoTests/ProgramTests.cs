@@ -636,6 +636,14 @@ steps:
     }
 
     [TestMethod]
+    public void Main_WithUpdateMissingApplication_ReturnsError()
+    {
+        var result = Program.Main("tool", "update", "--name", "NonExistentApp", "--dry-run");
+
+        Assert.AreEqual(-1, result);
+    }
+
+    [TestMethod]
     public void Main_WithBackupInitAndRunDryRun_ReturnZero()
     {
         var outputPath = Path.Combine(Path.GetTempPath(), $"sdo-backup-{Guid.NewGuid():N}.json");

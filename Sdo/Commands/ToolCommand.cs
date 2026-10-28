@@ -19,6 +19,7 @@ namespace Sdo.Commands
             AddListCommand(verboseOption);
             AddUninstallCommand(verboseOption, dryRunOption);
             AddDownloadCommand(verboseOption, dryRunOption);
+            Subcommands.Add(new UpdateCommand(verboseOption, dryRunOption));
         }
 
         private void AddInstallCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)

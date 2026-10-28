@@ -268,6 +268,96 @@ namespace Nbuild
             return result;
         }
 
+        /// <summary>
+        /// Updates a named application when the manifest version is newer than the installed version.
+        /// </summary>
+        public static ResultHelper Update(string? yaml, string? name, string? version, bool verbose = false, bool dryRun = false)
+        {
+            Verbose = verbose;
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return ResultHelper.Fail(-1, "The application name is required.");
+            }
+
+            List<NbuildApp> apps;
+            List<string> availableApps;
+            try
+            {
+                apps = GetAppsFromCurrentDirectory(name, version, out availableApps, yaml);
+            }
+            catch (Exception ex)
+            {
+                return ResultHelper.Fail(-1, $"Failed to load apps.yaml: {ex.Message}");
+            }
+
+            if (!apps.Any())
+            {
+                ConsoleHelper.WriteError($"No apps found matching '{name}'");
+                if (availableApps.Any())
+                {
+                    ConsoleHelper.WriteLine("Available applications:");
+                    foreach (var availableApp in availableApps.OrderBy(app => app))
+                    {
+                        ConsoleHelper.WriteLine($"  - {availableApp}");
+                    }
+                }
+
+                return ResultHelper.Fail(-1, $"No apps found matching '{name}'");
+            }
+
+            if (dryRun)
+            {
+                foreach (var app in apps)
+                {
+                    var installedVersion = GetAppFileVersion(app);
+                    if (!IsUpdateRequired(app, installedVersion))
+                    {
+                        ConsoleHelper.WriteWarning($"DRY-RUN: {app.Name} {installedVersion ?? app.Version} is already up-to-date.");
+                    }
+                    else
+                    {
+                        ConsoleHelper.WriteWarning($"DRY-RUN: would update app '{app.Name}' from {installedVersion ?? "not installed"} to {app.Version}");
+                    }
+                }
+
+                return ResultHelper.Success();
+            }
+
+            if (!CanRunCommand())
+            {
+                return ResultHelper.Fail(-1, "You must run this command as an administrator");
+            }
+
+            var finalResult = ResultHelper.Success();
+            foreach (var app in apps)
+            {
+                var installedVersion = GetAppFileVersion(app);
+                if (!IsUpdateRequired(app, installedVersion))
+                {
+                    ConsoleHelper.WriteWarning($"{app.Name} {installedVersion ?? app.Version} is already up-to-date.");
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(installedVersion))
+                {
+                    var uninstallResult = Uninstall(app, force: true);
+                    if (!uninstallResult.IsSuccess())
+                    {
+                        return ResultHelper.Fail(uninstallResult.Code, $"Failed to remove {app.Name} before update: {uninstallResult.GetFirstOutput()}");
+                    }
+                }
+
+                finalResult = Install(app, verbose);
+                if (!finalResult.IsSuccess())
+                {
+                    return finalResult;
+                }
+            }
+
+            return finalResult;
+        }
+
         public static ResultHelper Uninstall(
             string? json,
             bool verbose = false,
@@ -820,7 +910,7 @@ namespace Nbuild
             }
         }
 
-        private static ResultHelper Uninstall(NbuildApp nbuildApp)
+        private static ResultHelper Uninstall(NbuildApp nbuildApp, bool force = false)
         {
             if (string.IsNullOrEmpty(nbuildApp.DownloadedFile) ||
                 string.IsNullOrEmpty(nbuildApp.WebDownloadFile) ||
@@ -838,7 +928,7 @@ namespace Nbuild
             }
 
             // if app is not installed, return success with app not installed message
-            if (!IsAppVersionGreaterOrEqual(nbuildApp))
+            if (!force && !IsAppVersionGreaterOrEqual(nbuildApp))
             {
                 ConsoleHelper.WriteWarning($"{nbuildApp.Name} {nbuildApp.Version} not installed.");
                 return ResultHelper.Success();
@@ -959,6 +1049,27 @@ namespace Nbuild
             if (!Version.TryParse(nbuildApp.Version, out Version? versionParsed)) return false;
 
             return currentVersionParsed == versionParsed;
+        }
+
+        private static bool IsUpdateRequired(NbuildApp app, string? installedVersion)
+        {
+            if (IsFileHashEqual(app.AppFileName, app.StoredHash))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(installedVersion))
+            {
+                return true;
+            }
+
+            if (!Version.TryParse(installedVersion, out var current) ||
+                !Version.TryParse(app.Version, out var target))
+            {
+                return true;
+            }
+
+            return current < target;
         }
 
         public static IEnumerable<NbuildApp> GetApps(string? json)
