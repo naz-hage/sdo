@@ -824,7 +824,7 @@ These command groups consolidate the local build, backup, and file-search workfl
 
 #### tool update
 
-Update a named application when the version in `apps.yaml` is newer than the installed version.
+Update a named application to the version in `apps.yaml`, or discover the latest stable GitHub release with `--latest`.
 
 ```bash
 sdo tool update --name "Git for Windows"
@@ -849,8 +849,8 @@ Environment tool installation, auditing, and manifest management. Use
 Subcommands:
 - `install` — Install tools from a manifest or by application name
 - `list` — Display tools and versions
-- `update` — Update an installed tool to the manifest version
-- `uninstall` — Uninstall tools from a manifest
+- `update` — Update an installed tool to the manifest or discovered latest version
+- `uninstall` — Uninstall tools from a manifest or by application name
 - `download` — Download tools from a manifest
 
 ```bash
@@ -1841,7 +1841,7 @@ Installs applications specified in the manifest file. The `--manifest` parameter
 sdo.exe tool install --name "MyApp"
 sdo.exe tool install --name "MyApp" --appversion "1.2.3"
 ```
-Searches for the requested application in the explicit `--json` manifest first when one is provided, then in `apps.yaml` in the current directory, `go\\apps.yaml`, and finally in `C:\\Program Files\\sdo\\apps.yaml`. The `--appversion` parameter is optional and overrides the version specified in the JSON file.
+Searches for the requested application in the explicit manifest first when one is provided, then in `apps.yaml` in the current directory and finally in `C:\\Program Files\\sdo\\apps.yaml`. The `--appversion` parameter is optional and overrides the version specified in the manifest.
 
 #### Install a named tool from a YAML manifest:
 ```cmd
@@ -1851,9 +1851,9 @@ Installs only the matching tool from the specified manifest. Standalone executab
 
 **BREAKING CHANGE (v1.76+):** This command now searches ONLY for `apps.yaml` files, not all JSON files. You must consolidate your application definitions into a single `apps.yaml` file in the target directory or move it to the default installation directory.
 
-**Search order:** When `--json` is provided, that file is searched first, followed by `apps.yaml` in the current directory, then `C:\Program Files\nbuild\apps.yaml`. Without `--json`, the current directory is searched first, followed by the default installation directory. The first matching app takes precedence.
+**Search order:** When an explicit manifest is provided, that file is searched first, followed by `apps.yaml` in the current directory and then the default installation directory. Without an explicit manifest, the current directory is searched first, followed by the default installation directory. The first matching app takes precedence.
 
-**Note:** If you specify both `--json` and `--name`, the command searches the specified JSON file first and falls back to the standard locations if the app is not found there. The `--name` method provides a convenient way to install applications without needing to know the exact path to the JSON configuration file.
+**Note:** If you specify both an explicit manifest and `--name`, the command searches the specified manifest first and falls back to the standard locations if the app is not found there. The `--name` method provides a convenient way to install applications without needing to know the exact path to the YAML configuration file.
 
 #### Dry-run mode for install:
 ```cmd
@@ -1878,19 +1878,28 @@ Uninstalls applications as specified in the manifest file. (Requires admin privi
 
 #### Uninstall only one named application:
 ```cmd
+sdo.exe tool uninstall --name "Argo CD"
 sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
 sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml" --appversion "2.5.0"
 ```
-The `--name` (`-n`) option limits uninstall to the matching application instead of processing every entry in the manifest. Use `--appversion` (`-av`) when the manifest contains multiple versions of the same application.
+The `--name` (`-n`) option limits uninstall to the matching application instead of processing every entry in the manifest. When no manifest is supplied, SDO searches `apps.yaml` in the current directory and then the default installation directory. Uninstall determines whether the application is installed from its executable or install path; it does not require the installed version to match the version recorded in `apps.yaml`. Use `--appversion` (`-av`) when the manifest contains multiple versions of the same application.
 
 The sample `dev-setup\apps.yaml` manifest includes Crossplane CLI `2.5.0`, installed to `C:\Program Files\Crossplane` and added to the user PATH. Its configured SHA-256 hash is checked after installation.
+
+### 2.5 Update Applications
+```cmd
+sdo.exe tool update --name "Argo CD"
+sdo.exe tool update --name "Argo CD" --latest --dry-run --verbose
+sdo.exe tool update --name "Argo CD" --yaml ".\dev-setup\apps.yaml"
+```
+Without `--latest`, the update uses the version pinned in `apps.yaml`. With `--latest`, GitHub release URLs are queried for the latest stable release and the download URL is rebuilt with the discovered version. Use `--verbose` to display the resolved download URL. Non-GitHub release URLs require a pinned YAML version.
 
 ### 3. List Installed Applications
 ```cmd
 sdo.exe tool list
 sdo.exe tool list --manifest "C:\Program Files\sdo\apps.yaml"
 ```
-Lists all applications specified in the provided JSON file. If no `--manifest` option is specified, the default file is used.
+Lists all applications specified in the provided manifest. If no `--manifest` option is specified, the default file is used.
 
 ### 4. Download Applications
 ```cmd
@@ -1898,9 +1907,9 @@ sdo.exe tool download --manifest "C:\Program Files\sdo\apps.yaml"
 ```
 Downloads tools and applications specified in the manifest file. The output table expands its columns for long application names and filenames and does not add status prefixes inside table rows. (Uses the `--manifest` option to locate the YAML file.)
 
-### 5. Error Handling for JSON Manifest Files
+### 5. Error Handling for Tool Manifest Files
 
-The `list`, `install`, `uninstall`, and `download` commands require valid YAML manifest files. The following errors may occur:
+The `list`, `install`, `uninstall`, and `download` commands require valid tool manifest files. YAML is the standard format; the legacy `--json` option remains available where supported.
 
 #### File Not Found
 ```

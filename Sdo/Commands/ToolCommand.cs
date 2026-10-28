@@ -96,11 +96,18 @@ namespace Sdo.Commands
                 var manifest = parseResult.GetValue(manifestOption);
                 var name = parseResult.GetValue(nameOption);
                 var version = parseResult.GetValue(versionOption);
-                if (string.IsNullOrEmpty(json) == string.IsNullOrEmpty(manifest))
+                if (!string.IsNullOrEmpty(json) && !string.IsNullOrEmpty(manifest))
                 {
-                    Console.Error.WriteLine("Error: Specify exactly one of --json or --manifest.");
+                    Console.Error.WriteLine("Error: Use either --json or --manifest, not both.");
                     return 1;
                 }
+
+                if (string.IsNullOrEmpty(json) && string.IsNullOrEmpty(manifest) && string.IsNullOrEmpty(name))
+                {
+                    Console.Error.WriteLine("Error: Either --json (-j), --manifest (-m), or --name (-n) must be specified.");
+                    return 1;
+                }
+
                 WriteManifestNotice(manifest ?? json);
                 WriteDryRunNotice(dryRun);
                 try

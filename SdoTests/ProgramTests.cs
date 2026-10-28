@@ -636,6 +636,14 @@ steps:
     }
 
     [TestMethod]
+    public void Main_WithToolUninstallNameAndDryRun_ReturnsZero()
+    {
+        var result = Program.Main("tool", "uninstall", "-n", "NonExistentApp", "-dr");
+
+        Assert.AreEqual(0, result);
+    }
+
+    [TestMethod]
     public void Main_WithUpdateMissingApplication_ReturnsError()
     {
         var result = Program.Main("tool", "update", "--name", "NonExistentApp", "--dry-run");

@@ -974,12 +974,14 @@ namespace Nbuild
                 return ResultHelper.Fail(-1, $"Invalid json input");
             }
 
-            // if app is not installed, return success with app not installed message
-            if (!force && !IsAppVersionGreaterOrEqual(nbuildApp))
+            // Uninstall based on the installed file/path, not the version pinned in apps.yaml.
+            if (!force && !IsAppInstalled(nbuildApp))
             {
-                ConsoleHelper.WriteWarning($"{nbuildApp.Name} {nbuildApp.Version} not installed.");
+                ConsoleHelper.WriteWarning($"{nbuildApp.Name} not installed.");
                 return ResultHelper.Success();
             }
+
+            var installedVersion = GetAppFileVersion(nbuildApp) ?? "installed";
 
             // Uninstall the app
             var process = new Process
@@ -998,7 +1000,7 @@ namespace Nbuild
             // Update the filename to the full path of executable in the PATH environment variable
             process.StartInfo.FileName = FileMappins.GetFullPathOfFile(process.StartInfo.FileName);
 
-            ConsoleHelper.WriteWarning($"Uninstalling {nbuildApp.Name} {nbuildApp.Version}");
+            ConsoleHelper.WriteWarning($"Uninstalling {nbuildApp.Name} {installedVersion}");
             if (Verbose) ConsoleHelper.WriteVerbose($"Working Directory: {process.StartInfo.WorkingDirectory}");
             if (Verbose) ConsoleHelper.WriteVerbose($"FileName: {process.StartInfo.FileName}");
             if (Verbose) ConsoleHelper.WriteVerbose($"Arguments: {process.StartInfo.Arguments}");
@@ -1014,7 +1016,7 @@ namespace Nbuild
                     PathManager.RemovePath(nbuildApp.InstallPath!);
                 }
 
-                ConsoleHelper.WriteSuccess($"{nbuildApp.Name} {nbuildApp.Version} Uninstalled.");
+                ConsoleHelper.WriteSuccess($"{nbuildApp.Name} {installedVersion} Uninstalled.");
                 return ResultHelper.Success();
             }
             else
@@ -1045,6 +1047,12 @@ namespace Nbuild
                 if (Verbose) ConsoleHelper.WriteError($"{nbuildApp.Name} {nbuildApp.Version} failed to get file version: {ex.Message}");
                 return null;
             }
+        }
+
+        private static bool IsAppInstalled(NbuildApp nbuildApp)
+        {
+            return (!string.IsNullOrEmpty(nbuildApp.AppFileName) && File.Exists(nbuildApp.AppFileName)) ||
+                   (!string.IsNullOrEmpty(nbuildApp.InstallPath) && Directory.Exists(nbuildApp.InstallPath));
         }
 
         private static bool IsAppVersionGreaterOrEqual(NbuildApp nbuildApp, bool equal = false)
