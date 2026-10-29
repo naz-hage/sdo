@@ -13,7 +13,7 @@ namespace NbuildTests
         private const string NbuildAssemblyName = "nb.dll";
         private const string NbuildAppListJsonFile = "ntools.json";
         private const string LocalTest = "LOCAL_TEST";
-        private const string VersionToTest = "1.82.0";
+        private const string VersionToTest = "2.4.0";
         // Local test mode flag
         private bool? LocalTestMode;
 

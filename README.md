@@ -96,6 +96,11 @@ sdo tool install --name "Git for Windows" --appversion 2.51.1 --dry-run
 ```
 
 Tool manifests contain `Version`, `DownloadPath`, and `NbuildAppList`.
+Each application normally needs only its pinned `Version` and
+`WebDownloadFile`. The optional `LatestVersionUrl` property is used by
+`sdo tool update --latest` when the release metadata is hosted separately
+from the download URL; for example, Helm downloads from `get.helm.sh` but
+discovers releases from `https://github.com/helm/helm`.
 Use `sdo run` for workflow YAML and `sdo e2e` for test metadata YAML.
 
 #### YAML Test Metadata

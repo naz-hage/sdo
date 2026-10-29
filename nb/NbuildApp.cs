@@ -19,6 +19,7 @@ namespace Nbuild
         public string? AppFileName { get; set; }     // name of File that hold the app version.  File should have file version info
         [Required(ErrorMessage = "WebDownloadFile is required")]
         public string? WebDownloadFile { get; set; }     // the url to download the app from. can use $(Name) and $(Version) substitutions
+        public string? LatestVersionUrl { get; set; }     // optional URL used to discover the latest stable version
         [Required(ErrorMessage = "DownloadedFile is required")]
         public string? DownloadedFile { get; set; }     // the downloaded file name, can use $(Name) and $(Version) substitutions
         [Required(ErrorMessage = "InstallCommand is required")]

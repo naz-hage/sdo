@@ -188,6 +188,7 @@ NbuildAppList:
     Version: "3.21.3"
     AppFileName: "$(InstallPath)\\helm.exe"
     WebDownloadFile: "https://get.helm.sh/helm-v$(Version)-windows-amd64.zip"
+    LatestVersionUrl: "https://github.com/helm/helm"
     DownloadedFile: "helm-v$(Version)-windows-amd64.zip"
     InstallCommand: "powershell.exe"
     InstallArgs: "-Command Expand-Archive -Path helm-v$(Version)-windows-amd64.zip -DestinationPath '$(InstallPath)' -Force; Move-Item -Path '$(InstallPath)\\windows-amd64\\helm.exe' -Destination '$(InstallPath)\\helm.exe' -Force; Remove-Item -Path '$(InstallPath)\\windows-amd64' -Recurse -Force"

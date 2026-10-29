@@ -835,11 +835,19 @@ sdo tool update --name "Argo CD" --latest --dry-run --verbose
 
 Options:
 - `--name <name>` — Application name (required)
-- `--yaml <path>` — Optional `apps.yaml` path; otherwise the current directory and default installation directory are searched
+- `--yaml <path>` — Optional `apps.yaml` path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - `--version <version>` — Optional version override
 - `--latest` — Discover the latest stable GitHub release instead of using the YAML version
 - `--dry-run` — Show the planned update without changing the installed application
 - `--verbose` — Enable detailed output
+
+`--latest` does not require an additional manifest property when
+`WebDownloadFile` points directly to a GitHub release download URL. For tools
+whose download URL is hosted elsewhere, add the optional `LatestVersionUrl`
+property to the application entry. This lets SDO use the GitHub repository for
+version discovery while preserving `WebDownloadFile` as the download URL.
+Most applications therefore do not need this property; Helm uses it because
+its archives are hosted at `get.helm.sh`.
 
 #### tool
 

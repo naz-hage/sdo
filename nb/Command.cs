@@ -1158,14 +1158,25 @@ namespace Nbuild
                 return false;
             }
 
-            if (downloadUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+            var discoveryUri = downloadUri;
+            if (!string.IsNullOrWhiteSpace(app.LatestVersionUrl))
             {
-                var segments = downloadUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                if (!Uri.TryCreate(app.LatestVersionUrl, UriKind.Absolute, out discoveryUri))
+                {
+                    error = $"Latest version discovery URL for '{app.Name}' is not a valid absolute URL.";
+                    return false;
+                }
+            }
+
+            if (discoveryUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+            {
+                var segments = discoveryUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
                 var releasesIndex = Array.FindIndex(segments, segment =>
                     segment.Equals("releases", StringComparison.OrdinalIgnoreCase));
-                if (segments.Length < 4 || releasesIndex < 2 ||
-                    releasesIndex + 2 >= segments.Length ||
-                    !segments[releasesIndex + 1].Equals("download", StringComparison.OrdinalIgnoreCase))
+                if (segments.Length < 2 ||
+                    (releasesIndex >= 0 &&
+                     (releasesIndex + 2 >= segments.Length ||
+                      !segments[releasesIndex + 1].Equals("download", StringComparison.OrdinalIgnoreCase))))
                 {
                     error = $"Could not determine the GitHub repository from the download URL for '{app.Name}'.";
                     return false;
@@ -1235,7 +1246,7 @@ namespace Nbuild
                     ?? response.RequestMessage?.RequestUri?.Segments.LastOrDefault();
                 var versionMatch = System.Text.RegularExpressions.Regex.Match(
                     fileName?.Trim('"') ?? string.Empty,
-                    @"\d+(?:\.\d+){1,3}");
+                    @"(?<!Version\))\d+(?:\.\d+){1,3}");
                 if (!versionMatch.Success)
                 {
                     error = $"The download URL for '{app.Name}' did not identify a supported latest version.";
@@ -1413,6 +1424,7 @@ namespace Nbuild
             {
                 json,
                 Path.Combine(Directory.GetCurrentDirectory(), "apps.yaml"),
+                Path.Combine(AppContext.BaseDirectory, "apps.yaml"),
                 DefaultAppsFile
             }
             .Where(path => !string.IsNullOrWhiteSpace(path))

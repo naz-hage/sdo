@@ -262,7 +262,7 @@ namespace GitHubRelease.Tests
         [TestMethod]
         public async Task DownloadPublicAssetByName_ShouldDownloadAsset()
         {
-            var VersionToTest = Environment.GetEnvironmentVariable("VersionToTest") ?? "1.82.0";
+            var VersionToTest = Environment.GetEnvironmentVariable("VersionToTest") ?? "2.4.0";
             var owner = Credentials.GetOwner();
             var repoParts = Repo.Split('/');
             var repoOwner = repoParts.Length > 1 ? repoParts[0] : owner;
