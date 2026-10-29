@@ -1481,6 +1481,10 @@ the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools
 <td>The URL to download the tool.</td>
 </tr>
 <tr>
+<td><code>LatestVersionUrl</code></td>
+<td>(Optional) URL used by <code>tool update --latest</code> to discover the latest stable release when the download URL is not a GitHub release URL.</td>
+</tr>
+<tr>
 <td><code>DownloadedFile</code></td>
 <td>The name of the downloaded file, used for installation.</td>
 </tr>
@@ -1514,6 +1518,20 @@ the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools
 </tr>
 </tbody>
 </table>
+<p><code>LatestVersionUrl</code> is not required for normal installation or for tools that
+use a pinned manifest version. When <code>--latest</code> is used, SDO can discover a
+release automatically when <code>WebDownloadFile</code> is a GitHub release download URL.
+Add <code>LatestVersionUrl</code> only when the download host is different from the
+release host, such as Helm:</p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Name</span><span class="p">:</span><span class="w"> </span><span class="s">"Helm"</span>
+<span class="w">  </span><span class="nt">Version</span><span class="p">:</span><span class="w"> </span><span class="s">"3.21.3"</span>
+<span class="w">  </span><span class="nt">WebDownloadFile</span><span class="p">:</span><span class="w"> </span><span class="s">"https://get.helm.sh/helm-v$(Version)-windows-amd64.zip"</span>
+<span class="w">  </span><span class="nt">LatestVersionUrl</span><span class="p">:</span><span class="w"> </span><span class="s">"https://github.com/helm/helm"</span>
+</code></pre></div>
+<p>In this example, Helm releases are discovered from GitHub while the actual
+archive continues to download from <code>get.helm.sh</code>. The value should identify
+the GitHub repository (<code>https://github.com/OWNER/REPOSITORY</code>); it is not
+required to include a version or release tag.</p>
 <hr />
 <h3 id="3-dev-setupps1">3. <code>dev-setup.ps1</code><a class="headerlink" href="#3-dev-setupps1" title="Anchor link to this section for reference">&para;</a></h3>
 <p>This PowerShell script automates the installation of tools and sets up the development environment.</p>

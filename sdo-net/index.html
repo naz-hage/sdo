@@ -3334,11 +3334,18 @@ sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </
 </code></pre></div>
 <p>Options:
 - <code>--name &lt;name&gt;</code> — Application name (required)
-- <code>--yaml &lt;path&gt;</code> — Optional <code>apps.yaml</code> path; otherwise the current directory and default installation directory are searched
+- <code>--yaml &lt;path&gt;</code> — Optional <code>apps.yaml</code> path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - <code>--version &lt;version&gt;</code> — Optional version override
 - <code>--latest</code> — Discover the latest stable GitHub release instead of using the YAML version
 - <code>--dry-run</code> — Show the planned update without changing the installed application
 - <code>--verbose</code> — Enable detailed output</p>
+<p><code>--latest</code> does not require an additional manifest property when
+<code>WebDownloadFile</code> points directly to a GitHub release download URL. For tools
+whose download URL is hosted elsewhere, add the optional <code>LatestVersionUrl</code>
+property to the application entry. This lets SDO use the GitHub repository for
+version discovery while preserving <code>WebDownloadFile</code> as the download URL.
+Most applications therefore do not need this property; Helm uses it because
+its archives are hosted at <code>get.helm.sh</code>.</p>
 <h4 id="tool">tool<a class="headerlink" href="#tool" title="Anchor link to this section for reference">&para;</a></h4>
 <p>Environment tool installation, auditing, and manifest management. Use
 <code>--manifest</code> for YAML manifests; the legacy <code>--json</code> option remains supported for explicitly supplied JSON files.</p>
