@@ -200,10 +200,10 @@ namespace NbuildTests
                 ""Name"": ""nbuild"",
                 ""Version"": ""VersionToTest"",
                 ""AppFileName"": ""sdo.exe"",
-                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-                ""DownloadedFile"": ""$(Version).zip"",
+                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+                ""DownloadedFile"": ""sdo-$(Version).zip"",
                 ""InstallCommand"": ""powershell.exe"",
-                ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force"",
+                ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2"",
                 ""UninstallCommand"": ""powershell.exe"",
                 ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
@@ -222,9 +222,9 @@ namespace NbuildTests
             TeardownTestModeFlag();
 
             // Clean up downloaded files
-            if (File.Exists(Path.Combine(TestPath, $"{VersionToTest}.zip")))
+            if (File.Exists(Path.Combine(TestPath, $"sdo-{VersionToTest}.zip")))
             {
-                File.Delete(Path.Combine(TestPath, $"{VersionToTest}.zip"));
+                File.Delete(Path.Combine(TestPath, $"sdo-{VersionToTest}.zip"));
             }
         }
 
@@ -241,10 +241,10 @@ namespace NbuildTests
                 ""Name"": ""nbuild"",
                 ""Version"": ""0.0.0"",
                 ""AppFileName"": ""nb.exe"",
-                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-                ""DownloadedFile"": ""$(Version).zip"",
+                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+                ""DownloadedFile"": ""sdo-$(Version).zip"",
                 ""InstallCommand"": ""powershell.exe"",
-                ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force"",
+                ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2"",
                 ""UninstallCommand"": ""powershell.exe"",
                 ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
@@ -337,10 +337,10 @@ namespace NbuildTests
                         ""Name"": ""nbuild"",
                         ""Version"": ""versionToTest"",
                         ""AppFileName"": ""$(InstallPath)\\sdo.exe"",
-                        ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-                        ""DownloadedFile"": ""$(Version).zip"",
+                        ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+                        ""DownloadedFile"": ""sdo-$(Version).zip"",
                         ""InstallCommand"": ""powershell.exe"",
-                        ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force"",
+                        ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                         ""InstallPath"": ""C:\\Temp\\nbuild2"",
                         ""UninstallCommand"": ""powershell.exe"",
                         ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
@@ -368,7 +368,7 @@ namespace NbuildTests
             TeardownTestModeFlag();
 
             // Clean up downloaded files
-            var downloadedFile = Path.Combine(TestPath, $"{VersionToTest}.zip");
+            var downloadedFile = Path.Combine(TestPath, $"sdo-{VersionToTest}.zip");
             if (File.Exists(downloadedFile))
             {
                 File.Delete(downloadedFile);
@@ -383,10 +383,10 @@ namespace NbuildTests
             // var json = @"{
             //     ""Name"": ""nbuild"",
             //     ""Version"": ""1.2.0"",
-            //     ""Url"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-            //     ""InstallFile"": ""$(Version).zip"",
+            //     ""Url"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+            //     ""InstallFile"": ""sdo-$(Version).zip"",
             //     ""InstallCommand"": ""c:\\program files\\7-Zip\\7z.exe"",
-            //     ""InstallArgs"": ""x $(Version).zip -o\""C:\\Temp\\nbuild2\"" -y""
+            //     ""InstallArgs"": ""x sdo-$(Version).zip -o\""C:\\Temp\\nbuild2\"" -y""
             // }";
             // Use this json to test the install command in GitHub Actions because it doesn't have 7-Zip installed
             SetupTestModeFlag();
@@ -398,10 +398,10 @@ namespace NbuildTests
                         ""Name"": ""nbuild"",
                         ""Version"": ""versionToTest"",
                         ""AppFileName"": ""$(InstallPath)\\sdo.exe"",
-                        ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-                        ""DownloadedFile"": ""$(Version).zip"",
+                        ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+                        ""DownloadedFile"": ""sdo-$(Version).zip"",
                         ""InstallCommand"": ""powershell.exe"",
-                        ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force"",
+                        ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                         ""InstallPath"": ""C:\\Temp\\nbuild2"",
                         ""UninstallCommand"": ""powershell.exe"",
                         ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
@@ -453,10 +453,10 @@ namespace NbuildTests
                     {
                     ""Version"": ""1.2.0"",
                     ""AppFileName"": ""sdo.exe"",
-                    ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-                    ""DownloadedFile"": ""$(Version).zip"",
+                    ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+                    ""DownloadedFile"": ""sdo-$(Version).zip"",
                     ""InstallCommand"": ""powershell.exe"",
-                    ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force"",
+                    ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                     ""InstallPath"": ""C:\\Temp\\nbuild2""
                     }
                 ]
@@ -495,10 +495,10 @@ namespace NbuildTests
                     {
                     ""Name"": ""nbuild"",
                     ""Version"": ""1.2.0"",
-                    ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-                    ""DownloadedFile"": ""$(Version).zip"",
+                    ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+                    ""DownloadedFile"": ""sdo-$(Version).zip"",
                     ""InstallCommand"": ""powershell.exe"",
-                    ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force"",
+                    ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                     ""InstallPath"": ""C:\\Temp\\nbuild2"",
                     ""UninstallCommand"": ""powershell.exe"",
                     ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
@@ -535,9 +535,9 @@ namespace NbuildTests
                     ""Name"": ""nbuild"",
                     ""Version"": ""1.2.0"",
                     ""AppFileName"": ""sdo.exe"",
-                    ""DownloadedFile"": ""$(Version).zip"",
+                    ""DownloadedFile"": ""sdo-$(Version).zip"",
                     ""InstallCommand"": ""powershell.exe"",
-                    ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force"",
+                    ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                     ""InstallPath"": ""C:\\Temp\\nbuild2""
                     }
                 ]
@@ -578,9 +578,9 @@ namespace NbuildTests
                     ""Name"": ""nbuild"",
                     ""Version"": ""1.2.0"",
                     ""AppFileName"": ""sdo.exe"",
-                    ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
+                    ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
                     ""InstallCommand"": ""powershell.exe"",
-                    ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force"",
+                    ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                     ""InstallPath"": ""C:\\Temp\\nbuild2""
                     }
                 ]
@@ -621,9 +621,9 @@ namespace NbuildTests
                 ""Name"": ""nbuild"",
                 ""Version"": ""1.2.0"",
                 ""AppFileName"": ""sdo.exe"",
-                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-                ""DownloadedFile"": ""$(Version).zip"",
-                ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force"",
+                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+                ""DownloadedFile"": ""sdo-$(Version).zip"",
+                ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2""
                     }
                 ]
@@ -664,8 +664,8 @@ namespace NbuildTests
                 ""Name"": ""nbuild"",
                 ""Version"": ""1.2.0"",
                 ""AppFileName"": ""sdo.exe"",
-                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-                ""DownloadedFile"": ""$(Version).zip"",
+                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+                ""DownloadedFile"": ""sdo-$(Version).zip"",
                 ""InstallCommand"": ""powershell.exe"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2""
                     }
@@ -707,10 +707,10 @@ namespace NbuildTests
                 ""Name"": ""nbuild"",
                 ""Version"": ""1.2.0"",
                 ""AppFileName"": ""sdo.exe"",
-                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Version).zip"",
-                ""DownloadedFile"": ""$(Version).zip"",
+                ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
+                ""DownloadedFile"": ""sdo-$(Version).zip"",
                 ""InstallCommand"": ""powershell.exe"",
-                ""InstallArgs"": ""-Command Expand-Archive -Path $(Version).zip -DestinationPath $(InstallPath) -Force""
+                ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force""
                     }
                 ]
             }";

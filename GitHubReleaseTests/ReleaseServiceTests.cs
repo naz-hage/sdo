@@ -6,7 +6,6 @@ namespace GitHubRelease.Tests
     [TestClass()]
     public class ReleaseServiceTests : GitHubSetup
     {
-
         /// <summary>
         /// CreateGitHubReleaseAsyncTestAsync method tests the creation of a GitHub release using the ReleaseService class. 
         /// It sets up the necessary release information, calls the CreateRelease method, and verifies that the release 
@@ -276,7 +275,7 @@ namespace GitHubRelease.Tests
             }
             Console.WriteLine("[TestMode] Real mode detected");
             string tagName = VersionToTest;
-            string assetName = $"{tagName}.zip";
+            string assetName = $"sdo-{tagName}.zip";
             string DownloadPath = @"c:\temp";
             var assetFileName = Path.Combine(DownloadPath, assetName);
             var repo = "naz-hage/sdo";
@@ -311,15 +310,15 @@ namespace GitHubRelease.Tests
                 Console.WriteLine("[TestMode] Local mode detected");
                 var response = new { StatusCode = HttpStatusCode.NotFound };
                 Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode, "Expected NotFound status code.");
-                
+
                 // Verify that asset file was not created when download fails
                 string testAssetName = "nonexistent.zip";
                 string testDownloadPath = Path.Combine(Path.GetTempPath(), $"test_download_{Guid.NewGuid()}");
                 Directory.CreateDirectory(testDownloadPath);
                 var testAssetFileName = Path.Combine(testDownloadPath, testAssetName);
-                
+
                 Assert.IsFalse(File.Exists(testAssetFileName), "Asset file should not be created when download fails.");
-                
+
                 if (Directory.Exists(testDownloadPath))
                 {
                     Directory.Delete(testDownloadPath, true);
