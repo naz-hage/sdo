@@ -318,6 +318,9 @@ namespace Nbuild
                 foreach (var app in apps)
                 {
                     var installedVersion = GetAppFileVersion(app);
+                    var isInstalled = IsAppInstalled(app);
+                    var installedDisplayVersion = installedVersion ??
+                        (isInstalled ? "installed (version unknown)" : null);
                     var targetVersion = app.Version;
                     var targetUrl = app.WebDownloadFile;
                     if (latest)
@@ -339,7 +342,7 @@ namespace Nbuild
                     }
                     else
                     {
-                        ConsoleHelper.WriteWarning($"DRY-RUN: would update app '{app.Name}' from {installedVersion ?? "not installed"} to {targetVersion}");
+                        ConsoleHelper.WriteWarning($"DRY-RUN: would update app '{app.Name}' from {installedDisplayVersion ?? "not installed"} to {targetVersion}");
                     }
                 }
 
@@ -355,6 +358,7 @@ namespace Nbuild
             foreach (var app in apps)
             {
                 var installedVersion = GetAppFileVersion(app);
+                var isInstalled = IsAppInstalled(app);
                 var targetVersion = app.Version;
                 var targetUrl = app.WebDownloadFile;
                 if (latest)
@@ -381,7 +385,7 @@ namespace Nbuild
                     ConsoleHelper.WriteVerbose($"Latest version URL: {targetUrl}");
                 }
 
-                if (!string.IsNullOrEmpty(installedVersion))
+                if (!string.IsNullOrEmpty(installedVersion) || isInstalled)
                 {
                     var uninstallResult = Uninstall(app, force: true);
                     if (!uninstallResult.IsSuccess())
