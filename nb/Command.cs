@@ -1152,60 +1152,101 @@ namespace Nbuild
             latestUrl = null;
             error = string.Empty;
 
-            if (!Uri.TryCreate(app.WebDownloadFile, UriKind.Absolute, out var downloadUri) ||
-                !downloadUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+            if (!Uri.TryCreate(app.WebDownloadFile, UriKind.Absolute, out var downloadUri))
             {
-                error = $"Latest version discovery is only supported for GitHub release URLs. App '{app.Name}' has no supported release URL.";
+                error = $"Latest version discovery requires an absolute download URL. App '{app.Name}' has no supported release URL.";
                 return false;
             }
 
-            var segments = downloadUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            var releasesIndex = Array.FindIndex(segments, segment =>
-                segment.Equals("releases", StringComparison.OrdinalIgnoreCase));
-            if (segments.Length < 4 || releasesIndex < 2 ||
-                releasesIndex + 2 >= segments.Length ||
-                !segments[releasesIndex + 1].Equals("download", StringComparison.OrdinalIgnoreCase))
+            if (downloadUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
             {
-                error = $"Could not determine the GitHub repository from the download URL for '{app.Name}'.";
-                return false;
-            }
+                var segments = downloadUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                var releasesIndex = Array.FindIndex(segments, segment =>
+                    segment.Equals("releases", StringComparison.OrdinalIgnoreCase));
+                if (segments.Length < 4 || releasesIndex < 2 ||
+                    releasesIndex + 2 >= segments.Length ||
+                    !segments[releasesIndex + 1].Equals("download", StringComparison.OrdinalIgnoreCase))
+                {
+                    error = $"Could not determine the GitHub repository from the download URL for '{app.Name}'.";
+                    return false;
+                }
 
-            var repository = $"{segments[0]}/{segments[1]}";
-            var endpoint = $"https://api.github.com/repos/{repository}/releases/latest";
+                var repository = $"{segments[0]}/{segments[1]}";
+                var endpoint = $"https://api.github.com/repos/{repository}/releases/latest";
+
+                try
+                {
+                    using var response = LatestVersionClient.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        error = $"Failed to discover the latest version for '{app.Name}' from GitHub ({(int)response.StatusCode} {response.ReasonPhrase}).";
+                        return false;
+                    }
+
+                    using var document = JsonDocument.Parse(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+                    var tag = document.RootElement.TryGetProperty("tag_name", out var tagProperty)
+                        ? tagProperty.GetString()
+                        : null;
+                    if (string.IsNullOrWhiteSpace(tag))
+                    {
+                        error = $"GitHub did not return a release tag for '{app.Name}'.";
+                        return false;
+                    }
+
+                    var versionMatch = System.Text.RegularExpressions.Regex.Match(
+                        tag.TrimStart('v', 'V'),
+                        @"\d+(?:\.\d+){1,3}");
+                    if (!versionMatch.Success)
+                    {
+                        error = $"GitHub release tag '{tag}' for '{app.Name}' does not contain a supported version.";
+                        return false;
+                    }
+
+                    latestVersion = versionMatch.Value;
+                    latestUrl = ReplaceAppVersion(app.WebDownloadFile, app.Version, latestVersion);
+                    return true;
+                }
+                catch (HttpRequestException ex)
+                {
+                    error = $"Failed to discover the latest version for '{app.Name}': {ex.Message}";
+                    return false;
+                }
+                catch (JsonException ex)
+                {
+                    error = $"Failed to parse the latest version for '{app.Name}': {ex.Message}";
+                    return false;
+                }
+            }
 
             try
             {
-                using var response = LatestVersionClient.GetAsync(endpoint).GetAwaiter().GetResult();
+                using var request = new HttpRequestMessage(HttpMethod.Head, downloadUri);
+                using var response = LatestVersionClient.SendAsync(
+                    request,
+                    HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
                 if (!response.IsSuccessStatusCode)
                 {
-                    error = $"Failed to discover the latest version for '{app.Name}' from GitHub ({(int)response.StatusCode} {response.ReasonPhrase}).";
+                    error = $"Failed to discover the latest version for '{app.Name}' ({(int)response.StatusCode} {response.ReasonPhrase}).";
                     return false;
                 }
 
-                using var document = JsonDocument.Parse(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
-                var tag = document.RootElement.TryGetProperty("tag_name", out var tagProperty)
-                    ? tagProperty.GetString()
-                    : null;
-                if (string.IsNullOrWhiteSpace(tag))
-                {
-                    error = $"GitHub did not return a release tag for '{app.Name}'.";
-                    return false;
-                }
-
+                var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
+                    ?? response.Content.Headers.ContentDisposition?.FileName
+                    ?? response.RequestMessage?.RequestUri?.Segments.LastOrDefault();
                 var versionMatch = System.Text.RegularExpressions.Regex.Match(
-                    tag.TrimStart('v', 'V'),
+                    fileName?.Trim('"') ?? string.Empty,
                     @"\d+(?:\.\d+){1,3}");
                 if (!versionMatch.Success)
                 {
-                    error = $"GitHub release tag '{tag}' for '{app.Name}' does not contain a supported version.";
+                    error = $"The download URL for '{app.Name}' did not identify a supported latest version.";
                     return false;
                 }
 
                 latestVersion = versionMatch.Value;
-                latestUrl = ReplaceAppVersion(app.WebDownloadFile, app.Version, latestVersion);
+                latestUrl = app.WebDownloadFile;
                 return true;
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
                 error = $"Failed to discover the latest version for '{app.Name}': {ex.Message}";
                 return false;
