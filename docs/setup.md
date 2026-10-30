@@ -97,7 +97,7 @@ NbuildAppList:
 | `UninstallCommand`| The command to uninstall the tool.                                          |
 | `UninstallArgs`   | The arguments for the uninstallation command.                               |
 | `UpdateInPlace`   | (Optional) Updates the tool without uninstalling the existing installation first. Use this for installers that support in-place upgrades, such as Docker Desktop. |
-| `StoredHash`      | (Optional) SHA256 hash of the file for verification.                        |
+| `StoredHash`      | (Optional) SHA256 hash of the file for verification and version reporting when the file has no version metadata. |
 | `AddToPath`       | (Optional) Whether to add the tool's path to the system PATH environment variable. |
 
 `LatestVersionUrl` is not required for normal installation or for tools that

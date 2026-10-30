@@ -844,6 +844,24 @@ version discovery while preserving `WebDownloadFile` as the download URL.
 Most applications therefore do not need this property; Helm uses it because
 its archives are hosted at `get.helm.sh`.
 
+##### `tool list` columns
+
+The `sdo tool list` table contains one row for each application in the selected
+manifest:
+
+| Column | Meaning |
+| --- | --- |
+| `Name` | The application name from the manifest. |
+| `Installed` | The installed file version when Windows file metadata provides one. If version metadata is unavailable but the file's SHA-256 matches `StoredHash`, this displays the manifest version. Otherwise, `installed` means the configured file or installation directory exists, while `not installed` means neither was found. |
+| `Manifest` | The version configured in the selected manifest. |
+| `Latest` | The latest version discovered from the application's release metadata. It displays `Unresolved` when discovery is not supported or fails. |
+| `Link` | The release or download URL used for version discovery and review. GitHub download URLs are displayed as the repository's latest-release page when possible. |
+
+An `Installed` value of `installed` does not verify that the existing file
+matches the manifest. For applications without usable file-version metadata,
+the manifest version is shown only when `StoredHash` is present and matches
+the calculated SHA-256 hash of `AppFileName`.
+
 #### tool
 
 Environment tool installation, auditing, and manifest management. Use
@@ -1849,13 +1867,11 @@ Searches for the requested application in the explicit manifest first when one i
 ```cmd
 sdo.exe tool install --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
 ```
-Installs only the matching tool from the specified manifest. Standalone executables that do not expose Windows file-version metadata use the manifest version for reporting. After installation, SDO displays the installed file's SHA-256 hash; when `StoredHash` is present, the hash is also validated.
+Installs only the matching tool from the specified manifest. Standalone executables that do not expose Windows file-version metadata use the manifest version for reporting when the installed file's SHA-256 hash matches `StoredHash`. After installation, SDO displays the installed file's SHA-256 hash; when `StoredHash` is present, the hash is also validated.
 
 **BREAKING CHANGE (v1.76+):** This command now searches ONLY for `apps.yaml` files, not all JSON files. You must consolidate your application definitions into a single `apps.yaml` file in the target directory or move it to the default installation directory.
 
-**Search order:** When an explicit manifest is provided, that file is searched first, followed by `apps.yaml` in the current directory and then the default installation directory. Without an explicit manifest, the current directory is searched first, followed by the default installation directory. The first matching app takes precedence.
-
-**Note:** If you specify both an explicit manifest and `--name`, the command searches the specified manifest first and falls back to the standard locations if the app is not found there. The `--name` method provides a convenient way to install applications without needing to know the exact path to the YAML configuration file.
+**Search order:** When an explicit manifest is provided, only that file is searched. Without an explicit manifest, the current directory is searched first, followed by the executable and default installation directories. The first matching app takes precedence.
 
 #### Dry-run mode for install:
 ```cmd

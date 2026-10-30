@@ -726,6 +726,48 @@ steps:
     }
 
     [TestMethod]
+    public void Main_WithToolList_UsesManifestVersionWhenStoredHashMatchesUnversionedFile()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"sdo-hash-version-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var appPath = Path.Combine(root, "hashed-app.bin");
+        var manifestPath = Path.Combine(root, "apps.yaml");
+        File.WriteAllText(appPath, "installed application");
+        var hash = Convert.ToHexStringLower(
+            System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(appPath)));
+        File.WriteAllText(manifestPath, $$"""
+            Version: '1.2.0'
+            NbuildAppList:
+              - Name: HashedApp
+                Version: '1.2.3'
+                AppFileName: '{{appPath}}'
+                WebDownloadFile: https://example.com/hashed-app.zip
+                DownloadedFile: hashed-app.zip
+                InstallCommand: cmd.exe
+                InstallArgs: /c exit 0
+                InstallPath: C:\Temp\HashedApp
+                UninstallCommand: cmd.exe
+                UninstallArgs: /c exit 0
+                StoredHash: '{{hash}}'
+            """);
+
+        var originalOut = Console.Out;
+        using var output = new StringWriter();
+        Console.SetOut(output);
+
+        try
+        {
+            Assert.AreEqual(0, Program.Main("tool", "list", "--manifest", manifestPath));
+            StringAssert.Contains(output.ToString(), "| HashedApp | 1.2.3");
+        }
+        finally
+        {
+            Console.SetOut(originalOut);
+            Directory.Delete(root, true);
+        }
+    }
+
+    [TestMethod]
     public void Main_WithBackupInitAndRunDryRun_ReturnZero()
     {
         var outputPath = Path.Combine(Path.GetTempPath(), $"sdo-backup-{Guid.NewGuid():N}.json");

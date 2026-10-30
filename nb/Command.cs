@@ -1082,12 +1082,21 @@ namespace Nbuild
                 FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(nbuildApp.AppFileName!);
 
                 // return file Version as combined string of all parts : major, minor, build, patch
-                return fileVersionInfo != null
+                var fileVersion = fileVersionInfo != null
                     && !(fileVersionInfo.FileMajorPart == 0 &&
                          fileVersionInfo.FileMinorPart == 0 &&
                          fileVersionInfo.FileBuildPart == 0 &&
                          fileVersionInfo.FilePrivatePart == 0)
                     ? $"{fileVersionInfo.FileMajorPart}.{fileVersionInfo.FileMinorPart}.{fileVersionInfo.FileBuildPart}.{fileVersionInfo.FilePrivatePart}"
+                    : null;
+
+                if (fileVersion != null)
+                {
+                    return fileVersion;
+                }
+
+                return IsFileHashEqual(nbuildApp.AppFileName, nbuildApp.StoredHash)
+                    ? nbuildApp.Version
                     : null;
             }
             catch (Exception ex)
