@@ -272,7 +272,7 @@ namespace Nbuild
         /// <summary>
         /// Updates a named application when the manifest version is newer than the installed version.
         /// </summary>
-        private static ResultHelper InstallLatest(
+        public static ResultHelper InstallLatest(
             string? yaml,
             string? name,
             string? version,

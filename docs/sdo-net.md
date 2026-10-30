@@ -844,6 +844,20 @@ version discovery while preserving `WebDownloadFile` as the download URL.
 Most applications therefore do not need this property; Helm uses it because
 its archives are hosted at `get.helm.sh`.
 
+#### tool install --latest
+
+Install a named tool using the latest discovered release:
+
+```bash
+sdo tool install --name "Python" --latest
+sdo tool install --name "Python" --latest --manifest .\dev-setup\apps.yaml
+sdo tool install --name "Python" --latest --dry-run
+```
+
+`--name` is required with `--latest`. Use `--manifest` (`-m`) to select a
+specific JSON or YAML manifest. `--appversion` cannot be combined with
+`--latest`.
+
 ##### `tool list` columns
 
 The `sdo tool list` table contains one row for each application in the selected
@@ -1866,6 +1880,7 @@ Installs applications specified in the manifest file. The `--manifest` parameter
 ```cmd
 sdo.exe tool install --name "MyApp"
 sdo.exe tool install --name "MyApp" --appversion "1.2.3"
+sdo.exe install --name "MyApp" --latest
 ```
 Searches only the explicit manifest when one is provided. Without an explicit
 manifest, automatic discovery checks `apps.yaml` in the current directory, the

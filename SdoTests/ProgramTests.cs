@@ -652,6 +652,22 @@ steps:
     }
 
     [TestMethod]
+    public void Main_WithToolInstallLatestWithoutName_ReturnsError()
+    {
+        var result = Program.Main("tool", "install", "--latest", "--dry-run");
+
+        Assert.AreEqual(1, result);
+    }
+
+    [TestMethod]
+    public void Main_WithToolInstallLatestAndAppVersion_ReturnsError()
+    {
+        var result = Program.Main("tool", "install", "--name", "NonExistentApp", "--appversion", "1.0.0", "--latest", "--dry-run");
+
+        Assert.AreEqual(1, result);
+    }
+
+    [TestMethod]
     public void Main_WithInstallManifestShortAlias_UsesExplicitManifest()
     {
         var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-update-{Guid.NewGuid():N}.yaml");

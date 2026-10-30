@@ -24,13 +24,18 @@ namespace Sdo.Commands
         private void AddInstallCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
         {
             var installCommand = new System.CommandLine.Command("install", "Install tools from a manifest or by application name.");
-            var manifestOption = new Option<string?>("--manifest", ["-m"]) { Description = "Path to a JSON or YAML tools manifest" };
+            var manifestOption = new Option<string?>("--manifest", ["-m"])
+            {
+                Description = "Path to a JSON or YAML tools manifest; if omitted, searches apps.yaml in the current directory, the executable directory, and the default installation directory"
+            };
             var nameOption = new Option<string?>("--name", ["-n"]) { Description = "Application name to find in apps.json" };
             var versionOption = new Option<string?>("--appversion", ["-av"]) { Description = "Optional application version override" };
+            var latestOption = new Option<bool>("--latest") { Description = "Discover the latest stable release instead of using the manifest version" };
 
             installCommand.Add(manifestOption);
             installCommand.Add(nameOption);
             installCommand.Add(versionOption);
+            installCommand.Add(latestOption);
             installCommand.Add(verboseOption);
             AddDryRunOption(installCommand, dryRunOption);
             installCommand.SetAction(parseResult =>
@@ -38,6 +43,7 @@ namespace Sdo.Commands
                 var manifest = parseResult.GetValue(manifestOption);
                 var name = parseResult.GetValue(nameOption);
                 var version = parseResult.GetValue(versionOption);
+                var latest = parseResult.GetValue(latestOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult, dryRunOption);
 
@@ -47,11 +53,25 @@ namespace Sdo.Commands
                     return 1;
                 }
 
+                if (latest && string.IsNullOrWhiteSpace(name))
+                {
+                    Console.Error.WriteLine("Error: --name (-n) is required with --latest.");
+                    return 1;
+                }
+
+                if (latest && !string.IsNullOrWhiteSpace(version))
+                {
+                    Console.Error.WriteLine("Error: --appversion (-av) cannot be used with --latest.");
+                    return 1;
+                }
+
                 WriteManifestNotice(manifest);
                 WriteDryRunNotice(dryRun);
                 try
                 {
-                    return NbuildCommand.Install(manifest, name, version, verbose, dryRun).Code;
+                    return latest
+                        ? NbuildCommand.InstallLatest(manifest, name, version, verbose, dryRun, latest: true).Code
+                        : NbuildCommand.Install(manifest, name, version, verbose, dryRun).Code;
                 }
                 catch (Exception exception)
                 {
@@ -66,7 +86,10 @@ namespace Sdo.Commands
         private void AddUninstallCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
         {
             var uninstallCommand = new System.CommandLine.Command("uninstall", "Uninstall tools from a manifest.");
-            var manifestOption = new Option<string?>("--manifest", ["-m"]) { Description = "Path to a JSON or YAML tools manifest" };
+            var manifestOption = new Option<string?>("--manifest", ["-m"])
+            {
+                Description = "Path to a JSON or YAML tools manifest; if omitted, searches apps.yaml in the current directory, the executable directory, and the default installation directory"
+            };
             var nameOption = new Option<string?>("--name", ["-n"]) { Description = "Application name to uninstall" };
             var versionOption = new Option<string?>("--appversion", ["-av"]) { Description = "Optional application version to uninstall" };
             uninstallCommand.Add(manifestOption);
@@ -106,7 +129,10 @@ namespace Sdo.Commands
         private void AddDownloadCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
         {
             var downloadCommand = new System.CommandLine.Command("download", "Download tools from a manifest.");
-            var manifestOption = new Option<string?>("--manifest", ["-m"]) { Description = "Path to a JSON or YAML tools manifest" };
+            var manifestOption = new Option<string?>("--manifest", ["-m"])
+            {
+                Description = "Path to a JSON or YAML tools manifest; the option is required for this command"
+            };
             downloadCommand.Add(manifestOption);
             downloadCommand.Add(verboseOption);
             AddDryRunOption(downloadCommand, dryRunOption);
@@ -166,7 +192,7 @@ namespace Sdo.Commands
 
             var manifestOption = new Option<string?>("--manifest", ["-m"])
             {
-                Description = "Path to a JSON or YAML tools manifest"
+                Description = "Path to a JSON or YAML tools manifest; if omitted, searches apps.yaml in the current directory, the executable directory, and the default installation directory"
             };
             listCommand.Options.Add(manifestOption);
             listCommand.Add(verboseOption);
