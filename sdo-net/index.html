@@ -1053,6 +1053,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="tool list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tool-list-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tool list columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1820,10 +1837,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#25-update-applications" class="md-nav__link">
+  <a href="#25-list-latest-tool-releases" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.5 Update Applications
+        2.5 List Latest Tool Releases
       
     </span>
   </a>
@@ -3332,7 +3349,7 @@ release, and upstream link:</p>
 sdo<span class="w"> </span>tool<span class="w"> </span>list<span class="w"> </span>--manifest<span class="w"> </span>.<span class="se">\d</span>ev-setup<span class="se">\a</span>pps.yaml
 </code></pre></div>
 <p>Options:
-- <code>--manifest &lt;path&gt;</code> (<code>-m</code> only) — Optional <code>apps.yaml</code> path; otherwise the current directory, the executable directory, and the default installation directory are searched
+- <code>--manifest &lt;path&gt;</code> (<code>-m</code> only) — Optional JSON or YAML manifest path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - <code>--verbose</code> — Enable detailed output</p>
 <p>Latest-version discovery does not require an additional manifest property when
 <code>WebDownloadFile</code> points directly to a GitHub release download URL. For tools
@@ -3341,12 +3358,56 @@ property to the application entry. This lets SDO use the GitHub repository for
 version discovery while preserving <code>WebDownloadFile</code> as the download URL.
 Most applications therefore do not need this property; Helm uses it because
 its archives are hosted at <code>get.helm.sh</code>.</p>
+<h5 id="tool-list-columns"><code>tool list</code> columns<a class="headerlink" href="#tool-list-columns" title="Anchor link to this section for reference">&para;</a></h5>
+<p>The <code>sdo tool list</code> table contains one row for each application in the selected
+manifest:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Name</code></td>
+<td>The application name from the manifest.</td>
+</tr>
+<tr>
+<td><code>Installed</code></td>
+<td>The installed file version when Windows file metadata provides one. If version metadata is unavailable but the file's SHA-256 matches <code>StoredHash</code>, this displays the manifest version. Otherwise, <code>installed</code> means the configured file or installation directory exists, while <code>not installed</code> means neither was found.</td>
+</tr>
+<tr>
+<td><code>Manifest</code></td>
+<td>The version configured in the selected manifest.</td>
+</tr>
+<tr>
+<td><code>Latest</code></td>
+<td>The latest version discovered from the application's release metadata. It displays <code>Unresolved</code> when discovery is not supported or fails.</td>
+</tr>
+<tr>
+<td><code>Link</code></td>
+<td>The release or download URL used for version discovery and review. GitHub download URLs are displayed as the repository's latest-release page when possible.</td>
+</tr>
+</tbody>
+</table>
+<p><code>Installed</code> is determined as follows:</p>
+<ul>
+<li><strong>Applications with valid file-version metadata:</strong> <code>Installed</code> displays the
+  version reported by the installed file. The manifest hash is not required for
+  this display.</li>
+<li><strong>Applications with <code>StoredHash</code>:</strong> When the installed file does not expose
+  usable version metadata, SDO calculates its SHA-256 hash. If it matches
+  <code>StoredHash</code>, <code>Installed</code> displays the manifest version. If it does not
+  match, <code>Installed</code> displays <code>installed</code> when the configured file or
+  installation directory exists, or <code>not installed</code> otherwise.</li>
+</ul>
 <h4 id="tool">tool<a class="headerlink" href="#tool" title="Anchor link to this section for reference">&para;</a></h4>
 <p>Environment tool installation, auditing, and manifest management. Use
 <code>--manifest</code> for JSON or YAML manifests.</p>
 <p>Subcommands:
 - <code>install</code> — Install tools from a manifest or by application name
-- <code>list</code> — Display installed, manifest, and optionally discovered latest versions
+- <code>list</code> — Display installed, manifest, and discovered latest versions
 - <code>uninstall</code> — Uninstall tools from a manifest or by application name
 - <code>download</code> — Download tools from a manifest</p>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>list
@@ -4225,22 +4286,26 @@ Installs applications specified in the manifest file. The <code>--manifest</code
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool install --name "MyApp"
 sdo.exe tool install --name "MyApp" --appversion "1.2.3"
 </code></pre></div>
-Searches for the requested application in the explicit manifest first when one is provided, then in <code>apps.yaml</code> in the current directory and finally in <code>C:\\Program Files\\sdo\\apps.yaml</code>. The <code>--appversion</code> parameter is optional and overrides the version specified in the manifest.</p>
+Searches only the explicit manifest when one is provided. Without an explicit
+manifest, automatic discovery checks <code>apps.yaml</code> in the current directory, the
+executable directory, and <code>C:\\Program Files\\sdo\\apps.yaml</code>. The
+<code>--appversion</code> parameter is optional and overrides the version specified in the
+manifest.</p>
 <h4 id="install-a-named-tool-from-a-yaml-manifest">Install a named tool from a YAML manifest:<a class="headerlink" href="#install-a-named-tool-from-a-yaml-manifest" title="Anchor link to this section for reference">&para;</a></h4>
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool install --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
 </code></pre></div>
-Installs only the matching tool from the specified manifest. Standalone executables that do not expose Windows file-version metadata use the manifest version for reporting. After installation, SDO displays the installed file's SHA-256 hash; when <code>StoredHash</code> is present, the hash is also validated.</p>
-<p><strong>BREAKING CHANGE (v1.76+):</strong> This command now searches ONLY for <code>apps.yaml</code> files, not all JSON files. You must consolidate your application definitions into a single <code>apps.yaml</code> file in the target directory or move it to the default installation directory.</p>
-<p><strong>Search order:</strong> When an explicit manifest is provided, that file is searched first, followed by <code>apps.yaml</code> in the current directory and then the default installation directory. Without an explicit manifest, the current directory is searched first, followed by the default installation directory. The first matching app takes precedence.</p>
-<p><strong>Note:</strong> If you specify both an explicit manifest and <code>--name</code>, the command searches the specified manifest first and falls back to the standard locations if the app is not found there. The <code>--name</code> method provides a convenient way to install applications without needing to know the exact path to the YAML configuration file.</p>
+Installs only the matching tool from the specified manifest. Standalone executables that do not expose Windows file-version metadata use the manifest version for reporting when the installed file's SHA-256 hash matches <code>StoredHash</code>. After installation, SDO displays the installed file's SHA-256 hash; when <code>StoredHash</code> is present, the hash is also validated.</p>
+<p><strong>Manifest discovery:</strong> Automatic discovery searches only for <code>apps.yaml</code>.
+Explicit <code>--manifest</code> paths may refer to either JSON or YAML manifests.</p>
+<p><strong>Search order:</strong> When an explicit manifest is provided, only that file is searched. Without an explicit manifest, the current directory is searched first, followed by the executable and default installation directories. The first matching app takes precedence.</p>
 <h4 id="dry-run-mode-for-install">Dry-run mode for install:<a class="headerlink" href="#dry-run-mode-for-install" title="Anchor link to this section for reference">&para;</a></h4>
 <div class="highlight"><pre><span></span><code>sdo.exe tool install --name "MyApp" --dry-run
 sdo.exe tool install --name "MyApp" --appversion "1.2.3" --dry-run
 </code></pre></div>
 <p><strong>Behavior in dry-run mode:</strong>
-- Searches the explicit <code>--manifest</code> file first when provided, then <code>apps.yaml</code> in the current directory, then the default installation directory
+- Searches only the explicit <code>--manifest</code> file when provided; otherwise checks <code>apps.yaml</code> in the current directory, the executable directory, and the default installation directory
 - If app is found: displays <code>DRY-RUN: would install app 'MyApp'</code> in yellow and lists version details
-- If app is not found: displays <code>No apps found matching 'MyApp'</code> in red, lists the search directories (current directory and default installation directory), and lists available applications found in those <code>apps.yaml</code> files
+- If app is not found: displays <code>No apps found matching 'MyApp'</code> in red, lists the search directories, and lists available applications found in those <code>apps.yaml</code> files
 - Dry-run always returns exit code 0 (success), even when app is not found, as it is a preview/simulation mode
 - Always succeeds (exit code 0) because dry-run is a preview, not actual installation
 - No files are downloaded, installed, or modified
@@ -4254,14 +4319,14 @@ Uninstalls applications as specified in the manifest file. (Requires admin privi
 sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
 sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml" --appversion "2.5.0"
 </code></pre></div>
-The <code>--name</code> (<code>-n</code>) option limits uninstall to the matching application instead of processing every entry in the manifest. When no manifest is supplied, SDO searches <code>apps.yaml</code> in the current directory and then the default installation directory. Uninstall determines whether the application is installed from its executable or install path; it does not require the installed version to match the version recorded in <code>apps.yaml</code>. Use <code>--appversion</code> (<code>-av</code>) when the manifest contains multiple versions of the same application.</p>
+The <code>--name</code> (<code>-n</code>) option limits uninstall to the matching application instead of processing every entry in the manifest. When no manifest is supplied, SDO searches <code>apps.yaml</code> in the current directory, the executable directory, and the default installation directory. Uninstall determines whether the application is installed from its executable or install path; it does not require the installed version to match the version recorded in <code>apps.yaml</code>. Use <code>--appversion</code> (<code>-av</code>) when the manifest contains multiple versions of the same application.</p>
 <p>The sample <code>dev-setup\apps.yaml</code> manifest includes Crossplane CLI <code>2.5.0</code>, installed to <code>C:\Program Files\Crossplane</code> and added to the user PATH. Its configured SHA-256 hash is checked after installation.</p>
-<h3 id="25-update-applications">2.5 Update Applications<a class="headerlink" href="#25-update-applications" title="Anchor link to this section for reference">&para;</a></h3>
+<h3 id="25-list-latest-tool-releases">2.5 List Latest Tool Releases<a class="headerlink" href="#25-list-latest-tool-releases" title="Anchor link to this section for reference">&para;</a></h3>
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool list
 sdo.exe tool list --manifest ".\dev-setup\apps.yaml"
 </code></pre></div>
 The list command queries GitHub release URLs for the latest stable release and
-displays the resolved link. Non-GitHub release URLs require a pinned YAML
+displays the resolved link. Non-GitHub release URLs require a pinned manifest
 version or an appropriate <code>LatestVersionUrl</code>.</p>
 <h3 id="3-list-installed-applications">3. List Installed Applications<a class="headerlink" href="#3-list-installed-applications" title="Anchor link to this section for reference">&para;</a></h3>
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool list
