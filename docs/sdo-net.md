@@ -822,35 +822,21 @@ sdo repo delete --force --verbose   # Show mapping
 
 These command groups consolidate the local build, backup, and file-search workflows into SDO.
 
-#### tool update
+#### tool list
 
-Update a named application to the version in `apps.yaml`, or discover the latest stable GitHub release with `--latest`.
+Display each application's installed version, manifest version, latest stable
+release, and upstream link:
 
 ```bash
-sdo tool update --name "Git for Windows"
-sdo tool update --name "Git for Windows" --yaml .\dev-setup\apps.yaml
-sdo tool update --name "Git for Windows" --dry-run
-sdo tool update --name "Argo CD" --latest --dry-run --verbose
-sdo tool update --latest --list
+sdo tool list
+sdo tool list --manifest .\dev-setup\apps.yaml
 ```
 
 Options:
-- `--name <name>` — Application name (required)
-- `--yaml <path>` — Optional `apps.yaml` path; otherwise the current directory, the executable directory, and the default installation directory are searched
-- `--version <version>` — Optional version override
-- `--latest` — Discover the latest stable GitHub release instead of using the YAML version
-- `--list` — With `--latest`, display the discovered latest version for every application without installing anything
-- `--dry-run` — Show the planned update without changing the installed application
+- `--manifest <path>` (`-m`) — Optional `apps.yaml` path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - `--verbose` — Enable detailed output
 
-`--latest --list` is a read-only manifest inspection mode. It does not require
-`--name`, does not perform installation or updates, and displays each
-application's manifest version, discovered latest version, and an upstream link
-in a boxed table. The link opens the latest release page where available, so
-release notes can be reviewed before updating. Use `--yaml` to inspect a
-specific `apps.yaml` file.
-
-`--latest` does not require an additional manifest property when
+Latest-version discovery does not require an additional manifest property when
 `WebDownloadFile` points directly to a GitHub release download URL. For tools
 whose download URL is hosted elsewhere, add the optional `LatestVersionUrl`
 property to the application entry. This lets SDO use the GitHub repository for
@@ -865,8 +851,7 @@ Environment tool installation, auditing, and manifest management. Use
 
 Subcommands:
 - `install` — Install tools from a manifest or by application name
-- `list` — Display tools and versions
-- `update` — Update an installed tool to the manifest or discovered latest version
+- `list` — Display installed, manifest, and optionally discovered latest versions
 - `uninstall` — Uninstall tools from a manifest or by application name
 - `download` — Download tools from a manifest
 
@@ -1905,11 +1890,12 @@ The sample `dev-setup\apps.yaml` manifest includes Crossplane CLI `2.5.0`, insta
 
 ### 2.5 Update Applications
 ```cmd
-sdo.exe tool update --name "Argo CD"
-sdo.exe tool update --name "Argo CD" --latest --dry-run --verbose
-sdo.exe tool update --name "Argo CD" --yaml ".\dev-setup\apps.yaml"
+sdo.exe tool list
+sdo.exe tool list --manifest ".\dev-setup\apps.yaml"
 ```
-Without `--latest`, the update uses the version pinned in `apps.yaml`. With `--latest`, GitHub release URLs are queried for the latest stable release and the download URL is rebuilt with the discovered version. Use `--verbose` to display the resolved download URL. Non-GitHub release URLs require a pinned YAML version.
+The list command queries GitHub release URLs for the latest stable release and
+displays the resolved link. Non-GitHub release URLs require a pinned YAML
+version or an appropriate `LatestVersionUrl`.
 
 ### 3. List Installed Applications
 ```cmd

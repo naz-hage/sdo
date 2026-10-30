@@ -19,14 +19,13 @@ namespace Sdo.Commands
             AddListCommand(verboseOption);
             AddUninstallCommand(verboseOption, dryRunOption);
             AddDownloadCommand(verboseOption, dryRunOption);
-            Subcommands.Add(new UpdateCommand(verboseOption, dryRunOption));
         }
 
         private void AddInstallCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
         {
             var installCommand = new System.CommandLine.Command("install", "Install tools from a manifest or by application name.");
             var jsonOption = new Option<string?>("--json", ["-j"]) { Description = "Path to the tools manifest" };
-            var manifestOption = new Option<string?>("--manifest", ["-m"]) { Description = "Path to a JSON or YAML tools manifest" };
+            var manifestOption = new Option<string?>("--manifest", ["-m", "--yaml", "-y"]) { Description = "Path to a JSON or YAML tools manifest" };
             var nameOption = new Option<string?>("--name", ["-n"]) { Description = "Application name to find in apps.json" };
             var versionOption = new Option<string?>("--appversion", ["-av"]) { Description = "Optional application version override" };
 
@@ -209,7 +208,6 @@ namespace Sdo.Commands
             {
                 Description = "Path to a JSON or YAML tools manifest"
             };
-
             listCommand.Options.Add(jsonOption);
             listCommand.Options.Add(manifestOption);
             listCommand.Add(verboseOption);

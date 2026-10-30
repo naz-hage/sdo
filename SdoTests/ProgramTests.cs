@@ -644,11 +644,77 @@ steps:
     }
 
     [TestMethod]
-    public void Main_WithUpdateMissingApplication_ReturnsError()
+    public void Main_WithInstallMissingApplication_DryRunReturnsZero()
     {
-        var result = Program.Main("tool", "update", "--name", "NonExistentApp", "--dry-run");
+        var result = Program.Main("tool", "install", "--name", "NonExistentApp", "--dry-run");
 
-        Assert.AreEqual(-1, result);
+        Assert.AreEqual(0, result);
+    }
+
+    [TestMethod]
+    public void Main_WithInstallManifestShortAlias_UsesExplicitManifest()
+    {
+        var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-update-{Guid.NewGuid():N}.yaml");
+        File.WriteAllText(manifestPath, """
+            Version: '1.2.0'
+            NbuildAppList:
+              - Name: home
+                Version: '1.0.0'
+                AppFileName: home.exe
+                WebDownloadFile: https://example.com/home.zip
+                DownloadedFile: home.zip
+                InstallCommand: cmd.exe
+                InstallArgs: /c exit 0
+                InstallPath: C:\Temp\home
+                UninstallCommand: cmd.exe
+                UninstallArgs: /c exit 0
+            """);
+
+        try
+        {
+            var result = Program.Main("tool", "install", "-n", "home", "-m", manifestPath, "--dry-run");
+
+            Assert.AreEqual(0, result);
+        }
+        finally
+        {
+            File.Delete(manifestPath);
+        }
+    }
+
+    [TestMethod]
+    public void Main_WithToolList_UsesDefaultManifestAndLatestVersions()
+    {
+        var originalDirectory = Environment.CurrentDirectory;
+        var testDirectory = Path.Combine(Path.GetTempPath(), $"sdo-install-list-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(testDirectory);
+        Environment.CurrentDirectory = testDirectory;
+        File.WriteAllText(Path.Combine(testDirectory, "apps.yaml"), """
+            Version: '1.2.0'
+            NbuildAppList:
+              - Name: home
+                Version: '1.0.0'
+                AppFileName: home.exe
+                WebDownloadFile: https://example.com/home.zip
+                DownloadedFile: home.zip
+                InstallCommand: cmd.exe
+                InstallArgs: /c exit 0
+                InstallPath: C:\Temp\home
+                UninstallCommand: cmd.exe
+                UninstallArgs: /c exit 0
+            """);
+
+        try
+        {
+            var result = Program.Main("tool", "list");
+
+            Assert.AreEqual(0, result);
+        }
+        finally
+        {
+            Environment.CurrentDirectory = originalDirectory;
+            Directory.Delete(testDirectory, true);
+        }
     }
 
     [TestMethod]

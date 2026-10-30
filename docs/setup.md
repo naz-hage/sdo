@@ -88,7 +88,7 @@ NbuildAppList:
 | `Version`         | The version of the tool.                                                   |
 | `AppFileName`     | The file name of the tool, used to check if it is already installed.        |
 | `WebDownloadFile` | The URL to download the tool.                                               |
-| `LatestVersionUrl` | (Optional) URL used by `tool update --latest` to discover the latest stable release when the download URL is not a GitHub release URL. |
+| `LatestVersionUrl` | (Optional) URL used by `tool list` to discover the latest stable release when the download URL is not a GitHub release URL. |
 | `LatestVersionStrategy` | (Optional) Provider-specific discovery strategy, such as `github-tags`, `mongodb-download-page`, or `docker-appcast`. |
 | `DownloadedFile`  | The name of the downloaded file, used for installation.                    |
 | `InstallCommand`  | The command to install the tool.                                            |
@@ -101,8 +101,8 @@ NbuildAppList:
 | `AddToPath`       | (Optional) Whether to add the tool's path to the system PATH environment variable. |
 
 `LatestVersionUrl` is not required for normal installation or for tools that
-use a pinned manifest version. When `--latest` is used, SDO can discover a
-release automatically when `WebDownloadFile` is a GitHub release download URL.
+use a pinned manifest version. The `tool list` command can discover a release
+automatically when `WebDownloadFile` is a GitHub release download URL.
 Add `LatestVersionUrl` only when the download host is different from the
 release host, such as Helm:
 

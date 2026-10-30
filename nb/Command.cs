@@ -272,7 +272,7 @@ namespace Nbuild
         /// <summary>
         /// Updates a named application when the manifest version is newer than the installed version.
         /// </summary>
-        public static ResultHelper Update(
+        private static ResultHelper InstallLatest(
             string? yaml,
             string? name,
             string? version,
@@ -458,75 +458,68 @@ namespace Nbuild
             return result;
         }
 
-        public static ResultHelper List(string? json, bool verbose = false)
+        public static ResultHelper List(string? json, bool verbose = false, bool latest = true)
         {
             Verbose = verbose;
 
-            var apps = GetApps(json);
+            var manifestPath = ResolveDefaultAppsManifest(json);
+            var apps = GetApps(manifestPath).ToList();
 
-            if (apps == null) return ResultHelper.Fail(-1, $"Invalid json input");
-            ConsoleHelper.WriteWarning($"{apps.Count()} apps to list:");
+            if (!apps.Any()) return ResultHelper.Fail(-1, "No apps found to list");
 
-            // print header
-            ConsoleHelper.WriteWarning("┌────────────────────┬────────────────┬───────────────────┐");
-            ConsoleHelper.WriteWarning("│ App name           │ Target version │ Installed version │");
-            ConsoleHelper.WriteWarning("├────────────────────┼────────────────┼───────────────────┤");
+            var rows = new List<(string Name, string Installed, string Manifest, string Latest, string Link)>();
             foreach (var app in apps)
             {
-                // display app and installed version
-                // InstalledAppFileVersionGreterOrEqual is true, print green, else print red
-                if (IsAppVersionEqual(app))
+                var installed = GetAppFileVersion(app) ??
+                    (IsAppInstalled(app) ? "installed" : "not installed");
+                var latestVersion = latest ? "Unresolved" : "not requested";
+                var link = GetLatestReleaseLink(app);
+
+                if (latest && TryGetLatestVersion(app, out var discoveredVersion, out _, out _))
                 {
-                    ConsoleHelper.WriteLine($"| {app.Name,-18} | {app.Version,-14} | {GetAppFileVersion(app),-18}|", ConsoleColor.Green);
+                    latestVersion = discoveredVersion ?? "Unresolved";
                 }
-                else if (IsAppVersionGreaterOrEqual(app))
-                {
-                    ConsoleHelper.WriteLine($"| {app.Name,-18} | {app.Version,-14} | {GetAppFileVersion(app),-18}|", ConsoleColor.Cyan);
-                }
-                else
-                {
-                    ConsoleHelper.WriteLine($"| {app.Name,-18} | {app.Version,-14} | {GetAppFileVersion(app),-18}|", ConsoleColor.Red);
-                }
+
+                rows.Add((
+                    app.Name ?? string.Empty,
+                    installed,
+                    app.Version ?? string.Empty,
+                    latestVersion,
+                    link));
             }
 
-            ConsoleHelper.WriteWarning("└────────────────────┴────────────────┴───────────────────┘");
+            var nameWidth = Math.Max("Name".Length, rows.Max(row => row.Name.Length));
+            var installedWidth = Math.Max("Installed".Length, rows.Max(row => row.Installed.Length));
+            var manifestWidth = Math.Max("Manifest".Length, rows.Max(row => row.Manifest.Length));
+            var latestWidth = Math.Max("Latest".Length, rows.Max(row => row.Latest.Length));
+            var linkWidth = Math.Max("Link".Length, rows.Max(row => row.Link.Length));
+
+            ConsoleHelper.WriteWarning($"{rows.Count} apps to list:");
+            ConsoleHelper.WriteWarning($"| {"Name".PadRight(nameWidth)} | {"Installed".PadRight(installedWidth)} | {"Manifest".PadRight(manifestWidth)} | {"Latest".PadRight(latestWidth)} | {"Link".PadRight(linkWidth)} |");
+            foreach (var row in rows)
+            {
+                ConsoleHelper.WriteLine($"| {row.Name.PadRight(nameWidth)} | {row.Installed.PadRight(installedWidth)} | {row.Manifest.PadRight(manifestWidth)} | {row.Latest.PadRight(latestWidth)} | {row.Link.PadRight(linkWidth)} |");
+            }
+
             Console.WriteLine();
             return ResultHelper.Success();
         }
 
-        public static List<(string Name, string ManifestVersion, string LatestVersion, string Link, string Error)> GetLatestVersions(string? yaml)
+        private static string ResolveDefaultAppsManifest(string? manifestPath)
         {
-            var manifestPath = yaml;
-            if (string.IsNullOrWhiteSpace(manifestPath))
+            if (!string.IsNullOrWhiteSpace(manifestPath))
             {
-                manifestPath = new[]
-                {
-                    Path.Combine(Directory.GetCurrentDirectory(), "apps.yaml"),
-                    Path.Combine(AppContext.BaseDirectory, "apps.yaml"),
-                    DefaultAppsFile
-                }.FirstOrDefault(File.Exists);
+                return manifestPath;
             }
 
-            if (string.IsNullOrWhiteSpace(manifestPath))
+            return new[]
             {
-                throw new FileNotFoundException("No apps.yaml manifest was found.");
-            }
-
-            var results = new List<(string Name, string ManifestVersion, string LatestVersion, string Link, string Error)>();
-            foreach (var app in GetApps(manifestPath))
-            {
-                var link = GetLatestReleaseLink(app);
-                if (TryGetLatestVersion(app, out var latestVersion, out _, out var error))
-                {
-                    results.Add((app.Name ?? string.Empty, app.Version ?? string.Empty, latestVersion ?? string.Empty, link, string.Empty));
-                }
-                else
-                {
-                    results.Add((app.Name ?? string.Empty, app.Version ?? string.Empty, string.Empty, link, error));
-                }
-            }
-
-            return results;
+                Path.Combine(Directory.GetCurrentDirectory(), "apps.yaml"),
+                Path.Combine(Directory.GetCurrentDirectory(), "dev-setup", "apps.yaml"),
+                Path.Combine(AppContext.BaseDirectory, "apps.yaml"),
+                DefaultAppsFile
+            }.FirstOrDefault(File.Exists)
+                ?? throw new FileNotFoundException("No apps.yaml manifest was found.");
         }
 
         private static string GetLatestReleaseLink(NbuildApp app)
@@ -1708,17 +1701,14 @@ namespace Nbuild
             NbuildApp? foundApp = null;
 
             // Named installs search an explicitly supplied manifest before the standard YAML fallback locations.
-            var searchFilePaths = new[]
-            {
-                json,
-                Path.Combine(Directory.GetCurrentDirectory(), "apps.yaml"),
-                Path.Combine(AppContext.BaseDirectory, "apps.yaml"),
-                DefaultAppsFile
-            }
-            .Where(path => !string.IsNullOrWhiteSpace(path))
-            .Select(path => path!)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+            var searchFilePaths = !string.IsNullOrWhiteSpace(json)
+                ? new[] { json }
+                : new[]
+                {
+                    Path.Combine(Directory.GetCurrentDirectory(), "apps.yaml"),
+                    Path.Combine(AppContext.BaseDirectory, "apps.yaml"),
+                    DefaultAppsFile
+                };
 
             var appsFileFound = false;
 

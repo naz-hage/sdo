@@ -978,7 +978,7 @@ namespace NbuildTests
         }
 
         [TestMethod]
-        public void GetAppsFromCurrentDirectory_PrefersExplicitJsonAndFallsBackWhenAppIsMissing()
+        public void GetAppsFromCurrentDirectory_UsesOnlyExplicitJsonWhenProvided()
         {
             var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDir);
@@ -997,10 +997,11 @@ namespace NbuildTests
                 Assert.AreEqual("3.0.0", explicitApps[0].Version);
 
                 File.WriteAllText(explicitJson, CreateAppManifest("otherapp", "1.0.0"));
-                var fallbackApps = Command.GetAppsFromCurrentDirectory("testapp", null, out _, explicitJson);
+                var fallbackApps = Command.GetAppsFromCurrentDirectory("testapp", null, out var availableApps, explicitJson);
 
-                Assert.AreEqual(1, fallbackApps.Count);
-                Assert.AreEqual("2.0.0", fallbackApps[0].Version);
+                Assert.AreEqual(0, fallbackApps.Count);
+                CollectionAssert.DoesNotContain(availableApps, "testapp - Version: 2.0.0");
+                CollectionAssert.Contains(availableApps, "otherapp - Version: 1.0.0");
             }
             finally
             {
