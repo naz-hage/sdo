@@ -3343,8 +3343,10 @@ sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </
 - <code>--verbose</code> — Enable detailed output</p>
 <p><code>--latest --list</code> is a read-only manifest inspection mode. It does not require
 <code>--name</code>, does not perform installation or updates, and displays each
-application's manifest version and discovered latest version in a boxed table.
-Use <code>--yaml</code> to inspect a specific <code>apps.yaml</code> file.</p>
+application's manifest version, discovered latest version, and an upstream link
+in a boxed table. The link opens the latest release page where available, so
+release notes can be reviewed before updating. Use <code>--yaml</code> to inspect a
+specific <code>apps.yaml</code> file.</p>
 <p><code>--latest</code> does not require an additional manifest property when
 <code>WebDownloadFile</code> points directly to a GitHub release download URL. For tools
 whose download URL is hosted elsewhere, add the optional <code>LatestVersionUrl</code>
