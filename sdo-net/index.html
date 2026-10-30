@@ -1045,10 +1045,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tool-update" class="md-nav__link">
+  <a href="#tool-list" class="md-nav__link">
     <span class="md-ellipsis">
       
-        tool update
+        tool list
       
     </span>
   </a>
@@ -1743,10 +1743,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#install-from-json-file" class="md-nav__link">
+  <a href="#install-from-a-manifest-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Install from JSON file:
+        Install from a manifest file:
       
     </span>
   </a>
@@ -3325,29 +3325,16 @@ sdo<span class="w"> </span>repo<span class="w"> </span>delete<span class="w"> </
 <hr />
 <h3 id="local-automation">Local automation<a class="headerlink" href="#local-automation" title="Anchor link to this section for reference">&para;</a></h3>
 <p>These command groups consolidate the local build, backup, and file-search workflows into SDO.</p>
-<h4 id="tool-update">tool update<a class="headerlink" href="#tool-update" title="Anchor link to this section for reference">&para;</a></h4>
-<p>Update a named application to the version in <code>apps.yaml</code>, or discover the latest stable GitHub release with <code>--latest</code>.</p>
-<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span>
-sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span><span class="w"> </span>--yaml<span class="w"> </span>.<span class="se">\d</span>ev-setup<span class="se">\a</span>pps.yaml
-sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span><span class="w"> </span>--dry-run
-sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Argo CD"</span><span class="w"> </span>--latest<span class="w"> </span>--dry-run<span class="w"> </span>--verbose
-sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--latest<span class="w"> </span>--list
+<h4 id="tool-list">tool list<a class="headerlink" href="#tool-list" title="Anchor link to this section for reference">&para;</a></h4>
+<p>Display each application's installed version, manifest version, latest stable
+release, and upstream link:</p>
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>list
+sdo<span class="w"> </span>tool<span class="w"> </span>list<span class="w"> </span>--manifest<span class="w"> </span>.<span class="se">\d</span>ev-setup<span class="se">\a</span>pps.yaml
 </code></pre></div>
 <p>Options:
-- <code>--name &lt;name&gt;</code> — Application name (required)
-- <code>--yaml &lt;path&gt;</code> — Optional <code>apps.yaml</code> path; otherwise the current directory, the executable directory, and the default installation directory are searched
-- <code>--version &lt;version&gt;</code> — Optional version override
-- <code>--latest</code> — Discover the latest stable GitHub release instead of using the YAML version
-- <code>--list</code> — With <code>--latest</code>, display the discovered latest version for every application without installing anything
-- <code>--dry-run</code> — Show the planned update without changing the installed application
+- <code>--manifest &lt;path&gt;</code> (<code>-m</code> only) — Optional <code>apps.yaml</code> path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - <code>--verbose</code> — Enable detailed output</p>
-<p><code>--latest --list</code> is a read-only manifest inspection mode. It does not require
-<code>--name</code>, does not perform installation or updates, and displays each
-application's manifest version, discovered latest version, and an upstream link
-in a boxed table. The link opens the latest release page where available, so
-release notes can be reviewed before updating. Use <code>--yaml</code> to inspect a
-specific <code>apps.yaml</code> file.</p>
-<p><code>--latest</code> does not require an additional manifest property when
+<p>Latest-version discovery does not require an additional manifest property when
 <code>WebDownloadFile</code> points directly to a GitHub release download URL. For tools
 whose download URL is hosted elsewhere, add the optional <code>LatestVersionUrl</code>
 property to the application entry. This lets SDO use the GitHub repository for
@@ -3356,11 +3343,10 @@ Most applications therefore do not need this property; Helm uses it because
 its archives are hosted at <code>get.helm.sh</code>.</p>
 <h4 id="tool">tool<a class="headerlink" href="#tool" title="Anchor link to this section for reference">&para;</a></h4>
 <p>Environment tool installation, auditing, and manifest management. Use
-<code>--manifest</code> for YAML manifests; the legacy <code>--json</code> option remains supported for explicitly supplied JSON files.</p>
+<code>--manifest</code> for JSON or YAML manifests.</p>
 <p>Subcommands:
 - <code>install</code> — Install tools from a manifest or by application name
-- <code>list</code> — Display tools and versions
-- <code>update</code> — Update an installed tool to the manifest or discovered latest version
+- <code>list</code> — Display installed, manifest, and optionally discovered latest versions
 - <code>uninstall</code> — Uninstall tools from a manifest or by application name
 - <code>download</code> — Download tools from a manifest</p>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>list
@@ -4231,10 +4217,10 @@ configuration, or registry state.</p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Anchor link to this section for reference">&para;</a></h2>
 <p>Below are practical examples for using <code>sdo.exe</code>. These examples assume you are running in a PowerShell terminal.</p>
 <h3 id="1-install-applications">1. Install Applications<a class="headerlink" href="#1-install-applications" title="Anchor link to this section for reference">&para;</a></h3>
-<h4 id="install-from-json-file">Install from JSON file:<a class="headerlink" href="#install-from-json-file" title="Anchor link to this section for reference">&para;</a></h4>
-<p><div class="highlight"><pre><span></span><code>sdo.exe tool install --json "C:\Program Files\tools.json"
+<h4 id="install-from-a-manifest-file">Install from a manifest file:<a class="headerlink" href="#install-from-a-manifest-file" title="Anchor link to this section for reference">&para;</a></h4>
+<p><div class="highlight"><pre><span></span><code>sdo.exe tool install --manifest "C:\Program Files\tools.json"
 </code></pre></div>
-Installs applications specified in the manifest file. The <code>--manifest</code> parameter accepts a YAML manifest. The legacy <code>--json</code> parameter remains available for an explicitly supplied JSON file. When <code>--name</code> is provided without a manifest, automatic discovery searches <code>apps.yaml</code> in the current directory, <code>dev-setup\apps.yaml</code>, and <code>C:\Program Files\sdo\apps.yaml</code>. (Requires admin privileges.)</p>
+Installs applications specified in the manifest file. The <code>--manifest</code> parameter accepts JSON or YAML. When <code>--name</code> is provided without a manifest, automatic discovery searches <code>apps.yaml</code> in the current directory, <code>dev-setup\apps.yaml</code>, and <code>C:\Program Files\sdo\apps.yaml</code>. (Requires admin privileges.)</p>
 <h4 id="install-by-name-from-current-directory-and-default-location">Install by name from current directory and default location:<a class="headerlink" href="#install-by-name-from-current-directory-and-default-location" title="Anchor link to this section for reference">&para;</a></h4>
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool install --name "MyApp"
 sdo.exe tool install --name "MyApp" --appversion "1.2.3"
@@ -4252,7 +4238,7 @@ Installs only the matching tool from the specified manifest. Standalone executab
 sdo.exe tool install --name "MyApp" --appversion "1.2.3" --dry-run
 </code></pre></div>
 <p><strong>Behavior in dry-run mode:</strong>
-- Searches the explicit <code>--json</code> file first when provided, then <code>apps.yaml</code> in the current directory, then the default installation directory
+- Searches the explicit <code>--manifest</code> file first when provided, then <code>apps.yaml</code> in the current directory, then the default installation directory
 - If app is found: displays <code>DRY-RUN: would install app 'MyApp'</code> in yellow and lists version details
 - If app is not found: displays <code>No apps found matching 'MyApp'</code> in red, lists the search directories (current directory and default installation directory), and lists available applications found in those <code>apps.yaml</code> files
 - Dry-run always returns exit code 0 (success), even when app is not found, as it is a preview/simulation mode
@@ -4260,7 +4246,7 @@ sdo.exe tool install --name "MyApp" --appversion "1.2.3" --dry-run
 - No files are downloaded, installed, or modified
 - Output uses color coding: yellow for dry-run messages, red for not-found messages</p>
 <h3 id="2-uninstall-applications">2. Uninstall Applications<a class="headerlink" href="#2-uninstall-applications" title="Anchor link to this section for reference">&para;</a></h3>
-<p><div class="highlight"><pre><span></span><code>sdo.exe tool uninstall --json "C:\Program Files\example-tool.json"
+<p><div class="highlight"><pre><span></span><code>sdo.exe tool uninstall --manifest "C:\Program Files\example-tool.json"
 </code></pre></div>
 Uninstalls applications as specified in the manifest file. (Requires admin privileges.)</p>
 <h4 id="uninstall-only-one-named-application">Uninstall only one named application:<a class="headerlink" href="#uninstall-only-one-named-application" title="Anchor link to this section for reference">&para;</a></h4>
@@ -4271,11 +4257,12 @@ sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml
 The <code>--name</code> (<code>-n</code>) option limits uninstall to the matching application instead of processing every entry in the manifest. When no manifest is supplied, SDO searches <code>apps.yaml</code> in the current directory and then the default installation directory. Uninstall determines whether the application is installed from its executable or install path; it does not require the installed version to match the version recorded in <code>apps.yaml</code>. Use <code>--appversion</code> (<code>-av</code>) when the manifest contains multiple versions of the same application.</p>
 <p>The sample <code>dev-setup\apps.yaml</code> manifest includes Crossplane CLI <code>2.5.0</code>, installed to <code>C:\Program Files\Crossplane</code> and added to the user PATH. Its configured SHA-256 hash is checked after installation.</p>
 <h3 id="25-update-applications">2.5 Update Applications<a class="headerlink" href="#25-update-applications" title="Anchor link to this section for reference">&para;</a></h3>
-<p><div class="highlight"><pre><span></span><code>sdo.exe tool update --name "Argo CD"
-sdo.exe tool update --name "Argo CD" --latest --dry-run --verbose
-sdo.exe tool update --name "Argo CD" --yaml ".\dev-setup\apps.yaml"
+<p><div class="highlight"><pre><span></span><code>sdo.exe tool list
+sdo.exe tool list --manifest ".\dev-setup\apps.yaml"
 </code></pre></div>
-Without <code>--latest</code>, the update uses the version pinned in <code>apps.yaml</code>. With <code>--latest</code>, GitHub release URLs are queried for the latest stable release and the download URL is rebuilt with the discovered version. Use <code>--verbose</code> to display the resolved download URL. Non-GitHub release URLs require a pinned YAML version.</p>
+The list command queries GitHub release URLs for the latest stable release and
+displays the resolved link. Non-GitHub release URLs require a pinned YAML
+version or an appropriate <code>LatestVersionUrl</code>.</p>
 <h3 id="3-list-installed-applications">3. List Installed Applications<a class="headerlink" href="#3-list-installed-applications" title="Anchor link to this section for reference">&para;</a></h3>
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool list
 sdo.exe tool list --manifest "C:\Program Files\sdo\apps.yaml"
@@ -4286,7 +4273,7 @@ Lists all applications specified in the provided manifest. If no <code>--manifes
 </code></pre></div>
 Downloads tools and applications specified in the manifest file. The output table expands its columns for long application names and filenames and does not add status prefixes inside table rows. (Uses the <code>--manifest</code> option to locate the YAML file.)</p>
 <h3 id="5-error-handling-for-tool-manifest-files">5. Error Handling for Tool Manifest Files<a class="headerlink" href="#5-error-handling-for-tool-manifest-files" title="Anchor link to this section for reference">&para;</a></h3>
-<p>The <code>list</code>, <code>install</code>, <code>uninstall</code>, and <code>download</code> commands require valid tool manifest files. YAML is the standard format; the legacy <code>--json</code> option remains available where supported.</p>
+<p>The <code>list</code>, <code>install</code>, <code>uninstall</code>, and <code>download</code> commands require valid tool manifest files. JSON and YAML are supported through <code>--manifest</code>.</p>
 <h4 id="file-not-found">File Not Found<a class="headerlink" href="#file-not-found" title="Anchor link to this section for reference">&para;</a></h4>
 <div class="highlight"><pre><span></span><code>Error: Manifest not found: 'C:\invalid\path\apps.yaml'. Please provide a valid path to the apps.yaml file.
 Exit code: -1

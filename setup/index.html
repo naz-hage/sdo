@@ -1482,7 +1482,7 @@ the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools
 </tr>
 <tr>
 <td><code>LatestVersionUrl</code></td>
-<td>(Optional) URL used by <code>tool update --latest</code> to discover the latest stable release when the download URL is not a GitHub release URL.</td>
+<td>(Optional) URL used by <code>tool list</code> to discover the latest stable release when the download URL is not a GitHub release URL.</td>
 </tr>
 <tr>
 <td><code>LatestVersionStrategy</code></td>
@@ -1527,8 +1527,8 @@ the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools
 </tbody>
 </table>
 <p><code>LatestVersionUrl</code> is not required for normal installation or for tools that
-use a pinned manifest version. When <code>--latest</code> is used, SDO can discover a
-release automatically when <code>WebDownloadFile</code> is a GitHub release download URL.
+use a pinned manifest version. The <code>tool list</code> command can discover a release
+automatically when <code>WebDownloadFile</code> is a GitHub release download URL.
 Add <code>LatestVersionUrl</code> only when the download host is different from the
 release host, such as Helm:</p>
 <div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Name</span><span class="p">:</span><span class="w"> </span><span class="s">"Helm"</span>

@@ -1641,7 +1641,7 @@ gh<span class="w"> </span>auth<span class="w"> </span>login
 </code></pre></div>
 - <strong>Environment Variable Setup:</strong>
   <div class="highlight"><pre><span></span><code><span class="nv">$env:API_GITHUB_KEY</span> <span class="p">=</span> <span class="s1">'ghp_XXXX'</span>
-<span class="p">.\</span><span class="n">Release</span><span class="p">\</span><span class="n">sdo</span><span class="p">.</span><span class="n">exe</span> <span class="n">tool</span> <span class="n">install</span> <span class="p">-</span><span class="n">-json</span> <span class="n">private-repo</span><span class="p">.</span><span class="n">json</span> <span class="p">-</span><span class="n">-verbose</span>
+<span class="p">.\</span><span class="n">Release</span><span class="p">\</span><span class="n">sdo</span><span class="p">.</span><span class="n">exe</span> <span class="n">tool</span> <span class="n">install</span> <span class="p">-</span><span class="n">-manifest</span> <span class="n">private-repo</span><span class="p">.</span><span class="n">json</span> <span class="p">-</span><span class="n">-verbose</span>
 </code></pre></div></p>
 <p>Behavior
 - On download failure (404) for a GitHub release URL, <code>sdo</code> will parse the owner/repo/tag and call into <code>GitHubRelease.ReleaseService.DownloadAssetByName(tag, assetName, dest)</code> which uses the GitHub API to find the asset and download it using the authenticated asset endpoint. This approach supports private repositories when the token has appropriate scopes (typically <code>repo</code> and <code>releases</code>).</p>
