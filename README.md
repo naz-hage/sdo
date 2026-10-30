@@ -91,6 +91,7 @@ sdo tool list --manifest .\dev-setup\apps.yaml
 sdo tool install --manifest .\dev-setup\apps.yaml --dry-run
 sdo tool download --manifest .\dev-setup\apps.yaml --dry-run
 sdo tool uninstall --manifest .\dev-setup\apps.yaml --dry-run
+sdo tool update --latest --list --yaml .\dev-setup\apps.yaml
 
 sdo tool install --name "Git for Windows" --appversion 2.51.1 --dry-run
 ```
@@ -101,6 +102,8 @@ Each application normally needs only its pinned `Version` and
 `sdo tool update --latest` when the release metadata is hosted separately
 from the download URL; for example, Helm downloads from `get.helm.sh` but
 discovers releases from `https://github.com/helm/helm`.
+Use `sdo tool update --latest --list` to discover and display the latest
+version for every application without installing or updating any tool.
 Use `sdo run` for workflow YAML and `sdo e2e` for test metadata YAML.
 
 #### YAML Test Metadata

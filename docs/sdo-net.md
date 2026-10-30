@@ -831,6 +831,7 @@ sdo tool update --name "Git for Windows"
 sdo tool update --name "Git for Windows" --yaml .\dev-setup\apps.yaml
 sdo tool update --name "Git for Windows" --dry-run
 sdo tool update --name "Argo CD" --latest --dry-run --verbose
+sdo tool update --latest --list
 ```
 
 Options:
@@ -838,8 +839,14 @@ Options:
 - `--yaml <path>` — Optional `apps.yaml` path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - `--version <version>` — Optional version override
 - `--latest` — Discover the latest stable GitHub release instead of using the YAML version
+- `--list` — With `--latest`, display the discovered latest version for every application without installing anything
 - `--dry-run` — Show the planned update without changing the installed application
 - `--verbose` — Enable detailed output
+
+`--latest --list` is a read-only manifest inspection mode. It does not require
+`--name`, does not perform installation or updates, and displays each
+application's manifest version and discovered latest version in a boxed table.
+Use `--yaml` to inspect a specific `apps.yaml` file.
 
 `--latest` does not require an additional manifest property when
 `WebDownloadFile` points directly to a GitHub release download URL. For tools

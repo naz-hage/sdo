@@ -18,6 +18,49 @@ namespace NbuildTests
         private bool? LocalTestMode;
 
         [TestMethod]
+        public void TryParseGitHubRepository_AcceptsTaggedReleaseDownloadUrl()
+        {
+            var result = Command.TryParseGitHubRepository(
+                "https://github.com/kubernetes/minikube/releases/download/v1.39.0/minikube-installer.exe",
+                out var repository);
+
+            Assert.IsTrue(result);
+            Assert.AreEqual("kubernetes/minikube", repository);
+        }
+
+        [TestMethod]
+        public void TryParseGitHubRepository_AcceptsLatestReleaseDownloadUrl()
+        {
+            var result = Command.TryParseGitHubRepository(
+                "https://github.com/kubernetes/minikube/releases/latest/download/minikube-installer.exe",
+                out var repository);
+
+            Assert.IsTrue(result);
+            Assert.AreEqual("kubernetes/minikube", repository);
+        }
+
+        [TestMethod]
+        public void TryParseGitHubRepository_RejectsMalformedReleaseUrl()
+        {
+            var result = Command.TryParseGitHubRepository(
+                "https://github.com/kubernetes/minikube/releases/latest/asset.exe",
+                out var repository);
+
+            Assert.IsFalse(result);
+            Assert.IsNull(repository);
+        }
+
+        [TestMethod]
+        public void TryExtractVersion_ExtractsVersionFromTagAndRejectsManifestPlaceholder()
+        {
+            Assert.IsTrue(Command.TryExtractVersion("v1.39.0", out var tagVersion));
+            Assert.AreEqual("1.39.0", tagVersion);
+
+            Assert.IsFalse(Command.TryExtractVersion("https://example.test/tool-v$(Version).zip", out var placeholderVersion));
+            Assert.AreEqual(string.Empty, placeholderVersion);
+        }
+
+        [TestMethod]
         public async Task CreateRelease_DryRun_PrintsDryRunMessage()
         {
             var result = await Command.CreateRelease("repo", "v1.0.0", "main", "asset.zip", false, true);

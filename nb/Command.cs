@@ -489,6 +489,40 @@ namespace Nbuild
             return ResultHelper.Success();
         }
 
+        public static List<(string Name, string ManifestVersion, string LatestVersion, string Error)> GetLatestVersions(string? yaml)
+        {
+            var manifestPath = yaml;
+            if (string.IsNullOrWhiteSpace(manifestPath))
+            {
+                manifestPath = new[]
+                {
+                    Path.Combine(Directory.GetCurrentDirectory(), "apps.yaml"),
+                    Path.Combine(AppContext.BaseDirectory, "apps.yaml"),
+                    DefaultAppsFile
+                }.FirstOrDefault(File.Exists);
+            }
+
+            if (string.IsNullOrWhiteSpace(manifestPath))
+            {
+                throw new FileNotFoundException("No apps.yaml manifest was found.");
+            }
+
+            var results = new List<(string Name, string ManifestVersion, string LatestVersion, string Error)>();
+            foreach (var app in GetApps(manifestPath))
+            {
+                if (TryGetLatestVersion(app, out var latestVersion, out _, out var error))
+                {
+                    results.Add((app.Name ?? string.Empty, app.Version ?? string.Empty, latestVersion ?? string.Empty, string.Empty));
+                }
+                else
+                {
+                    results.Add((app.Name ?? string.Empty, app.Version ?? string.Empty, string.Empty, error));
+                }
+            }
+
+            return results;
+        }
+
         public static ResultHelper Download(string? json, bool verbose = false, bool dryRun = false)
         {
             Verbose = verbose;
@@ -1163,75 +1197,126 @@ namespace Nbuild
             }
 
             var discoveryUri = downloadUri;
-            if (!string.IsNullOrWhiteSpace(app.LatestVersionUrl))
+            if (!string.IsNullOrWhiteSpace(app.LatestVersionUrl) &&
+                !Uri.TryCreate(app.LatestVersionUrl, UriKind.Absolute, out discoveryUri))
             {
-                if (!Uri.TryCreate(app.LatestVersionUrl, UriKind.Absolute, out discoveryUri))
-                {
-                    error = $"Latest version discovery URL for '{app.Name}' is not a valid absolute URL.";
-                    return false;
-                }
+                error = $"Latest version discovery URL for '{app.Name}' is not a valid absolute URL.";
+                return false;
             }
 
-            if (discoveryUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+            return discoveryUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase)
+                ? TryGetLatestGitHubVersion(app, discoveryUri, out latestVersion, out latestUrl, out error)
+                : TryGetLatestDownloadVersion(app, downloadUri, out latestVersion, out latestUrl, out error);
+        }
+
+        internal static bool TryParseGitHubRepository(string? url, out string? repository)
+        {
+            repository = null;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
+                !uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
             {
-                var segments = discoveryUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-                var releasesIndex = Array.FindIndex(segments, segment =>
-                    segment.Equals("releases", StringComparison.OrdinalIgnoreCase));
-                if (segments.Length < 2 ||
-                    (releasesIndex >= 0 &&
-                     (releasesIndex + 2 >= segments.Length ||
-                      !segments[releasesIndex + 1].Equals("download", StringComparison.OrdinalIgnoreCase))))
-                {
-                    error = $"Could not determine the GitHub repository from the download URL for '{app.Name}'.";
-                    return false;
-                }
-
-                var repository = $"{segments[0]}/{segments[1]}";
-                var endpoint = $"https://api.github.com/repos/{repository}/releases/latest";
-
-                try
-                {
-                    using var response = LatestVersionClient.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        error = $"Failed to discover the latest version for '{app.Name}' from GitHub ({(int)response.StatusCode} {response.ReasonPhrase}).";
-                        return false;
-                    }
-
-                    using var document = JsonDocument.Parse(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
-                    var tag = document.RootElement.TryGetProperty("tag_name", out var tagProperty)
-                        ? tagProperty.GetString()
-                        : null;
-                    if (string.IsNullOrWhiteSpace(tag))
-                    {
-                        error = $"GitHub did not return a release tag for '{app.Name}'.";
-                        return false;
-                    }
-
-                    var versionMatch = System.Text.RegularExpressions.Regex.Match(
-                        tag.TrimStart('v', 'V'),
-                        @"\d+(?:\.\d+){1,3}");
-                    if (!versionMatch.Success)
-                    {
-                        error = $"GitHub release tag '{tag}' for '{app.Name}' does not contain a supported version.";
-                        return false;
-                    }
-
-                    latestVersion = versionMatch.Value;
-                    latestUrl = ReplaceAppVersion(app.WebDownloadFile, app.Version, latestVersion);
-                    return true;
-                }
-                catch (HttpRequestException ex)
-                {
-                    error = $"Failed to discover the latest version for '{app.Name}': {ex.Message}";
-                    return false;
-                }
-                catch (JsonException ex)
-                {
-                    error = $"Failed to parse the latest version for '{app.Name}': {ex.Message}";
-                    return false;
-                }
+                return false;
             }
+
+            var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            var releasesIndex = Array.FindIndex(segments, segment =>
+                segment.Equals("releases", StringComparison.OrdinalIgnoreCase));
+            var isTaggedDownload = releasesIndex >= 0 &&
+                releasesIndex + 2 < segments.Length &&
+                segments[releasesIndex + 1].Equals("download", StringComparison.OrdinalIgnoreCase);
+            var isLatestDownload = releasesIndex >= 0 &&
+                releasesIndex + 3 < segments.Length &&
+                segments[releasesIndex + 1].Equals("latest", StringComparison.OrdinalIgnoreCase) &&
+                segments[releasesIndex + 2].Equals("download", StringComparison.OrdinalIgnoreCase);
+
+            if (segments.Length < 2 ||
+                (releasesIndex >= 0 && !isTaggedDownload && !isLatestDownload))
+            {
+                return false;
+            }
+
+            repository = $"{segments[0]}/{segments[1]}";
+            return true;
+        }
+
+        internal static bool TryExtractVersion(string? value, out string version)
+        {
+            var versionMatch = System.Text.RegularExpressions.Regex.Match(
+                value?.Trim('"') ?? string.Empty,
+                @"(?<!Version\))\d+(?:\.\d+){1,3}");
+            version = versionMatch.Success ? versionMatch.Value : string.Empty;
+            return version.Length > 0;
+        }
+
+        private static bool TryGetLatestGitHubVersion(
+            NbuildApp app,
+            Uri discoveryUri,
+            out string? latestVersion,
+            out string? latestUrl,
+            out string error)
+        {
+            latestVersion = null;
+            latestUrl = null;
+            error = string.Empty;
+
+            if (!TryParseGitHubRepository(discoveryUri.AbsoluteUri, out var repository))
+            {
+                error = $"Could not determine the GitHub repository from the download URL for '{app.Name}'.";
+                return false;
+            }
+
+            var endpoint = $"https://api.github.com/repos/{repository}/releases/latest";
+            try
+            {
+                using var response = LatestVersionClient.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
+                if (!response.IsSuccessStatusCode)
+                {
+                    error = $"Failed to discover the latest version for '{app.Name}' from GitHub ({(int)response.StatusCode} {response.ReasonPhrase}).";
+                    return false;
+                }
+
+                using var document = JsonDocument.Parse(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+                var tag = document.RootElement.TryGetProperty("tag_name", out var tagProperty)
+                    ? tagProperty.GetString()
+                    : null;
+                if (string.IsNullOrWhiteSpace(tag))
+                {
+                    error = $"GitHub did not return a release tag for '{app.Name}'.";
+                    return false;
+                }
+
+                if (!TryExtractVersion(tag, out var parsedVersion))
+                {
+                    error = $"GitHub release tag '{tag}' for '{app.Name}' does not contain a supported version.";
+                    return false;
+                }
+
+                latestVersion = parsedVersion;
+                latestUrl = ReplaceAppVersion(app.WebDownloadFile, app.Version, parsedVersion);
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                error = $"Failed to discover the latest version for '{app.Name}': {ex.Message}";
+                return false;
+            }
+            catch (JsonException ex)
+            {
+                error = $"Failed to parse the latest version for '{app.Name}': {ex.Message}";
+                return false;
+            }
+        }
+
+        private static bool TryGetLatestDownloadVersion(
+            NbuildApp app,
+            Uri downloadUri,
+            out string? latestVersion,
+            out string? latestUrl,
+            out string error)
+        {
+            latestVersion = null;
+            latestUrl = null;
+            error = string.Empty;
 
             try
             {
@@ -1248,16 +1333,13 @@ namespace Nbuild
                 var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
                     ?? response.Content.Headers.ContentDisposition?.FileName
                     ?? response.RequestMessage?.RequestUri?.Segments.LastOrDefault();
-                var versionMatch = System.Text.RegularExpressions.Regex.Match(
-                    fileName?.Trim('"') ?? string.Empty,
-                    @"(?<!Version\))\d+(?:\.\d+){1,3}");
-                if (!versionMatch.Success)
+                if (!TryExtractVersion(fileName, out var parsedVersion))
                 {
                     error = $"The download URL for '{app.Name}' did not identify a supported latest version.";
                     return false;
                 }
 
-                latestVersion = versionMatch.Value;
+                latestVersion = parsedVersion;
                 latestUrl = app.WebDownloadFile;
                 return true;
             }
