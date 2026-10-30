@@ -742,6 +742,45 @@ steps:
     }
 
     [TestMethod]
+    public void Main_WithToolList_NameAndVersionFilters()
+    {
+        var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-list-filter-{Guid.NewGuid():N}.yaml");
+        File.WriteAllText(manifestPath, """
+            Version: '1.2.0'
+            NbuildAppList:
+              - Name: home
+                Version: '1.0.0'
+                AppFileName: home.exe
+                WebDownloadFile: https://example.com/home.zip
+                DownloadedFile: home.zip
+                InstallCommand: cmd.exe
+                InstallArgs: /c exit 0
+                InstallPath: C:\Temp\home
+                UninstallCommand: cmd.exe
+                UninstallArgs: /c exit 0
+            """);
+
+        try
+        {
+            var result = Program.Main(
+                "tool",
+                "list",
+                "--manifest",
+                manifestPath,
+                "--name",
+                "home",
+                "--appversion",
+                "1.0.0");
+
+            Assert.AreEqual(0, result);
+        }
+        finally
+        {
+            File.Delete(manifestPath);
+        }
+    }
+
+    [TestMethod]
     public void Main_WithToolList_UsesManifestVersionWhenStoredHashMatchesUnversionedFile()
     {
         var root = Path.Combine(Path.GetTempPath(), $"sdo-hash-version-{Guid.NewGuid():N}");

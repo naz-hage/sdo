@@ -458,14 +458,31 @@ namespace Nbuild
             return result;
         }
 
-        public static ResultHelper List(string? json, bool verbose = false, bool latest = true)
+        public static ResultHelper List(
+            string? json,
+            bool verbose = false,
+            string? name = null,
+            string? version = null,
+            bool latest = true)
         {
             Verbose = verbose;
 
             var manifestPath = ResolveDefaultAppsManifest(json);
-            var apps = GetApps(manifestPath).ToList();
+            var apps = GetApps(manifestPath)
+                .Where(app =>
+                    (string.IsNullOrWhiteSpace(name) ||
+                     string.Equals(app.Name, name, StringComparison.OrdinalIgnoreCase)) &&
+                    (string.IsNullOrWhiteSpace(version) ||
+                     string.Equals(app.Version, version, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
 
-            if (!apps.Any()) return ResultHelper.Fail(-1, "No apps found to list");
+            if (!apps.Any())
+            {
+                var filter = string.IsNullOrWhiteSpace(name)
+                    ? string.Empty
+                    : $" matching '{name}'";
+                return ResultHelper.Fail(-1, $"No apps found to list{filter}");
+            }
 
             var rows = new List<(string Name, string Installed, string Manifest, string Latest, string Link)>();
             foreach (var app in apps)

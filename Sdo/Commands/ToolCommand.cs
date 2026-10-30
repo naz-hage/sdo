@@ -16,7 +16,7 @@ namespace Sdo.Commands
         public ToolCommand(Option<bool> verboseOption, Option<bool>? dryRunOption = null) : base("tool", "Environment tool installation, auditing, and manifest management")
         {
             AddInstallCommand(verboseOption, dryRunOption);
-            AddListCommand(verboseOption);
+            AddListCommand(verboseOption, dryRunOption);
             AddUninstallCommand(verboseOption, dryRunOption);
             AddDownloadCommand(verboseOption, dryRunOption);
         }
@@ -183,7 +183,7 @@ namespace Sdo.Commands
             }
         }
 
-        private void AddListCommand(Option<bool> verboseOption)
+        private void AddListCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
         {
             var listCommand = new System.CommandLine.Command(
                 "list",
@@ -194,17 +194,32 @@ namespace Sdo.Commands
             {
                 Description = "Path to a JSON or YAML tools manifest; if omitted, searches apps.yaml in the current directory, the executable directory, and the default installation directory"
             };
+            var nameOption = new Option<string?>("--name", ["-n"])
+            {
+                Description = "Application name to list"
+            };
+            var versionOption = new Option<string?>("--appversion", ["-av"])
+            {
+                Description = "Optional application version to list"
+            };
             listCommand.Options.Add(manifestOption);
+            listCommand.Options.Add(nameOption);
+            listCommand.Options.Add(versionOption);
             listCommand.Add(verboseOption);
+            AddDryRunOption(listCommand, dryRunOption);
             listCommand.SetAction(parseResult =>
             {
                 var manifest = parseResult.GetValue(manifestOption);
+                var name = parseResult.GetValue(nameOption);
+                var version = parseResult.GetValue(versionOption);
                 var verbose = parseResult.GetValue(verboseOption);
+                var dryRun = GetDryRunValue(parseResult, dryRunOption);
 
                 WriteManifestNotice(manifest);
+                WriteDryRunNotice(dryRun);
                 try
                 {
-                    return NbuildCommand.List(manifest, verbose).Code;
+                    return NbuildCommand.List(manifest, verbose, name, version).Code;
                 }
                 catch (Exception exception)
                 {

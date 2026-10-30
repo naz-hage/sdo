@@ -834,6 +834,8 @@ sdo tool list --manifest .\dev-setup\apps.yaml
 
 Options:
 - `--manifest <path>` (`-m` only) — Optional JSON or YAML manifest path; otherwise the current directory, the executable directory, and the default installation directory are searched
+- `--name <name>` (`-n`) — Restrict the table to one application name
+- `--appversion <version>` (`-av`) — Restrict the table to one manifest version
 - `--verbose` — Enable detailed output
 
 Latest-version discovery does not require an additional manifest property when
