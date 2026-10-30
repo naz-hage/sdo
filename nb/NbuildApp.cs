@@ -33,6 +33,7 @@ namespace Nbuild
         public string? UninstallCommand { get; set; }  // uninstall command to run to uninstall the app. i.e. setup.exe
         [Required(ErrorMessage = "UninstallArgs is required")]
         public string? UninstallArgs { get; set; }     // the arguments to pass to the uninstall command. can use $(Version) and $(InstallPath) to substitute the version number
+        public bool? UpdateInPlace { get; set; } = false; // update without uninstalling the existing installation first
         public string? StoredHash { get; set; }
         public bool? AddToPath { get; set; } = false; // add the install path to the system path
     }

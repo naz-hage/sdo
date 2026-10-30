@@ -61,6 +61,39 @@ namespace NbuildTests
         }
 
         [TestMethod]
+        public void TryExtractMongoDbCurrentVersion_ExtractsCurrentRelease()
+        {
+            Assert.IsTrue(Command.TryExtractMongoDbCurrentVersion(
+                "<option>9.0.4 (current)</option>",
+                out var version));
+            Assert.AreEqual("9.0.4", version);
+        }
+
+        [TestMethod]
+        public void TryExtractDockerAppcastVersion_ExtractsVersionAndDownloadUrl()
+        {
+            const string appcast = """
+                <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+                  <channel>
+                    <item>
+                      <enclosure url="https://desktop.docker.com/win/main/amd64/244584/Docker%20Desktop%20Installer.exe"
+                                 sparkle:shortVersionString="4.97.0" />
+                    </item>
+                  </channel>
+                </rss>
+                """;
+
+            Assert.IsTrue(Command.TryExtractDockerAppcastVersion(
+                appcast,
+                out var version,
+                out var downloadUrl));
+            Assert.AreEqual("4.97.0", version);
+            Assert.AreEqual(
+                "https://desktop.docker.com/win/main/amd64/244584/Docker%20Desktop%20Installer.exe",
+                downloadUrl);
+        }
+
+        [TestMethod]
         public async Task CreateRelease_DryRun_PrintsDryRunMessage()
         {
             var result = await Command.CreateRelease("repo", "v1.0.0", "main", "asset.zip", false, true);

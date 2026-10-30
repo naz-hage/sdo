@@ -385,7 +385,8 @@ namespace Nbuild
                     ConsoleHelper.WriteVerbose($"Latest version URL: {targetUrl}");
                 }
 
-                if (!string.IsNullOrEmpty(installedVersion) || isInstalled)
+                if ((!string.IsNullOrEmpty(installedVersion) || isInstalled) &&
+                    app.UpdateInPlace != true)
                 {
                     var uninstallResult = Uninstall(app, force: true);
                     if (!uninstallResult.IsSuccess())
@@ -397,6 +398,10 @@ namespace Nbuild
                 if (latest)
                 {
                     ApplyAppVersion(app, targetVersion);
+                    if (!string.IsNullOrEmpty(targetUrl))
+                    {
+                        app.WebDownloadFile = targetUrl;
+                    }
                 }
 
                 finalResult = Install(app, verbose);
@@ -1216,6 +1221,32 @@ namespace Nbuild
                 return false;
             }
 
+            if (string.Equals(
+                    app.LatestVersionStrategy,
+                    "mongodb-download-page",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return TryGetLatestMongoDbVersion(
+                    app,
+                    discoveryUri,
+                    out latestVersion,
+                    out latestUrl,
+                    out error);
+            }
+
+            if (string.Equals(
+                    app.LatestVersionStrategy,
+                    "docker-appcast",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return TryGetLatestDockerVersion(
+                    app,
+                    discoveryUri,
+                    out latestVersion,
+                    out latestUrl,
+                    out error);
+            }
+
             return discoveryUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase)
                 ? TryGetLatestGitHubVersion(app, discoveryUri, out latestVersion, out latestUrl, out error)
                 : TryGetLatestDownloadVersion(app, downloadUri, out latestVersion, out latestUrl, out error);
@@ -1405,6 +1436,120 @@ namespace Nbuild
                 error = $"Failed to discover the latest version for '{app.Name}': {ex.Message}";
                 return false;
             }
+        }
+
+        private static bool TryGetLatestMongoDbVersion(
+            NbuildApp app,
+            Uri discoveryUri,
+            out string? latestVersion,
+            out string? latestUrl,
+            out string error)
+        {
+            latestVersion = null;
+            latestUrl = null;
+            error = string.Empty;
+
+            try
+            {
+                using var response = LatestVersionClient.GetAsync(
+                    discoveryUri,
+                    HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
+                if (!response.IsSuccessStatusCode)
+                {
+                    error = $"Failed to discover the latest version for '{app.Name}' ({(int)response.StatusCode} {response.ReasonPhrase}).";
+                    return false;
+                }
+
+                var page = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                if (!TryExtractMongoDbCurrentVersion(page, out var parsedVersion))
+                {
+                    error = $"The MongoDB download page did not identify a supported latest version.";
+                    return false;
+                }
+
+                latestVersion = parsedVersion;
+                latestUrl = ReplaceAppVersion(app.WebDownloadFile, app.Version, parsedVersion);
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                error = $"Failed to discover the latest version for '{app.Name}': {ex.Message}";
+                return false;
+            }
+        }
+
+        internal static bool TryExtractMongoDbCurrentVersion(string? page, out string version)
+        {
+            var versionMatch = System.Text.RegularExpressions.Regex.Match(
+                page ?? string.Empty,
+                @"(?<version>\d+\.\d+\.\d+)\s*\(current\)",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            version = versionMatch.Groups["version"].Value;
+            return version.Length > 0;
+        }
+
+        private static bool TryGetLatestDockerVersion(
+            NbuildApp app,
+            Uri discoveryUri,
+            out string? latestVersion,
+            out string? latestUrl,
+            out string error)
+        {
+            latestVersion = null;
+            latestUrl = null;
+            error = string.Empty;
+
+            try
+            {
+                using var response = LatestVersionClient.GetAsync(
+                    discoveryUri,
+                    HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
+                if (!response.IsSuccessStatusCode)
+                {
+                    error = $"Failed to discover the latest version for '{app.Name}' ({(int)response.StatusCode} {response.ReasonPhrase}).";
+                    return false;
+                }
+
+                if (!TryExtractDockerAppcastVersion(
+                        response.Content.ReadAsStringAsync().GetAwaiter().GetResult(),
+                        out var parsedVersion,
+                        out var downloadUrl))
+                {
+                    error = $"The Docker appcast did not identify a supported latest version.";
+                    return false;
+                }
+
+                latestVersion = parsedVersion;
+                latestUrl = downloadUrl ??
+                    ReplaceAppVersion(app.WebDownloadFile, app.Version, parsedVersion);
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                error = $"Failed to discover the latest version for '{app.Name}': {ex.Message}";
+                return false;
+            }
+            catch (System.Xml.XmlException ex)
+            {
+                error = $"Failed to parse the latest version for '{app.Name}': {ex.Message}";
+                return false;
+            }
+        }
+
+        internal static bool TryExtractDockerAppcastVersion(
+            string? appcast,
+            out string version,
+            out string? downloadUrl)
+        {
+            var document = System.Xml.Linq.XDocument.Parse(appcast ?? string.Empty);
+            var enclosure = document.Descendants("enclosure")
+                .FirstOrDefault(element => element.Attributes()
+                    .Any(attribute => attribute.Name.LocalName == "shortVersionString"));
+            var versionValue = enclosure?.Attributes()
+                .FirstOrDefault(attribute => attribute.Name.LocalName == "shortVersionString")
+                ?.Value;
+            downloadUrl = enclosure?.Attribute("url")?.Value;
+            return TryExtractVersion(versionValue, out version);
         }
 
         private static string? ReplaceAppVersion(string? value, string? currentVersion, string latestVersion)
