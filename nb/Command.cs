@@ -489,7 +489,7 @@ namespace Nbuild
             return ResultHelper.Success();
         }
 
-        public static List<(string Name, string ManifestVersion, string LatestVersion, string Error)> GetLatestVersions(string? yaml)
+        public static List<(string Name, string ManifestVersion, string LatestVersion, string Link, string Error)> GetLatestVersions(string? yaml)
         {
             var manifestPath = yaml;
             if (string.IsNullOrWhiteSpace(manifestPath))
@@ -507,20 +507,32 @@ namespace Nbuild
                 throw new FileNotFoundException("No apps.yaml manifest was found.");
             }
 
-            var results = new List<(string Name, string ManifestVersion, string LatestVersion, string Error)>();
+            var results = new List<(string Name, string ManifestVersion, string LatestVersion, string Link, string Error)>();
             foreach (var app in GetApps(manifestPath))
             {
+                var link = GetLatestReleaseLink(app);
                 if (TryGetLatestVersion(app, out var latestVersion, out _, out var error))
                 {
-                    results.Add((app.Name ?? string.Empty, app.Version ?? string.Empty, latestVersion ?? string.Empty, string.Empty));
+                    results.Add((app.Name ?? string.Empty, app.Version ?? string.Empty, latestVersion ?? string.Empty, link, string.Empty));
                 }
                 else
                 {
-                    results.Add((app.Name ?? string.Empty, app.Version ?? string.Empty, string.Empty, error));
+                    results.Add((app.Name ?? string.Empty, app.Version ?? string.Empty, string.Empty, link, error));
                 }
             }
 
             return results;
+        }
+
+        private static string GetLatestReleaseLink(NbuildApp app)
+        {
+            var discoveryUrl = app.LatestVersionUrl ?? app.WebDownloadFile;
+            if (TryParseGitHubRepository(discoveryUrl, out var repository))
+            {
+                return $"https://github.com/{repository}/releases/latest";
+            }
+
+            return discoveryUrl ?? string.Empty;
         }
 
         public static ResultHelper Download(string? json, bool verbose = false, bool dryRun = false)
@@ -1265,7 +1277,13 @@ namespace Nbuild
                 return false;
             }
 
-            var endpoint = $"https://api.github.com/repos/{repository}/releases/latest";
+            var useGitHubTags = string.Equals(
+                app.LatestVersionStrategy,
+                "github-tags",
+                StringComparison.OrdinalIgnoreCase);
+            var endpoint = useGitHubTags
+                ? $"https://api.github.com/repos/{repository}/tags?per_page=100"
+                : $"https://api.github.com/repos/{repository}/releases/latest";
             try
             {
                 using var response = LatestVersionClient.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
@@ -1276,12 +1294,14 @@ namespace Nbuild
                 }
 
                 using var document = JsonDocument.Parse(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
-                var tag = document.RootElement.TryGetProperty("tag_name", out var tagProperty)
-                    ? tagProperty.GetString()
-                    : null;
+                var tag = useGitHubTags
+                    ? FindLatestStableTag(document.RootElement)
+                    : document.RootElement.TryGetProperty("tag_name", out var tagProperty)
+                        ? tagProperty.GetString()
+                        : null;
                 if (string.IsNullOrWhiteSpace(tag))
                 {
-                    error = $"GitHub did not return a release tag for '{app.Name}'.";
+                    error = $"GitHub did not return a stable release tag for '{app.Name}'.";
                     return false;
                 }
 
@@ -1305,6 +1325,43 @@ namespace Nbuild
                 error = $"Failed to parse the latest version for '{app.Name}': {ex.Message}";
                 return false;
             }
+        }
+
+        private static string? FindLatestStableTag(JsonElement tags)
+        {
+            if (tags.ValueKind != JsonValueKind.Array)
+            {
+                return null;
+            }
+
+            return tags.EnumerateArray()
+                .Select(tag => tag.TryGetProperty("name", out var name) ? name.GetString() : null)
+                .Where(name => TryExtractStableTagVersion(name, out _))
+                .OrderByDescending(name =>
+                {
+                    TryExtractStableTagVersion(name, out var version);
+                    return version;
+                })
+                .FirstOrDefault();
+        }
+
+        private static bool TryExtractStableTagVersion(string? tag, out Version version)
+        {
+            version = new Version();
+            if (string.IsNullOrWhiteSpace(tag) ||
+                tag.Contains('-', StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var value = tag.TrimStart('v', 'V');
+            if (Version.TryParse(value, out var parsedVersion) && parsedVersion != null)
+            {
+                version = parsedVersion;
+                return true;
+            }
+
+            return false;
         }
 
         private static bool TryGetLatestDownloadVersion(

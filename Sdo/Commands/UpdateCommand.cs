@@ -71,13 +71,13 @@ namespace Sdo.Commands
                         }
 
                         var results = NbuildCommand.GetLatestVersions(yaml);
-                        var box = new BoxBuilder("Application", "Manifest", "Latest");
+                        var box = new BoxBuilder("Application", "Manifest", "Latest", "Link");
                         foreach (var result in results)
                         {
                             var latestVersion = string.IsNullOrEmpty(result.Error)
                                 ? result.LatestVersion
-                                : $"ERROR: {result.Error}";
-                            box.AddRow(result.Name, result.ManifestVersion, latestVersion);
+                                : "Unresolved";
+                            box.AddRow(result.Name, result.ManifestVersion, latestVersion, result.Link);
                         }
 
                         box.Write();

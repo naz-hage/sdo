@@ -845,8 +845,10 @@ Options:
 
 `--latest --list` is a read-only manifest inspection mode. It does not require
 `--name`, does not perform installation or updates, and displays each
-application's manifest version and discovered latest version in a boxed table.
-Use `--yaml` to inspect a specific `apps.yaml` file.
+application's manifest version, discovered latest version, and an upstream link
+in a boxed table. The link opens the latest release page where available, so
+release notes can be reviewed before updating. Use `--yaml` to inspect a
+specific `apps.yaml` file.
 
 `--latest` does not require an additional manifest property when
 `WebDownloadFile` points directly to a GitHub release download URL. For tools

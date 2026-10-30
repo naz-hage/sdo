@@ -20,6 +20,7 @@ namespace Nbuild
         [Required(ErrorMessage = "WebDownloadFile is required")]
         public string? WebDownloadFile { get; set; }     // the url to download the app from. can use $(Name) and $(Version) substitutions
         public string? LatestVersionUrl { get; set; }     // optional URL used to discover the latest stable version
+        public string? LatestVersionStrategy { get; set; } // optional discovery strategy, such as github-tags
         [Required(ErrorMessage = "DownloadedFile is required")]
         public string? DownloadedFile { get; set; }     // the downloaded file name, can use $(Name) and $(Version) substitutions
         [Required(ErrorMessage = "InstallCommand is required")]
