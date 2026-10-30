@@ -1485,6 +1485,10 @@ the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools
 <td>(Optional) URL used by <code>tool update --latest</code> to discover the latest stable release when the download URL is not a GitHub release URL.</td>
 </tr>
 <tr>
+<td><code>LatestVersionStrategy</code></td>
+<td>(Optional) Provider-specific discovery strategy, such as <code>github-tags</code>, <code>mongodb-download-page</code>, or <code>docker-appcast</code>.</td>
+</tr>
+<tr>
 <td><code>DownloadedFile</code></td>
 <td>The name of the downloaded file, used for installation.</td>
 </tr>
@@ -1507,6 +1511,10 @@ the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools
 <tr>
 <td><code>UninstallArgs</code></td>
 <td>The arguments for the uninstallation command.</td>
+</tr>
+<tr>
+<td><code>UpdateInPlace</code></td>
+<td>(Optional) Updates the tool without uninstalling the existing installation first. Use this for installers that support in-place upgrades, such as Docker Desktop.</td>
 </tr>
 <tr>
 <td><code>StoredHash</code></td>
