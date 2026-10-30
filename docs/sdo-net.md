@@ -833,7 +833,7 @@ sdo tool list --manifest .\dev-setup\apps.yaml
 ```
 
 Options:
-- `--manifest <path>` (`-m`) — Optional `apps.yaml` path; otherwise the current directory, the executable directory, and the default installation directory are searched
+- `--manifest <path>` (`-m` only) — Optional `apps.yaml` path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - `--verbose` — Enable detailed output
 
 Latest-version discovery does not require an additional manifest property when
@@ -847,7 +847,7 @@ its archives are hosted at `get.helm.sh`.
 #### tool
 
 Environment tool installation, auditing, and manifest management. Use
-`--manifest` for YAML manifests; the legacy `--json` option remains supported for explicitly supplied JSON files.
+`--manifest` for JSON or YAML manifests.
 
 Subcommands:
 - `install` — Install tools from a manifest or by application name
@@ -1832,11 +1832,11 @@ Below are practical examples for using `sdo.exe`. These examples assume you are 
 
 ### 1. Install Applications
 
-#### Install from JSON file:
+#### Install from a manifest file:
 ```cmd
-sdo.exe tool install --json "C:\Program Files\tools.json"
+sdo.exe tool install --manifest "C:\Program Files\tools.json"
 ```
-Installs applications specified in the manifest file. The `--manifest` parameter accepts a YAML manifest. The legacy `--json` parameter remains available for an explicitly supplied JSON file. When `--name` is provided without a manifest, automatic discovery searches `apps.yaml` in the current directory, `dev-setup\apps.yaml`, and `C:\Program Files\sdo\apps.yaml`. (Requires admin privileges.)
+Installs applications specified in the manifest file. The `--manifest` parameter accepts JSON or YAML. When `--name` is provided without a manifest, automatic discovery searches `apps.yaml` in the current directory, `dev-setup\apps.yaml`, and `C:\Program Files\sdo\apps.yaml`. (Requires admin privileges.)
 
 #### Install by name from current directory and default location:
 ```cmd
@@ -1864,7 +1864,7 @@ sdo.exe tool install --name "MyApp" --appversion "1.2.3" --dry-run
 ```
 
 **Behavior in dry-run mode:**
-- Searches the explicit `--json` file first when provided, then `apps.yaml` in the current directory, then the default installation directory
+- Searches the explicit `--manifest` file first when provided, then `apps.yaml` in the current directory, then the default installation directory
 - If app is found: displays `DRY-RUN: would install app 'MyApp'` in yellow and lists version details
 - If app is not found: displays `No apps found matching 'MyApp'` in red, lists the search directories (current directory and default installation directory), and lists available applications found in those `apps.yaml` files
 - Dry-run always returns exit code 0 (success), even when app is not found, as it is a preview/simulation mode
@@ -1874,7 +1874,7 @@ sdo.exe tool install --name "MyApp" --appversion "1.2.3" --dry-run
 
 ### 2. Uninstall Applications
 ```cmd
-sdo.exe tool uninstall --json "C:\Program Files\example-tool.json"
+sdo.exe tool uninstall --manifest "C:\Program Files\example-tool.json"
 ```
 Uninstalls applications as specified in the manifest file. (Requires admin privileges.)
 
@@ -1912,7 +1912,7 @@ Downloads tools and applications specified in the manifest file. The output tabl
 
 ### 5. Error Handling for Tool Manifest Files
 
-The `list`, `install`, `uninstall`, and `download` commands require valid tool manifest files. YAML is the standard format; the legacy `--json` option remains available where supported.
+The `list`, `install`, `uninstall`, and `download` commands require valid tool manifest files. JSON and YAML are supported through `--manifest`.
 
 #### File Not Found
 ```

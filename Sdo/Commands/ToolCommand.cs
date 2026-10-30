@@ -24,12 +24,10 @@ namespace Sdo.Commands
         private void AddInstallCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
         {
             var installCommand = new System.CommandLine.Command("install", "Install tools from a manifest or by application name.");
-            var jsonOption = new Option<string?>("--json", ["-j"]) { Description = "Path to the tools manifest" };
-            var manifestOption = new Option<string?>("--manifest", ["-m", "--yaml", "-y"]) { Description = "Path to a JSON or YAML tools manifest" };
+            var manifestOption = new Option<string?>("--manifest", ["-m"]) { Description = "Path to a JSON or YAML tools manifest" };
             var nameOption = new Option<string?>("--name", ["-n"]) { Description = "Application name to find in apps.json" };
             var versionOption = new Option<string?>("--appversion", ["-av"]) { Description = "Optional application version override" };
 
-            installCommand.Add(jsonOption);
             installCommand.Add(manifestOption);
             installCommand.Add(nameOption);
             installCommand.Add(versionOption);
@@ -37,31 +35,23 @@ namespace Sdo.Commands
             AddDryRunOption(installCommand, dryRunOption);
             installCommand.SetAction(parseResult =>
             {
-                var json = parseResult.GetValue(jsonOption);
                 var manifest = parseResult.GetValue(manifestOption);
                 var name = parseResult.GetValue(nameOption);
                 var version = parseResult.GetValue(versionOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult, dryRunOption);
 
-                if (!string.IsNullOrEmpty(json) && !string.IsNullOrEmpty(manifest))
+                if (string.IsNullOrEmpty(manifest) && string.IsNullOrEmpty(name))
                 {
-                    Console.Error.WriteLine("Error: Use either --json or --manifest, not both.");
+                    Console.Error.WriteLine("Error: Either --manifest (-m) or --name (-n) must be specified.");
                     return 1;
                 }
 
-                var input = manifest ?? json;
-                if (string.IsNullOrEmpty(input) && string.IsNullOrEmpty(name))
-                {
-                    Console.Error.WriteLine("Error: Either --json (-j) or --name (-n) must be specified.");
-                    return 1;
-                }
-
-                WriteManifestNotice(input);
+                WriteManifestNotice(manifest);
                 WriteDryRunNotice(dryRun);
                 try
                 {
-                    return NbuildCommand.Install(input, name, version, verbose, dryRun).Code;
+                    return NbuildCommand.Install(manifest, name, version, verbose, dryRun).Code;
                 }
                 catch (Exception exception)
                 {
@@ -76,12 +66,9 @@ namespace Sdo.Commands
         private void AddUninstallCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
         {
             var uninstallCommand = new System.CommandLine.Command("uninstall", "Uninstall tools from a manifest.");
-            var jsonOption = new Option<string>("--json") { Description = "Path to the tools manifest", Required = true };
             var manifestOption = new Option<string?>("--manifest", ["-m"]) { Description = "Path to a JSON or YAML tools manifest" };
             var nameOption = new Option<string?>("--name", ["-n"]) { Description = "Application name to uninstall" };
             var versionOption = new Option<string?>("--appversion", ["-av"]) { Description = "Optional application version to uninstall" };
-            jsonOption.Required = false;
-            uninstallCommand.Add(jsonOption);
             uninstallCommand.Add(manifestOption);
             uninstallCommand.Add(nameOption);
             uninstallCommand.Add(versionOption);
@@ -91,27 +78,20 @@ namespace Sdo.Commands
             {
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult, dryRunOption);
-                var json = parseResult.GetValue(jsonOption);
                 var manifest = parseResult.GetValue(manifestOption);
                 var name = parseResult.GetValue(nameOption);
                 var version = parseResult.GetValue(versionOption);
-                if (!string.IsNullOrEmpty(json) && !string.IsNullOrEmpty(manifest))
+                if (string.IsNullOrEmpty(manifest) && string.IsNullOrEmpty(name))
                 {
-                    Console.Error.WriteLine("Error: Use either --json or --manifest, not both.");
+                    Console.Error.WriteLine("Error: Either --manifest (-m) or --name (-n) must be specified.");
                     return 1;
                 }
 
-                if (string.IsNullOrEmpty(json) && string.IsNullOrEmpty(manifest) && string.IsNullOrEmpty(name))
-                {
-                    Console.Error.WriteLine("Error: Either --json (-j), --manifest (-m), or --name (-n) must be specified.");
-                    return 1;
-                }
-
-                WriteManifestNotice(manifest ?? json);
+                WriteManifestNotice(manifest);
                 WriteDryRunNotice(dryRun);
                 try
                 {
-                    return NbuildCommand.Uninstall(manifest ?? json, verbose, dryRun, name, version).Code;
+                    return NbuildCommand.Uninstall(manifest, verbose, dryRun, name, version).Code;
                 }
                 catch (Exception exception)
                 {
@@ -126,9 +106,7 @@ namespace Sdo.Commands
         private void AddDownloadCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
         {
             var downloadCommand = new System.CommandLine.Command("download", "Download tools from a manifest.");
-            var jsonOption = new Option<string?>("--json", ["-j"]) { Description = "Path to the JSON tools manifest" };
             var manifestOption = new Option<string?>("--manifest", ["-m"]) { Description = "Path to a JSON or YAML tools manifest" };
-            downloadCommand.Add(jsonOption);
             downloadCommand.Add(manifestOption);
             downloadCommand.Add(verboseOption);
             AddDryRunOption(downloadCommand, dryRunOption);
@@ -136,18 +114,17 @@ namespace Sdo.Commands
             {
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult, dryRunOption);
-                var json = parseResult.GetValue(jsonOption);
                 var manifest = parseResult.GetValue(manifestOption);
-                if (string.IsNullOrEmpty(json) == string.IsNullOrEmpty(manifest))
+                if (string.IsNullOrEmpty(manifest))
                 {
-                    Console.Error.WriteLine("Error: Specify exactly one of --json or --manifest.");
+                    Console.Error.WriteLine("Error: --manifest (-m) must be specified.");
                     return 1;
                 }
-                WriteManifestNotice(manifest ?? json);
+                WriteManifestNotice(manifest);
                 WriteDryRunNotice(dryRun);
                 try
                 {
-                    return NbuildCommand.Download(manifest ?? json, verbose, dryRun).Code;
+                    return NbuildCommand.Download(manifest, verbose, dryRun).Code;
                 }
                 catch (Exception exception)
                 {
@@ -187,45 +164,21 @@ namespace Sdo.Commands
                 "Display a formatted table of all tools and their versions.");
             listCommand.TreatUnmatchedTokensAsErrors = true;
 
-            var jsonOption = new Option<string>("--json", ["-j"])
-            {
-                Description = "Legacy path to a JSON tools manifest. Prefer --manifest with apps.yaml."
-            };
-            jsonOption.DefaultValueFactory = _ =>
-            {
-                var manifestCandidates = new[]
-                {
-                    Path.Combine(Environment.CurrentDirectory, "apps.yaml"),
-                    Path.Combine(Environment.CurrentDirectory, "dev-setup", "apps.yaml"),
-                    NbuildCommand.DefaultAppsFile
-                };
-
-                return manifestCandidates.FirstOrDefault(File.Exists)
-                    ?? manifestCandidates[^3];
-            };
-
             var manifestOption = new Option<string?>("--manifest", ["-m"])
             {
                 Description = "Path to a JSON or YAML tools manifest"
             };
-            listCommand.Options.Add(jsonOption);
             listCommand.Options.Add(manifestOption);
             listCommand.Add(verboseOption);
             listCommand.SetAction(parseResult =>
             {
-                var json = parseResult.GetValue(jsonOption) ?? string.Empty;
                 var manifest = parseResult.GetValue(manifestOption);
                 var verbose = parseResult.GetValue(verboseOption);
 
-                if (!string.IsNullOrEmpty(manifest))
-                {
-                    json = manifest;
-                }
-
-                WriteManifestNotice(json);
+                WriteManifestNotice(manifest);
                 try
                 {
-                    return NbuildCommand.List(json, verbose).Code;
+                    return NbuildCommand.List(manifest, verbose).Code;
                 }
                 catch (Exception exception)
                 {

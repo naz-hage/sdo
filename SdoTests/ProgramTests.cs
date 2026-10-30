@@ -683,6 +683,14 @@ steps:
     }
 
     [TestMethod]
+    public void Main_WithInstallYamlAlias_ReturnsError()
+    {
+        var result = Program.Main("tool", "install", "-y", "apps.yaml", "--dry-run");
+
+        Assert.AreEqual(1, result);
+    }
+
+    [TestMethod]
     public void Main_WithToolList_UsesDefaultManifestAndLatestVersions()
     {
         var originalDirectory = Environment.CurrentDirectory;
