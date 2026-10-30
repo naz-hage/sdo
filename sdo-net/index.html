@@ -1053,7 +1053,18 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="tool list">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tool-install-latest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tool install --latest
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="tool install --latest">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3358,6 +3369,15 @@ property to the application entry. This lets SDO use the GitHub repository for
 version discovery while preserving <code>WebDownloadFile</code> as the download URL.
 Most applications therefore do not need this property; Helm uses it because
 its archives are hosted at <code>get.helm.sh</code>.</p>
+<h4 id="tool-install-latest">tool install --latest<a class="headerlink" href="#tool-install-latest" title="Anchor link to this section for reference">&para;</a></h4>
+<p>Install a named tool using the latest discovered release:</p>
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Python"</span><span class="w"> </span>--latest
+sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Python"</span><span class="w"> </span>--latest<span class="w"> </span>--manifest<span class="w"> </span>.<span class="se">\d</span>ev-setup<span class="se">\a</span>pps.yaml
+sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Python"</span><span class="w"> </span>--latest<span class="w"> </span>--dry-run
+</code></pre></div>
+<p><code>--name</code> is required with <code>--latest</code>. Use <code>--manifest</code> (<code>-m</code>) to select a
+specific JSON or YAML manifest. <code>--appversion</code> cannot be combined with
+<code>--latest</code>.</p>
 <h5 id="tool-list-columns"><code>tool list</code> columns<a class="headerlink" href="#tool-list-columns" title="Anchor link to this section for reference">&para;</a></h5>
 <p>The <code>sdo tool list</code> table contains one row for each application in the selected
 manifest:</p>
@@ -4285,6 +4305,7 @@ Installs applications specified in the manifest file. The <code>--manifest</code
 <h4 id="install-by-name-from-current-directory-and-default-location">Install by name from current directory and default location:<a class="headerlink" href="#install-by-name-from-current-directory-and-default-location" title="Anchor link to this section for reference">&para;</a></h4>
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool install --name "MyApp"
 sdo.exe tool install --name "MyApp" --appversion "1.2.3"
+sdo.exe install --name "MyApp" --latest
 </code></pre></div>
 Searches only the explicit manifest when one is provided. Without an explicit
 manifest, automatic discovery checks <code>apps.yaml</code> in the current directory, the
