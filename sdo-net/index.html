@@ -3331,14 +3331,20 @@ sdo<span class="w"> </span>repo<span class="w"> </span>delete<span class="w"> </
 sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span><span class="w"> </span>--yaml<span class="w"> </span>.<span class="se">\d</span>ev-setup<span class="se">\a</span>pps.yaml
 sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span><span class="w"> </span>--dry-run
 sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Argo CD"</span><span class="w"> </span>--latest<span class="w"> </span>--dry-run<span class="w"> </span>--verbose
+sdo<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>--latest<span class="w"> </span>--list
 </code></pre></div>
 <p>Options:
 - <code>--name &lt;name&gt;</code> — Application name (required)
 - <code>--yaml &lt;path&gt;</code> — Optional <code>apps.yaml</code> path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - <code>--version &lt;version&gt;</code> — Optional version override
 - <code>--latest</code> — Discover the latest stable GitHub release instead of using the YAML version
+- <code>--list</code> — With <code>--latest</code>, display the discovered latest version for every application without installing anything
 - <code>--dry-run</code> — Show the planned update without changing the installed application
 - <code>--verbose</code> — Enable detailed output</p>
+<p><code>--latest --list</code> is a read-only manifest inspection mode. It does not require
+<code>--name</code>, does not perform installation or updates, and displays each
+application's manifest version and discovered latest version in a boxed table.
+Use <code>--yaml</code> to inspect a specific <code>apps.yaml</code> file.</p>
 <p><code>--latest</code> does not require an additional manifest property when
 <code>WebDownloadFile</code> points directly to a GitHub release download URL. For tools
 whose download URL is hosted elsewhere, add the optional <code>LatestVersionUrl</code>
