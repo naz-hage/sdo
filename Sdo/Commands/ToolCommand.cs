@@ -168,7 +168,6 @@ namespace Sdo.Commands
                     return 1;
                 }
 
-                WriteManifestNotice(manifest);
                 WriteDryRunNotice(dryRun);
                 try
                 {
@@ -288,15 +287,5 @@ namespace Sdo.Commands
             Subcommands.Add(listCommand);
         }
 
-        private static void WriteManifestNotice(string? manifest)
-        {
-            if (string.IsNullOrWhiteSpace(manifest))
-            {
-                return;
-            }
-
-            var manifestPath = File.Exists(manifest) ? Path.GetFullPath(manifest) : manifest;
-            ConsoleHelper.WriteInfo($"Using tool manifest: {manifestPath}");
-        }
     }
 }

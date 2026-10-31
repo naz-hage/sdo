@@ -135,8 +135,7 @@ namespace Nbuild
                     // Even in dry-run, search to check if app exists and list available if not found
                     try
                     {
-                        var manifestPath = ResolveDefaultAppsManifest(json);
-                        ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
+                        var manifestPath = ResolveAndDisplayManifest(json);
                         var foundApps = GetAppsFromCurrentDirectory(name, version, out var availableApps, manifestPath);
                         if (!foundApps.Any())
                         {
@@ -195,8 +194,7 @@ namespace Nbuild
 
             if (!string.IsNullOrEmpty(name))
             {
-                var manifestPath = ResolveDefaultAppsManifest(json);
-                ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
+                var manifestPath = ResolveAndDisplayManifest(json);
                 apps = GetAppsFromCurrentDirectory(name, version, out var availableApps, manifestPath);
                 // Materialize the enumerable to avoid multiple enumeration
                 var appsList = apps.ToList();
@@ -240,8 +238,7 @@ namespace Nbuild
             else if (!string.IsNullOrEmpty(json))
             {
                 // JSON-only installs retain the existing behavior of installing every app in the file.
-                var manifestPath = ResolveDefaultAppsManifest(json);
-                ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
+                var manifestPath = ResolveAndDisplayManifest(json);
                 apps = GetApps(manifestPath);
             }
             else
@@ -297,7 +294,8 @@ namespace Nbuild
             List<string> availableApps;
             try
             {
-                apps = GetAppsFromCurrentDirectory(name, version, out availableApps, yaml);
+                var manifestPath = ResolveAndDisplayManifest(yaml);
+                apps = GetAppsFromCurrentDirectory(name, version, out availableApps, manifestPath);
             }
             catch (Exception ex)
             {
@@ -429,18 +427,28 @@ namespace Nbuild
         {
             Verbose = verbose;
             ResultHelper result = ResultHelper.New();
+            string manifestPath;
+            try
+            {
+                manifestPath = ResolveAndDisplayManifest(json);
+            }
+            catch (Exception exception)
+            {
+                return ResultHelper.Fail(-1, exception.Message);
+            }
+
             if (dryRun)
             {
                 var target = string.IsNullOrEmpty(name) ? "apps" : $"app '{name}'";
-                var msg = $"DRY-RUN: would uninstall {target} from json: {json ?? "<default>"}";
+                var msg = $"DRY-RUN: would uninstall {target} from {Path.GetFullPath(manifestPath)}";
                 ConsoleHelper.WriteWarning(msg);
                 return ResultHelper.Success(msg);
             }
             if (!CanRunCommand()) return ResultHelper.Fail(-1, $"You must run this command as an administrator");
 
             var apps = string.IsNullOrEmpty(name)
-                ? GetApps(json)
-                : GetAppsFromCurrentDirectory(name, version, out _, json);
+                ? GetApps(manifestPath)
+                : GetAppsFromCurrentDirectory(name, version, out _, manifestPath);
             if (apps == null) return ResultHelper.Fail(-1, $"Invalid json input");
 
             var appList = apps.ToList();
@@ -473,8 +481,7 @@ namespace Nbuild
         {
             Verbose = verbose;
 
-            var manifestPath = ResolveDefaultAppsManifest(json);
-            ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
+            var manifestPath = ResolveAndDisplayManifest(json);
             var apps = GetApps(manifestPath)
                 .Where(app =>
                     (string.IsNullOrWhiteSpace(name) ||
@@ -559,14 +566,12 @@ namespace Nbuild
             string resolvedPath;
             try
             {
-                resolvedPath = ResolveDefaultAppsManifest(manifestPath);
+                resolvedPath = ResolveAndDisplayManifest(manifestPath);
             }
             catch (Exception exception)
             {
                 return ResultHelper.Fail(-1, exception.Message);
             }
-
-            ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(resolvedPath)}");
 
             if (!resolvedPath.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) &&
                 !resolvedPath.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))
@@ -730,21 +735,27 @@ namespace Nbuild
             return ConsoleColor.Blue;
         }
 
-        private static string ResolveDefaultAppsManifest(string? manifestPath)
+        /// <summary>
+        /// Resolves the manifest path, either from the provided argument or by searching for default locations, and displays the resolved path. Throws a FileNotFoundException if no manifest is found.
+        /// </summary>
+        /// <param name="manifestPath">The path to the manifest file, if provided.</param>
+        /// <returns>The resolved manifest path.</returns>
+        /// <exception cref="FileNotFoundException">Thrown if no manifest file is found.</exception>
+        private static string ResolveAndDisplayManifest(string? manifestPath)
         {
-            if (!string.IsNullOrWhiteSpace(manifestPath))
-            {
-                return manifestPath;
-            }
-
-            return new[]
-            {
-                Path.Combine(Directory.GetCurrentDirectory(), "apps.yaml"),
-                Path.Combine(Directory.GetCurrentDirectory(), "dev-setup", "apps.yaml"),
-                Path.Combine(AppContext.BaseDirectory, "apps.yaml"),
-                DefaultAppsFile
-            }.FirstOrDefault(File.Exists)
+            var resolvedPath = !string.IsNullOrWhiteSpace(manifestPath)
+                ? manifestPath
+                : new[]
+                {
+                    Path.Combine(Directory.GetCurrentDirectory(), "apps.yaml"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "dev-setup", "apps.yaml"),
+                    Path.Combine(AppContext.BaseDirectory, "apps.yaml"),
+                    DefaultAppsFile
+                }.FirstOrDefault(File.Exists)
                 ?? throw new FileNotFoundException("No apps.yaml manifest was found.");
+
+            ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(resolvedPath)}");
+            return resolvedPath;
         }
 
         private static string GetLatestReleaseLink(NbuildApp app)
@@ -770,14 +781,12 @@ namespace Nbuild
             string manifestPath;
             try
             {
-                manifestPath = ResolveDefaultAppsManifest(json);
+                manifestPath = ResolveAndDisplayManifest(json);
             }
             catch (Exception exception)
             {
                 return ResultHelper.Fail(-1, exception.Message);
             }
-
-            ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
 
             // Preserve dry-run behavior for an explicitly supplied manifest:
             // callers can preview the command without requiring that file to exist.
