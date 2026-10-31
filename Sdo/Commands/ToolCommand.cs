@@ -189,9 +189,13 @@ namespace Sdo.Commands
             var downloadCommand = new System.CommandLine.Command("download", "Download tools from a manifest.");
             var manifestOption = new Option<string?>("--manifest", ["-m"])
             {
-                Description = "Path to a JSON or YAML tools manifest; the option is required for this command"
+                Description = "Path to a JSON or YAML tools manifest; if omitted, searches apps.yaml in the current directory, the executable directory, and the default installation directory"
             };
+            var nameOption = new Option<string?>("--name", ["-n"]) { Description = "Application name to download" };
+            var versionOption = new Option<string?>("--appversion", ["-av"]) { Description = "Optional application version override" };
             downloadCommand.Add(manifestOption);
+            downloadCommand.Add(nameOption);
+            downloadCommand.Add(versionOption);
             downloadCommand.Add(verboseOption);
             AddDryRunOption(downloadCommand, dryRunOption);
             downloadCommand.SetAction(parseResult =>
@@ -199,16 +203,12 @@ namespace Sdo.Commands
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult, dryRunOption);
                 var manifest = parseResult.GetValue(manifestOption);
-                if (string.IsNullOrEmpty(manifest))
-                {
-                    Console.Error.WriteLine("Error: --manifest (-m) must be specified.");
-                    return 1;
-                }
-                WriteManifestNotice(manifest);
+                var name = parseResult.GetValue(nameOption);
+                var version = parseResult.GetValue(versionOption);
                 WriteDryRunNotice(dryRun);
                 try
                 {
-                    return NbuildCommand.Download(manifest, verbose, dryRun).Code;
+                    return NbuildCommand.Download(manifest, verbose, dryRun, name, version).Code;
                 }
                 catch (Exception exception)
                 {

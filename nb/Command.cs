@@ -135,7 +135,9 @@ namespace Nbuild
                     // Even in dry-run, search to check if app exists and list available if not found
                     try
                     {
-                        var foundApps = GetAppsFromCurrentDirectory(name, version, out var availableApps, json);
+                        var manifestPath = ResolveDefaultAppsManifest(json);
+                        ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
+                        var foundApps = GetAppsFromCurrentDirectory(name, version, out var availableApps, manifestPath);
                         if (!foundApps.Any())
                         {
                             // No matching app found - show message but still succeed (it's dry-run)
@@ -193,8 +195,9 @@ namespace Nbuild
 
             if (!string.IsNullOrEmpty(name))
             {
-                // Named installs search the requested manifest first, then standard locations.
-                apps = GetAppsFromCurrentDirectory(name, version, out var availableApps, json);
+                var manifestPath = ResolveDefaultAppsManifest(json);
+                ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
+                apps = GetAppsFromCurrentDirectory(name, version, out var availableApps, manifestPath);
                 // Materialize the enumerable to avoid multiple enumeration
                 var appsList = apps.ToList();
 
@@ -237,7 +240,9 @@ namespace Nbuild
             else if (!string.IsNullOrEmpty(json))
             {
                 // JSON-only installs retain the existing behavior of installing every app in the file.
-                apps = GetApps(json);
+                var manifestPath = ResolveDefaultAppsManifest(json);
+                ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
+                apps = GetApps(manifestPath);
             }
             else
             {
@@ -486,11 +491,18 @@ namespace Nbuild
                 return ResultHelper.Fail(-1, $"No apps found to list{filter}");
             }
 
-            var rows = new List<(string Name, string Installed, string Manifest, string Latest, string Link)>();
+            var rows = new List<(string Name, string Installed, string Manifest, string Latest, string Link, ConsoleColor InstalledColor)>();
             foreach (var app in apps)
             {
-                var installed = GetAppFileVersion(app) ??
-                    (IsAppInstalled(app) ? "installed" : "not installed");
+                var installedVersion = GetAppFileVersion(app);
+                var isInstalled = IsAppInstalled(app);
+                var installed = installedVersion ??
+                    (isInstalled ? "installed" : "not installed");
+                var installedColor = !isInstalled
+                    ? ConsoleColor.Cyan
+                    : IsManifestVersionMatch(installedVersion, app.Version)
+                        ? ConsoleColor.Green
+                        : ConsoleColor.Yellow;
                 var latestVersion = latest ? "Unresolved" : "not requested";
                 var link = GetLatestReleaseLink(app);
 
@@ -504,7 +516,8 @@ namespace Nbuild
                     installed,
                     app.Version ?? string.Empty,
                     latestVersion,
-                    link));
+                    link,
+                    installedColor));
             }
 
             var nameWidth = Math.Max("Name".Length, rows.Max(row => row.Name.Length));
@@ -517,11 +530,22 @@ namespace Nbuild
             ConsoleHelper.WriteWarning($"| {"Name".PadRight(nameWidth)} | {"Installed".PadRight(installedWidth)} | {"Manifest".PadRight(manifestWidth)} | {"Latest".PadRight(latestWidth)} | {"Link".PadRight(linkWidth)} |");
             foreach (var row in rows)
             {
-                ConsoleHelper.WriteLine($"| {row.Name.PadRight(nameWidth)} | {row.Installed.PadRight(installedWidth)} | {row.Manifest.PadRight(manifestWidth)} | {row.Latest.PadRight(latestWidth)} | {row.Link.PadRight(linkWidth)} |");
+                ConsoleHelper.WriteLine(
+                    $"| {row.Name.PadRight(nameWidth)} | {row.Installed.PadRight(installedWidth)} | {row.Manifest.PadRight(manifestWidth)} | {row.Latest.PadRight(latestWidth)} | {row.Link.PadRight(linkWidth)} |",
+                    row.InstalledColor);
             }
 
             Console.WriteLine();
             return ResultHelper.Success();
+        }
+
+        private static bool IsManifestVersionMatch(string? installedVersion, string? manifestVersion)
+        {
+            return !string.IsNullOrWhiteSpace(installedVersion) &&
+                !string.IsNullOrWhiteSpace(manifestVersion) &&
+                Version.TryParse(installedVersion, out var installed) &&
+                Version.TryParse(manifestVersion, out var manifest) &&
+                installed == manifest;
         }
 
         public static ResultHelper UpdateManifest(
@@ -734,25 +758,65 @@ namespace Nbuild
             return discoveryUrl ?? string.Empty;
         }
 
-        public static ResultHelper Download(string? json, bool verbose = false, bool dryRun = false)
+        public static ResultHelper Download(
+            string? json,
+            bool verbose = false,
+            bool dryRun = false,
+            string? name = null,
+            string? version = null)
         {
             Verbose = verbose;
+
+            string manifestPath;
+            try
+            {
+                manifestPath = ResolveDefaultAppsManifest(json);
+            }
+            catch (Exception exception)
+            {
+                return ResultHelper.Fail(-1, exception.Message);
+            }
+
+            ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
+
+            // Preserve dry-run behavior for an explicitly supplied manifest:
+            // callers can preview the command without requiring that file to exist.
+            if (dryRun && !string.IsNullOrWhiteSpace(json))
+            {
+                var msg = $"DRY-RUN: would download from {Path.GetFullPath(manifestPath)}";
+                ConsoleHelper.WriteWarning(msg);
+                return ResultHelper.Success(msg);
+            }
+
+            IEnumerable<NbuildApp> apps;
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                apps = GetAppsFromCurrentDirectory(name, version, out _, manifestPath);
+            }
+            else
+            {
+                apps = GetApps(manifestPath);
+            }
+
+            var appList = apps?.ToList() ?? [];
+            if (!appList.Any())
+            {
+                var message = string.IsNullOrWhiteSpace(name)
+                    ? "No applications found in the manifest."
+                    : $"No apps found matching '{name}'";
+                return ResultHelper.Fail(-1, message);
+            }
 
             // Respect dry-run: do not perform downloads or print the downloads table.
             if (dryRun)
             {
-                var msg = $"DRY-RUN: would download after processing from {json ?? "<default>"}";
+                var msg = $"DRY-RUN: would download from {Path.GetFullPath(manifestPath)}";
                 ConsoleHelper.WriteWarning(msg);
                 return ResultHelper.Success(msg);
             }
 
             if (!CanRunCommand()) return ResultHelper.Fail(-1, $"You must run this command as an administrator");
 
-            var apps = GetApps(json);
-
-            if (apps == null) return ResultHelper.Fail(-1, $"Invalid json input");
-
-            var appList = apps.ToList();
             var appNameWidth = Math.Max(18, appList.Max(app => app.Name?.Length ?? 0));
             var downloadedFileWidth = Math.Max(30, appList.Max(app => app.DownloadedFile?.Length ?? 0));
             const int elapsedWidth = 16;

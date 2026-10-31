@@ -267,7 +267,7 @@ NbuildAppList:
     InstallPath: "$(ProgramFiles)\\Terraform"
     UninstallCommand: "powershell.exe"
     UninstallArgs: "-Command \"Remove-Item -Path '$(InstallPath)\\terraform.exe' -Force\""
-    StoredHash: "990EA1F1665D1B4E0C827AB39D6835E949928DEC28D5458B3C429778041FF72C"
+    StoredHash: "297a4c4f1a7485212ed3a6a6f2f750d53e9a963924e21d2cbe14a29bdcece188"
     AddToPath: true
   - Name: "terraform lint"
     Version: "0.65.0"

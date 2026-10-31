@@ -636,6 +636,14 @@ steps:
     }
 
     [TestMethod]
+    public void Main_WithToolDownloadNameAndDryRun_UsesDiscoveredManifest()
+    {
+        var result = Program.Main("tool", "download", "-n", "Go Lang", "-dr");
+
+        Assert.AreEqual(0, result);
+    }
+
+    [TestMethod]
     public void Main_WithToolUninstallNameAndDryRun_ReturnsZero()
     {
         var result = Program.Main("tool", "uninstall", "-n", "NonExistentApp", "-dr");

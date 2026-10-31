@@ -899,6 +899,15 @@ manifest:
 | `Latest` | The latest version discovered from the application's release metadata. It displays `Unresolved` when discovery is not supported or fails. |
 | `Link` | The release or download URL used for version discovery and review. GitHub download URLs are displayed as the repository's latest-release page when possible. |
 
+`tool list` colors the status row as follows:
+
+- **Green:** The installed version matches the manifest version, including a
+  matching `StoredHash` fallback.
+- **Cyan:** The application is not installed.
+- **Yellow:** The application is installed but has an unknown version or does
+  not match the manifest version.
+- **Red:** Reserved for command errors rather than normal version differences.
+
 `Installed` is determined as follows:
 
 - **Applications with valid file-version metadata:** `Installed` displays the
@@ -912,8 +921,9 @@ manifest:
 
 #### tool
 
-Environment tool installation, auditing, and manifest management. Use
-`--manifest` for JSON or YAML manifests.
+Environment tool installation, auditing, and manifest management. Use `--manifest` for JSON or YAML manifests. When it is omitted for a
+named operation, the command searches the current directory, the executable
+directory, and the default installation directory for `apps.yaml`.
 
 Subcommands:
 - `install` — Install tools from a manifest or by application name
@@ -925,6 +935,7 @@ Subcommands:
 sdo tool list
 sdo tool list --manifest .\dev-setup\apps.yaml
 sdo tool install --manifest apps.yaml --dry-run
+sdo tool download --name "Go Lang" --dry-run
 sdo tool download --manifest apps.yaml --dry-run
 sdo tool uninstall --manifest apps.yaml --dry-run
 sdo tool install --name "Git for Windows" --appversion 2.51.1 --dry-run
@@ -1978,7 +1989,13 @@ Lists all applications specified in the provided manifest. If no `--manifest` op
 ```cmd
 sdo.exe tool download --manifest "C:\Program Files\sdo\apps.yaml"
 ```
-Downloads tools and applications specified in the manifest file. The output table expands its columns for long application names and filenames and does not add status prefixes inside table rows. (Uses the `--manifest` option to locate the YAML file.)
+Downloads tools and applications specified in the manifest file. The
+`--name` (`-n`) and `--appversion` (`-av`) options can limit the download to
+one application. If `--manifest` (`-m`) is omitted, the command discovers
+`apps.yaml` in the current directory, the executable directory, or the
+default installation directory. The output table expands its columns for
+long application names and filenames and does not add status prefixes inside
+table rows.
 
 ### 5. Error Handling for Tool Manifest Files
 
