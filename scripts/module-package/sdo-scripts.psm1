@@ -416,60 +416,6 @@ function Get-SdoScriptsVersion {
     return "sdo-scripts version 3.0.0"
 }
 
-function Publish-AllProjects {
-    param(
-        [Parameter(Mandatory=$true)] [string]$OutputDir,
-        [Parameter(Mandatory=$true)] [string]$Version,
-        [Parameter(Mandatory=$true)] [string]$RepositoryRoot
-    )
-
-    # Ensure output directory exists
-    if (-not (Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
-        Write-Info "Created output directory: $OutputDir"
-    }
-
-    Write-Info "Starting project publishing process..."
-    Write-Info "Output Directory: $OutputDir"
-    Write-Info "Product Version: $Version"
-    Write-Info "Repository root: $RepositoryRoot"
-
-    # Validate repository root exists
-    if (-not (Test-Path $RepositoryRoot)) {
-        Write-Error "Repository root path does not exist: $RepositoryRoot"
-        return @{ Success = 0; Failures = 1 }
-    }
-    
-    # Get all non-test projects
-    $projects = Get-ProjectFiles -SearchPath $RepositoryRoot -ExcludeTests
-    Write-Info "Found $($projects.Count) projects to publish"
-
-    $successCount = 0
-    $failureCount = 0
-
-    foreach ($project in $projects) {
-        $result = Invoke-ProjectPublish -ProjectPath $project.FullName -OutputPath $OutputDir -ProductVersion $Version
-        if ($result) {
-            $successCount++
-        } else {
-            $failureCount++
-        }
-    }
-
-    Write-Info "Publishing completed"
-    Write-Success "$successCount projects published successfully"
-    
-    if ($failureCount -gt 0) {
-        Write-Error "$failureCount projects failed to publish"
-        throw "$failureCount projects failed to publish"
-    } else {
-        Write-Success "All projects published successfully to $OutputDir"
-    }
-    
-    return @{ Success = $successCount; Failures = $failureCount }
-}
-
-
 #endregion
 
 #region InstallAndSetup
@@ -606,16 +552,44 @@ function Get-LatestSdoReleaseVersion {
     $releaseApiUrl = "https://api.github.com/repos/naz-hage/sdo/releases"
     $page = 1
     $releases = @()
+    $headers = @{
+        "Accept" = "application/vnd.github+json"
+        "User-Agent" = "sdo-scripts"
+        "X-GitHub-Api-Version" = "2022-11-28"
+    }
+
+    $githubToken = $env:API_GITHUB_KEY
+    if (-not $githubToken) {
+        $githubToken = $env:GITHUB_TOKEN
+    }
+    if (-not $githubToken) {
+        $githubCli = Get-Command gh -ErrorAction SilentlyContinue
+        if ($githubCli) {
+            try {
+                $githubToken = (& $githubCli.Source auth token 2>$null | Select-Object -First 1).Trim()
+            }
+            catch {
+                $githubToken = $null
+            }
+        }
+    }
+    if ($githubToken) {
+        $headers["Authorization"] = "Bearer $githubToken"
+    }
 
     try {
         do {
-            $pageReleases = Invoke-RestMethod -Uri "${releaseApiUrl}?per_page=100&page=$page" -Headers @{ "User-Agent" = "sdo-scripts" } -ErrorAction Stop
+            $pageReleases = Invoke-RestMethod -Uri "${releaseApiUrl}?per_page=100&page=$page" -Headers $headers -ErrorAction Stop
             $releases += $pageReleases
             $page++
         } while ($pageReleases.Count -gt 0)
     }
     catch {
-        throw "Failed to enumerate Sdo releases from $releaseApiUrl : $($_.Exception.Message)"
+        $message = $_.Exception.Message
+        if ($message -match "403" -or $message -match "rate limit") {
+            throw "Failed to enumerate Sdo releases from $releaseApiUrl because GitHub rate limiting was encountered. Set API_GITHUB_KEY or GITHUB_TOKEN, or authenticate GitHub CLI with 'gh auth login'. Details: $message"
+        }
+        throw "Failed to enumerate Sdo releases from $releaseApiUrl : $message"
     }
 
     $versionedReleases = @(
@@ -960,6 +934,6 @@ function Set-CodeSigningTrust {
 
 #region Exports
 # Final export of public functions (including merged signing functions)
-Export-ModuleMember -Function Get-SdoScriptsVersion, Publish-AllProjects, Get-VersionFromYaml, Write-TestResult, Test-TargetExists, Test-TargetDependencies, Test-TargetDelegation, Get-FileHash256, Get-FileVersionInfo, Invoke-FastForward, Write-OutputMessage, Get-SdoFileVersion, Add-DeploymentPathToEnvironment, Invoke-SdoDownload, Get-LatestSdoReleaseVersion, Install-Sdo, Set-DevelopmentEnvironment, Get-AgentPublicIp, Add-WafAllowRule, Remove-WafCustomRule, Test-IsAdministrator, Test-MicrosoftPowerShellSecurityModuleLoaded, Test-CertificateStore, New-SelfSignedCodeCertificate, Export-CertificateToPfx, Export-CertificateToCer, Import-CertificateToRoot, Import-CertificateToCurrentUser, Set-ScriptSignature, Get-ScriptSignature, Set-CodeSigningTrust
+Export-ModuleMember -Function Get-SdoScriptsVersion, Get-VersionFromYaml, Write-TestResult, Test-TargetExists, Test-TargetDependencies, Test-TargetDelegation, Get-FileHash256, Get-FileVersionInfo, Invoke-FastForward, Write-OutputMessage, Get-SdoFileVersion, Add-DeploymentPathToEnvironment, Invoke-SdoDownload, Get-LatestSdoReleaseVersion, Install-Sdo, Set-DevelopmentEnvironment, Get-AgentPublicIp, Add-WafAllowRule, Remove-WafCustomRule, Test-IsAdministrator, Test-MicrosoftPowerShellSecurityModuleLoaded, Test-CertificateStore, New-SelfSignedCodeCertificate, Export-CertificateToPfx, Export-CertificateToCer, Import-CertificateToRoot, Import-CertificateToCurrentUser, Set-ScriptSignature, Get-ScriptSignature, Set-CodeSigningTrust
 
 #endregion

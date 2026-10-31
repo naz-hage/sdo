@@ -1,16 +1,13 @@
-# SDO Features
+# SDO features
 
-- **Build & Test**: Comprehensive build system with .NET SDK integration and extensive testing support
-- **Git Operations**: Complete Git workflow automation including tagging, branching, and repository cloning
-- **GitHub Integration**: Automated release creation and asset management
-- **Project Management**: Manage work items, repositories, branches, and pull requests across Azure DevOps and GitHub
-- **Platform Agnostic**: Consistent command syntax across Azure DevOps and GitHub
-- **Global Options**: `--dry-run` and `--verbose` options available across all commands
-- **Unified CLI**: One command-line utility with consistent commands and options
-- **Modular Architecture**: Clean separation of concerns with service-based design
-- **Extensive Testing**: Comprehensive unit test suite with targeted execution options
-- **Modern .NET Runtime**: Built on .NET 10.0 with C# 14.0 syntax support and current runtime features
-- **.NET SDK Integration**: Uses the .NET SDK with automatic `dotnet.exe` detection
-- **CLI Framework**: Uses System.CommandLine 2.0.1 with global option support
-- **Targeted Testing**: Supports granular unit testing targets for efficient test execution
-- **Documentation**: Includes CLI reference and build target documentation
+- Build and test .NET solutions with `sdo solution`, `sdo clean`, and `sdo test`.
+- Run YAML workflows with `sdo run`.
+- Install, update, inspect, download, and uninstall tools from `apps.yaml`.
+- Create GitHub releases and upload release assets.
+- Manage Git repositories, branches, tags, pull requests, and work items.
+- Work with GitHub and Azure DevOps using one command-line interface.
+- Preview supported operations with `--dry-run` and diagnose them with
+  `--verbose`.
+
+For commands and options, see the [CLI reference](./sdo-net.md). For setup,
+see [usage](./usage.md).

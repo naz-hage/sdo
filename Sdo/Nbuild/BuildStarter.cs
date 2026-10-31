@@ -1,0 +1,671 @@
+using Launcher.Services;
+using NbuildTasks;
+using Ntools;
+using System.Diagnostics;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
+
+namespace Nbuild;
+
+public partial class BuildStarter
+{
+    public static string LogFile { get; set; } = "sdo.log";
+    private const string SdoBuildFileName = "sdo.targets";
+    private const string NbuildFileName = "nbuild.targets";
+    private const string CommonBuildFileName = "common.targets";
+    private const string TargetsMd = "targets.md";
+    private const string MsbuildExe = "msbuild.exe";
+
+    /// <summary>
+    /// Builds the specified target using nbuild.
+    /// </summary>
+    /// <param name="target">The target to build. If null, the default target will be built.</param>
+    /// <param name="verbose">Specifies whether to display verbose output during the build process.</param>
+    /// <returns>A <see cref="ResultHelper"/> object representing the result of the build operation.</returns>
+    public static ResultHelper Build(string? target, bool verbose = false)
+    {
+        string sdoPath = Path.Combine(Environment.CurrentDirectory, SdoBuildFileName);
+        string nbuildPath = Path.Combine(Environment.CurrentDirectory, NbuildFileName);
+        string buildFilePath = File.Exists(sdoPath) ? sdoPath : nbuildPath;
+        string commonBuildXmlPath = Path.Combine($"{Environment.GetEnvironmentVariable("ProgramFiles")}\\sdo", CommonBuildFileName);
+
+        if (!File.Exists(buildFilePath))
+        {
+            return ResultHelper.Fail(-1, $"Neither '{sdoPath}' nor '{nbuildPath}' was found.");
+        }
+
+        // check if target is valid
+        if (!ValidTarget(buildFilePath, target, verbose))
+        {
+            return ResultHelper.Fail(-1, $"Target '{target}' not found");
+        }
+
+        LogFile = Path.Combine(Environment.CurrentDirectory, LogFile);
+        string cmd = string.IsNullOrEmpty(target)
+            ? $"{buildFilePath} -fl -flp:logfile={LogFile};verbosity=normal"
+            : $"{buildFilePath} /t:{target} -p:TargetName={target} -fl -flp:logfile={LogFile};verbosity=normal";
+
+        if (verbose)
+        {
+            ConsoleHelper.WriteVerbose($"==> {cmd}");
+        }
+
+        //  Get location of dotnet.exe
+        //var msbuildPath = ShellUtility.GetFullPathOfFile(MsbuildExe);
+        var msbuildPath = GetDotnetPath();
+
+        if (msbuildPath == null)
+        {
+            Console.WriteLine("Error: dotnet.exe not found. Please install the .NET SDK from https://dotnet.microsoft.com/download");
+            return ResultHelper.Fail(-1, "dotnet.exe not found");
+        }
+
+        if (verbose)
+        {
+            Console.WriteLine($"MSBuild Path: {msbuildPath}");
+        }
+
+        // Always add spinner for now, but can be controlled by a flag in the future if needed
+        bool addSpinner = true;
+        ResultHelper result = new();
+        if (addSpinner)
+        {
+            result = RunBuildProcess(new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    WorkingDirectory = Environment.CurrentDirectory,
+                    FileName = msbuildPath,
+                    Arguments = $"msbuild {cmd}",
+                    RedirectStandardOutput = false,
+                    RedirectStandardError = false,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            }, target, verbose);
+        }
+        else
+        {
+            Console.WriteLine("Spinner not added.");
+
+            
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    WorkingDirectory = Environment.CurrentDirectory,
+                    FileName = msbuildPath,
+                    Arguments = $"msbuild {cmd}",
+                    RedirectStandardOutput = false,
+                    RedirectStandardError = false,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+
+            if (verbose)
+            {
+                Console.WriteLine($"==> {process.StartInfo.FileName} {process.StartInfo.Arguments}");
+            }
+
+            result = process.LockStart(verbose);
+            return result;
+        } // End of addSpinner else block
+
+        DisplayLog();
+        return result;
+    }
+
+    /// <summary>
+    /// Runs the build process and handles output, timeout, and exit code. (A placeholder for future enhancements to handle output and errors more gracefully.)
+    /// can be called : var result = RunBuildProcess(process, target, verbose)
+    /// </summary>
+    /// <param name="process">The process to run.</param>
+    /// <param name="target">The build target.</param>
+    /// <param name="verbose">Specifies whether to display verbose output.</param>
+    /// <returns>A <see cref="ResultHelper"/> object representing the result of the build operation.</returns>
+    private static ResultHelper RunBuildProcess(
+    Process process,
+    string? target,
+    bool verbose,
+    TimeSpan? timeout = null)   // null = no timeout
+    {
+            
+        try
+        {
+            if (!process.Start())
+                return ResultHelper.Fail(-1, $"Failed to start {process.StartInfo.FileName}");
+
+            var spinner = new[] { '|', '/', '-', '\\' };
+            var spinnerIndex = 0;
+            var spinnerEnabled = !Console.IsOutputRedirected;
+            var status = $"... '{target}'";
+            var elapsed = Stopwatch.StartNew();
+
+            if (spinnerEnabled)
+                Console.Write($"{status} [{elapsed.Elapsed:hh\\:mm\\:ss}] {spinner[spinnerIndex]}");
+            else
+                Console.WriteLine(status);
+
+            while (!process.HasExited)
+            {
+                // Optional timeout
+                if (timeout.HasValue && elapsed.Elapsed >= timeout.Value)
+                {
+                    process.Kill(entireProcessTree: true);
+                    process.WaitForExit();
+                    Console.WriteLine();
+                    return ResultHelper.Fail(-1,
+                        $"Build '{target}' exceeded the timeout of {timeout.Value.TotalSeconds} seconds.");
+                }
+
+                // Spinner animation
+                if (spinnerEnabled)
+                {
+                    spinnerIndex = (spinnerIndex + 1) % spinner.Length;
+                    Console.Write($"\r{status} [{elapsed.Elapsed:hh\\:mm\\:ss}] {spinner[spinnerIndex]}");
+                }
+
+                Thread.Sleep(150);
+            }
+
+            if (spinnerEnabled)
+                Console.WriteLine($"\r{status} [{elapsed.Elapsed:hh\\:mm\\:ss}] done.   ");
+
+            var result = ResultHelper.New();
+            result.Code = process.ExitCode;
+
+            if (result.Code != 0)
+                result.Output.Add($"MSBuild exited with code {result.Code}.");
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return ResultHelper.Fail(-1, $"Exception while running build: {ex.Message}");
+        }
+    }
+
+    // <summary>
+    /// Checks if the specified target is valid in the given targets file.
+    /// </summary>
+    /// <param name="targetsFile">The path to the targets file.</param>
+    /// <param name="target">The target to check.</param>
+    /// <returns>True if the target is valid, false otherwise.</returns>
+    public static bool ValidTarget(string targetsFile, string? target)
+    {
+        return GetTargets(targetsFile).Contains(target, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Checks if the specified target is valid in the given targets file.
+    /// </summary>
+    /// <param name="target">The target to check.</param>
+    /// <returns>True if the target is valid, false otherwise.</returns>
+    public static bool ValidTarget(string nbuildPath, string? target, bool verbose)
+    {
+        // check if target is valid in the current directory
+        if (ValidTarget(nbuildPath, target)) return true;
+
+        List<string> KnownTargetFiles = new List<string>();
+
+        // Find list of *.targets files in sdo deployment folder
+        string[] targetFiles = Directory.GetFiles($"{Environment.GetEnvironmentVariable("ProgramFiles")}\\sdo", "*.targets");
+        if (targetFiles == null)
+        {
+            return false;
+        }
+
+        // Add target files to TargetFiles list
+        KnownTargetFiles.AddRange(targetFiles);
+
+        // Find list of *.targets files in current folder
+        targetFiles = Directory.GetFiles(Environment.CurrentDirectory, "*.targets");
+
+        // Add target files to TargetFiles list
+        KnownTargetFiles.AddRange(targetFiles);
+
+        foreach (var file in targetFiles)
+        {
+            var importTargets = BuildStarter.GetImportAttributes(file, "Project");
+
+            KnownTargetFiles.AddRange(importTargets);
+        }
+
+        if (verbose)
+        {
+            foreach (var file in KnownTargetFiles)
+            {
+                Console.WriteLine(file);
+            }
+        }
+
+        bool found = false;
+        foreach (var targetFile in KnownTargetFiles)
+        {
+            if (ValidTarget(targetFile, target))
+            {
+                found = true;
+                break;
+            }
+        }
+
+        return found;
+    }
+
+
+
+    /// <summary>
+    /// Retrieves the targets from the specified XML document.
+    /// </summary>
+    /// <param name="targetsFile">The path to the XML document.</param>
+    /// <returns>An enumerable collection of target names.</returns>
+    public static IEnumerable<string> GetTargets(string targetsFile)
+    {
+        var buildXmlFile = Path.Combine(Environment.CurrentDirectory, targetsFile);
+        if (!File.Exists(buildXmlFile))
+        {
+            throw new FileNotFoundException($"'{targetsFile}' file not found.", buildXmlFile);
+        }
+
+        XmlDocument doc = new XmlDocument();
+        doc.Load(buildXmlFile);
+
+        XmlNodeList targets = doc.GetElementsByTagName("Target");
+
+        if (targets != null)
+        {
+            foreach (XmlNode target in targets)
+            {
+                if (target.Attributes != null && target.Attributes["Name"] != null)
+                {
+                    var attributeName = target?.Attributes?["Name"]?.Value;
+                    if (!string.IsNullOrEmpty(attributeName))
+                    {
+                        yield return attributeName;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Parses the specified file and returns a sequence of strings where each string contains a target name and its associated comment.
+    /// </summary>
+    /// <param name="targetFileName">The name of the file to parse. The file should be in the current directory.</param>
+    /// <returns>A sequence of strings where each string is in the format "TargetName | Comment".</returns>
+    public static IEnumerable<string> GetTargetsAndComments(string targetFileName)
+    {
+        var filePath = Path.Combine(Environment.CurrentDirectory, targetFileName);
+        string[] lines = File.ReadAllLines(filePath);
+
+        StringBuilder commentBuilder = new();
+        bool isComment = false;
+
+        foreach (string line in lines)
+        {
+            string trimmedLine = line.Trim();
+
+            // Single-line comment
+            if (trimmedLine.StartsWith("<!--") && trimmedLine.EndsWith("-->"))
+            {
+                commentBuilder.Clear(); // reset the comment
+                // Single-line comment
+                commentBuilder.Append(trimmedLine.Substring(4, trimmedLine.Length - 7).Trim());
+                isComment = false;
+            }
+            // start of multi-line comment
+            else if (trimmedLine.StartsWith("<!--"))
+            {
+                commentBuilder.Clear(); // reset the comment
+                isComment = true;
+                commentBuilder.Append(trimmedLine.Substring(4).Trim());
+            }
+            // End of multi-line comment
+            else if (trimmedLine.EndsWith("-->"))
+            {
+                isComment = false;
+                commentBuilder.Append(" " + trimmedLine.Substring(0, trimmedLine.Length - 3).Trim());
+            }
+            // Multi-line comment
+            else if (isComment)
+            {
+                commentBuilder.Append(" " + trimmedLine);
+            }
+            // Target line, extract target name
+            else if (trimmedLine.StartsWith("<Target "))
+            {
+                string targetName = string.Empty;
+                string[] parts = line.Trim().Trim('>').Trim('"').Split(' ');
+                if (parts.Length > 1)
+                {
+                    string[] subParts = parts[1].Split('=');
+                    if (subParts.Length > 1)
+                    {
+                        targetName = subParts[1].Trim(' ');
+                        targetName = subParts[1].Trim('>');
+                        targetName = subParts[1].Trim('"');
+                        // Rest of your code that uses targetName...
+                    }
+                }
+
+                yield return $"{targetName,-19} | {commentBuilder.ToString().Trim()}";
+                commentBuilder.Clear(); // reset the comment
+            }
+        }
+    }
+
+    /// <summary>
+    /// Displays the log file content.  if lastLines is 0, displays the entire log.
+    /// </summary>
+    /// <param name="lastLines">The number of last lines to display.</param>
+    private static void DisplayLog(int lastLines = 0)
+    {
+        string logFilePath = Path.Combine(Environment.CurrentDirectory, LogFile);
+        if (!File.Exists(logFilePath))
+            return;
+
+        string[] lines = File.ReadAllLines(logFilePath);
+
+        int start = 0;
+
+        if (lastLines > 0)
+        {
+            start = Math.Max(0, lines.Length - lastLines);
+        }
+
+        for (int i = start; i < lines.Length; i++)
+        {
+            var line = lines[i];
+
+            try
+            {
+                if (BuildTarget().IsMatch(line))
+                {
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                }
+                else if (Error().IsMatch(line))
+                {
+                    if (int.TryParse(Count().Match(line).Value, out var count))
+                    {
+                        Console.ForegroundColor = count == 0 ? ConsoleColor.Green : ConsoleColor.Red;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                    }
+                }
+                else if (Warning().IsMatch(line))
+                {
+                    if (int.TryParse(Count().Match(line).Value, out var count))
+                    {
+                        Console.ForegroundColor = count == 0 ? ConsoleColor.Gray : ConsoleColor.Yellow;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                    }
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
+            }
+            catch (Exception)
+            {
+                Console.ForegroundColor = ConsoleColor.Gray;
+            }
+
+            Console.WriteLine(lines[i]);
+        }
+    }
+
+
+    /// <summary>
+    /// Reads the common.targets file and returns the specified attributes, with optional replacements for placeholders.
+    /// </summary>
+    /// <param name="filePath">The path to the common.targets file.</param>
+    /// <param name="attributeName">The name of the attribute to retrieve.</param>
+    /// <param name="replacements">A dictionary of placeholders and their replacements.</param>
+    /// <returns>An enumerable collection of modified attributes.</returns>
+    //public static IEnumerable<string> GetImportAttributes(string filePath, string attributeName, Dictionary<string, string>? replacements = null)
+    public static IEnumerable<string> GetImportAttributes(string filePath, string attributeName)
+    {
+        var sdoEnv = new NtoolsEnvironmentVariables();
+        var replacements = new Dictionary<string, string>
+                    {
+                        { "$(MainDir)", sdoEnv.MainDir },
+                        { "$(DevDrive)", sdoEnv.DevDrive },
+                        { "$(ProgramFiles)", Environment.GetEnvironmentVariable("ProgramFiles") ?? string.Empty },
+                        { "$(BuildTools)", $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\sdo" }
+                    };
+
+        XmlDocument doc = new XmlDocument();
+        doc.Load(filePath);
+
+        XmlNodeList imports = doc.GetElementsByTagName("Import");
+
+        foreach (XmlNode import in imports)
+        {
+            if (import.Attributes != null && import.Attributes[attributeName] != null)
+            {
+                string attributeValue = import.Attributes[attributeName]?.Value ?? string.Empty;
+
+                if (replacements != null)
+                {
+                    foreach (var replacement in replacements)
+                    {
+                        attributeValue = attributeValue.Replace(replacement.Key, replacement.Value);
+                    }
+                }
+
+                yield return attributeValue;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Retrieves the path to the 64-bit MSBuild executable.
+    /// </summary>
+    /// <returns>The path to the 64-bit MSBuild executable, or null if not found.</returns>
+    public static string? FindMsBuild64BitPath(bool verbose = false)
+    {
+        // Define the directories where msbuild.exe might be located
+        var possibleDirectories = new[]
+        {
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin"),
+        };
+
+        if (verbose)
+        {
+            Console.WriteLine("Searching for msbuild.exe in the following directories:");
+            foreach (var dir in possibleDirectories)
+            {
+                Console.WriteLine(dir);
+            }
+        }
+
+        // Search for msbuild.exe in the directories and their subdirectories
+        var msbuildPaths = possibleDirectories
+            .Where(Directory.Exists)
+            .SelectMany(dir => Directory.EnumerateFiles(dir, "msbuild.exe", SearchOption.AllDirectories))
+            .Where(path => !path.Contains("Preview") && path.Contains("amd64"))
+            .ToList();
+
+        if (verbose)
+        {
+            Console.WriteLine("Found the following msbuild.exe paths:");
+            foreach (var path in msbuildPaths)
+            {
+                Console.WriteLine(path);
+            }
+        }
+
+        // Return the first path found, or null if no path was found
+        return msbuildPaths.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Retrieves the path to the dotnet executable.
+    /// </summary>
+    /// <returns>The path to the dotnet executable, or null if not found.</returns>
+    public static string? GetDotnetPath(bool verbose = false)
+    {
+        // Try to find dotnet in PATH
+        var dotnetPath = ShellUtility.GetFullPathOfFile("dotnet.exe");
+        if (dotnetPath != null)
+        {
+            if (verbose)
+            {
+                Console.WriteLine($"Found dotnet at: {dotnetPath}");
+            }
+            return dotnetPath;
+        }
+
+        // Define common directories where dotnet might be installed
+        var possibleDirectories = new[]
+        {
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "dotnet"),
+            Path.Combine(Environment.GetEnvironmentVariable("USERPROFILE") ?? "", ".dotnet"),
+            Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA") ?? "", "Microsoft", "dotnet"),
+        };
+
+        if (verbose)
+        {
+            Console.WriteLine("Searching for dotnet.exe in the following directories:");
+            foreach (var dir in possibleDirectories)
+            {
+                Console.WriteLine(dir);
+            }
+        }
+
+        // Search for dotnet.exe in the directories
+        var dotnetPaths = possibleDirectories
+            .Where(Directory.Exists)
+            .Select(dir => Path.Combine(dir, "dotnet.exe"))
+            .Where(File.Exists)
+            .ToList();
+
+        if (verbose)
+        {
+            Console.WriteLine("Found the following dotnet.exe paths:");
+            foreach (var path in dotnetPaths)
+            {
+                Console.WriteLine(path);
+            }
+        }
+
+        // Return the first path found, or null if no path was found
+        return dotnetPaths.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Displays the targets in the specified file.
+    /// </summary>
+    /// <param name="filePath">The path to the target file.</param>
+    /// <returns>A <see cref="ResultHelper"/> object representing the result of the operation.</returns>
+    public static ResultHelper DisplayTargetsInFile(string filePath)
+    {
+        return DisplayTargetsInFile(filePath, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+    }
+
+    private static ResultHelper DisplayTargetsInFile(string filePath, HashSet<string> displayedFiles)
+    {
+        //replace $(BuildTools) with environment variable ProgramFiles/Nbuild
+        filePath = filePath.Replace("$(BuildTools)", $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\sdo");
+        try
+        {
+            var normalizedFilePath = Path.GetFullPath(filePath);
+            if (!displayedFiles.Add(normalizedFilePath))
+            {
+                return ResultHelper.Success();
+            }
+
+            using (StreamWriter writer = new(TargetsMd, true))
+            {
+                Console.WriteLine($"{filePath} Targets:");
+                writer.WriteLine($"- **{filePath} Targets**\n");
+                Console.WriteLine($"----------------------");
+                writer.WriteLine("| **Target Name** | **Description** |");
+                writer.WriteLine("| --- | --- |");
+
+                var targets = GetTargetsAndComments(filePath).ToList();
+                if (targets.Count > 0)
+                {
+                    foreach (var targetAndDescription in targets)
+                    {
+                        Console.WriteLine(targetAndDescription);
+                        writer.WriteLine($"| {targetAndDescription} |");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No targets found.");
+                }
+                Console.WriteLine();
+                writer.WriteLine("\n");
+
+            }
+            var importItems = GetImportAttributes(filePath, "Project");
+            foreach (var item in importItems)
+            {
+                using (StreamWriter writer = new(TargetsMd, true))
+                {
+                    Console.WriteLine($"Imported Targets:");
+                    //writer.WriteLine($"- Imported Targets: {importItem}\n");
+                    Console.WriteLine($"----------------------");
+                }
+                // Recursive call for each imported target file
+                DisplayTargetsInFile(item, displayedFiles);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            return ResultHelper.Fail(-1, $"Exception occurred: {ex.Message}");
+        }
+
+        return ResultHelper.Success();
+    }
+
+    /// <summary>
+    /// Displays the targets in the specified directory.
+    /// </summary>
+    /// <param name="directoryPath">The path to the directory containing the target files.</param>
+    /// <returns>A <see cref="ResultHelper"/> object representing the result of the operation.</returns>
+    public static ResultHelper DisplayTargets(string directoryPath)
+    {
+        if (File.Exists(TargetsMd))
+        {
+            File.Delete(TargetsMd);
+        }
+
+        string[] targetsFiles = Directory.GetFiles(directoryPath, "*.targets", SearchOption.TopDirectoryOnly);
+        var displayedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var targetsFile in targetsFiles)
+        {
+            var result = DisplayTargetsInFile(targetsFile, displayedFiles);
+            if (!result.IsSuccess())
+            {
+                return result;
+            }
+        }
+        return ResultHelper.Success();
+    }
+
+    [GeneratedRegex(@"^\s*[A-Z_]+:\s*$")]
+    private static partial Regex BuildTarget();
+    //[GeneratedRegex(@"\b\d+\s+Error", RegexOptions.IgnoreCase, "en-US")]
+    [GeneratedRegex(@"\b\d+\s+Error\b|\berror\b", RegexOptions.IgnoreCase, "en-US")]
+    //private static partial Regex Error();
+
+    private static partial Regex Error();
+    [GeneratedRegex(@"\b\d+\s+Warning", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex Warning();
+    [GeneratedRegex(@"\d+")]
+    private static partial Regex Count();
+}

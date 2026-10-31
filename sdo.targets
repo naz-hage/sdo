@@ -6,7 +6,7 @@
 	<Import Project="unit-tests.targets"/>
 
 	<!-- Update documentation versions from JSON configuration files -->
-	<UsingTask TaskName="NbuildTasks.GenerateCommitMessage" AssemblyFile="C:\source\sdo\Release\NbuildTasks.dll" />
+	<UsingTask TaskName="NbuildTasks.GenerateCommitMessage" AssemblyFile="$(BuildTools)\sdo.dll" />
 
 	<PropertyGroup>
 		<!-- This is the folder where the *.sln resides-->
@@ -78,22 +78,6 @@
 
 	</Target>
 	
-	<!-- Download Nbuild specified in the NbuildTargetVersion -->
-	<Target Name="NBUILD_DOWNLOAD" DependsOnTargets="IS_ADMIN">
-		<PropertyGroup>
-		<WebUri>https://github.com/naz-hage/sdo/releases/download/$(NbuildTargetVersion)/$(NbuildTargetVersion).zip</WebUri>
-		<FileName>$(DownloadsDirectory)\NBuildTools.zip</FileName>
-		</PropertyGroup>
-
-		<RedError Condition="'$(IsAdmin)' == false" Message="Must be an admin to install $(NbuildAppName)" />
-		
-		<Delete Files="$(FileName)" Condition="Exists('$(FileName)') == true" />
-		
-		<WebDownload WebUri="$(WebUri)" FileName="$(FileName)" />
-		
-		<Message Text="==> NBUILD_DONE"/>
-	</Target>
-
 	<!-- Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment -->
 	<Target Name="SETUP_ENVIRONMENT" DependsOnTargets="IS_ADMIN">
 		<Message Text="Setting up development environment (Set-DevelopmentEnvironment)" Importance="high" />
@@ -462,40 +446,9 @@
 		<Message Text="==> NB_TEST_DIAGNOSTICS DONE" Importance="high" />
 	</Target>
 
-	<!-- Per-test-project diagnostic targets: run dotnet test with 'diag' to capture VSTest assembly load data -->
-	<!-- Targets auto-generated: one per Tests.csproj in the solution -->
-	<Target Name="NB_DIAG_NbuildTasksTests">
-		<Message Text="Running diag for NbuildTasksTests" Importance="high" />
-		<Exec Command='dotnet test "$(SolutionDir)\NbuildTasksTests\NbuildTasksTests.csproj" --diag:"$(SolutionDir)\TestResults\NbuildTasksTests-diag-vstest.txt" -v minimal' WorkingDirectory="$(SolutionDir)" />
-	</Target>
-
-	<Target Name="NB_DIAG_NbuildTests">
-		<Message Text="Running diag for NbuildTests" Importance="high" />
-		<Exec Command='dotnet test "$(SolutionDir)\nbtests\nbtests.csproj" --diag:"$(SolutionDir)\TestResults\NbuildTests-diag-vstest.txt" -v minimal' WorkingDirectory="$(SolutionDir)" />
-	</Target>
-
-	<Target Name="NB_DIAG_lfTests">
-		<Message Text="Running diag for lfTests" Importance="high" />
-		<Exec Command='dotnet test "$(SolutionDir)\lfTests\lfTests.csproj" --diag:"$(SolutionDir)\TestResults\lfTests-diag-vstest.txt" -v minimal' WorkingDirectory="$(SolutionDir)" />
-	</Target>
-
-	<Target Name="NB_DIAG_nbTests">
-		<Message Text="Running diag for nbTests" Importance="high" />
-		<Exec Command='dotnet test "$(SolutionDir)\nbTests\nbTests.csproj" --diag:"$(SolutionDir)\TestResults\nbTests-diag-vstest.txt" -v minimal' WorkingDirectory="$(SolutionDir)" />
-	</Target>
-
-	<Target Name="NB_DIAG_nBackupTests">
-		<Message Text="Running diag for nBackupTests" Importance="high" />
-		<Exec Command='dotnet test "$(SolutionDir)\nBackupTests\NbackupTests.csproj" --diag:"$(SolutionDir)\TestResults\nBackupTests-diag-vstest.txt" -v minimal' WorkingDirectory="$(SolutionDir)" />
-	</Target>
-
-	<Target Name="NB_DIAG_GitHubReleaseTests">
-		<Message Text="Running diag for GitHubReleaseTests" Importance="high" />
-		<Exec Command='dotnet test "$(SolutionDir)\GitHubReleaseTests\GitHubReleaseTests.csproj" --diag:"$(SolutionDir)\TestResults\GitHubReleaseTests-diag-vstest.txt" -v minimal' WorkingDirectory="$(SolutionDir)" />
-	</Target>
-
-	<!-- Aggregate target: run all per-project diagnostics sequentially -->
-	<Target Name="NB_TEST_DIAG_ALL" DependsOnTargets="NB_DIAG_NbuildTasksTests;NB_DIAG_NbuildTests;NB_DIAG_lfTests;NB_DIAG_nbTests;NB_DIAG_nBackupTests;NB_DIAG_GitHubReleaseTests">
+	<Target Name="NB_TEST_DIAG_ALL">
+		<Message Text="Running diagnostic test output for the consolidated SdoTests project" Importance="high" />
+		<Exec Command='dotnet test "$(SolutionDir)\SdoTests\SdoTests.csproj" --diag:"$(SolutionDir)\TestResults\SdoTests-diag-vstest.txt" -v minimal' WorkingDirectory="$(SolutionDir)" />
 		<Message Text=">== NB_TEST_DIAG_ALL completed" Importance="high" />
 	</Target>
 
@@ -611,27 +564,30 @@
         <Message Text="==> DONE" />
     </Target>
 
-	<!-- Override the TEST target from common.targets to run individual test projects -->
-	<!-- This prevents double test execution that causes conflicts -->
 	<Target Name="TEST" DependsOnTargets="ARTIFACTS;TAG">
 		<RemoveDir Directories="$(ArtifactsTestResultsFolder)"></RemoveDir>
-		<!-- Run tests on individual projects with code coverage to avoid VSTest conflicts -->
-		<Exec Command='dotnet test "$(SolutionDir)\nbtests\nbtests.csproj" --configuration $(TargetRelease) --logger trx --results-directory:$(ArtifactsTestResultsFolder) --collect:"XPlat Code Coverage"'/>
-		<Exec Command='dotnet test "$(SolutionDir)\NbuildTasksTests\NbuildTasksTests.csproj" --configuration $(TargetRelease) --logger trx --results-directory:$(ArtifactsTestResultsFolder) --collect:"XPlat Code Coverage"'/>
-		<Exec Command='dotnet test "$(SolutionDir)\GitHubReleaseTests\GitHubReleaseTests.csproj" --configuration $(TargetRelease) --logger trx --results-directory:$(ArtifactsTestResultsFolder) --collect:"XPlat Code Coverage"'/>
-		<Exec Command='dotnet test "$(SolutionDir)\lfTests\lfTests.csproj" --configuration $(TargetRelease) --logger trx --results-directory:$(ArtifactsTestResultsFolder) --collect:"XPlat Code Coverage"'/>
-		<Exec Command='dotnet test "$(SolutionDir)\nBackupTests\NbackupTests.csproj" --configuration $(TargetRelease) --logger trx --results-directory:$(ArtifactsTestResultsFolder) --collect:"XPlat Code Coverage"'/>
 		<Exec Command='dotnet test "$(SolutionDir)\SdoTests\SdoTests.csproj" --configuration $(TargetRelease) --filter "Category!=Integration" --logger trx --results-directory:$(ArtifactsTestResultsFolder) --collect:"XPlat Code Coverage"'/>
-		<Message Text="TEST target completed - individual project tests executed with code coverage" />
+		<Message Text="TEST target completed - consolidated SdoTests project executed with code coverage" />
 		<Message Text="==> COMMON_DONE"/>
 	</Target>
 
-	<!-- Publish all non-test projects to artifacts folder -->
+	<!-- Publish all non-test projects to one versioned artifacts folder -->
 	<Target Name="PUBLISH" DependsOnTargets="ARTIFACTS;TAG">
-		<RemoveDir Directories="$(ArtifactsFolder)"></RemoveDir>
-		<Message Text="Publishing all non-test projects using sdo-scripts module" Importance="high" />
-		<Exec Command='pwsh -NoProfile -ExecutionPolicy Bypass -Command "Import-Module &apos;$(BuildTools)\sdo-scripts.psm1&apos; -Force; Publish-AllProjects -OutputDir &apos;$(ArtifactsFolder)&apos; -Version &apos;$(ProductVersion)&apos; -RepositoryRoot &apos;$(SolutionDir)&apos;"' WorkingDirectory="$(SolutionDir)" />
-		<Message Text="All non-test projects published to $(ArtifactsFolder)" Importance="high" />
+		<ItemGroup>
+			<PublishProjects
+				Include="$(SolutionDir)\**\*.csproj"
+				Exclude="$(SolutionDir)\**\*test*\**\*.csproj;$(SolutionDir)\**\*test*.csproj" />
+		</ItemGroup>
+		<RemoveDir Directories="$(ArtifactsFolder)" />
+		<Message Text="Publishing @(PublishProjects->Count()) non-test projects to $(ArtifactsFolder)" Importance="high" />
+		<Exec
+			Command='dotnet publish "%(PublishProjects.Identity)" --configuration "$(TargetRelease)" --output "$(ArtifactsFolder)" --property:Version="$(ProductVersion)" --property:DebugSymbols=false --property:DebugType=None --property:CopyOutputSymbolsToPublishDirectory=false'
+			WorkingDirectory="$(SolutionDir)" />
+		<ItemGroup>
+			<PublishedPdbFiles Include="$(ArtifactsFolder)\**\*.pdb" />
+		</ItemGroup>
+		<Delete Files="@(PublishedPdbFiles)" />
+		<Message Text="All non-test projects published to $(ArtifactsFolder) without PDB files" Importance="high" />
 
 		<Message Text="==> PUBLISH DONE"/>
 	</Target>

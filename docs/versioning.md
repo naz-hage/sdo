@@ -1,40 +1,38 @@
-# Version and Tag
+# Versioning and automation
 
-Throughout this document, the terms "version" and "tag" are used interchangeably. The version applies to binaries, product, or repository tagging. The rules for SDO versioning are as follows:
+SDO uses `X.Y.Z` versions for binaries, products, and repository tags:
 
-1. The version is a string in the format of `X.Y.Z`, where `X`, `Y`, and `Z` are integers.
-2. The version is incremented as follows:
-    - `X` is the major number:
-      - Incremented for breaking changes.
-    - `Y` is the minor number:
-      - Incremented for new features or bug fixes.
-      - Incremented when [production](buildtypes.md#prod) Build Type is deployed.
-      - Incrementing `Y` resets `Z` to 0.
-    - `Z` is the build number:
-        - Incremented when [staging](buildtypes.md#stage) Build Type is deployed.
+| Part | Changes when |
+| --- | --- |
+| `X` | A breaking change is released. |
+| `Y` | A feature or fix is released, or a production build is deployed. Incrementing `Y` resets `Z` to `0`. |
+| `Z` | A staging build is deployed. |
 
-Tags in the [GitHubRelease](./github-release.md) are used to:
+Tags identify repository versions, associate release assets, and generate
+release notes from commits since the previous tag. See
+[buildtypes.md](./buildtypes.md) for staging and production builds and
+[github-release.md](./github-release.md) for release behavior.
 
-- Identify specific versions of the repository.
-- Associate release assets with a particular version.
-- Generate release notes based on commits since the last tag.
+## Update tool versions
 
-## Version Automation
-
-Tool versions in documentation can be updated through `sdo tool manifest update --latest --file-path .\docs\sdo.md`. This updates the manifest from the latest stable releases, then extracts all tool/version pairs from `dev-setup/apps.yaml` and updates the documentation table accordingly.
-
-### PowerShell Module Integration (v3.0.0+)
-
-- **Module**: `scripts/module-package/sdo-scripts.psm1`
-- **Function**: `Get-VersionFromYaml`
-- **Purpose**: Consolidated version management within the SDO scripts module
+Tool versions are maintained in `dev-setup/apps.yaml`. Update the manifest
+and a Markdown version table with:
 
 ```powershell
-# Import the module
-Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
+sdo tool manifest update --latest --file-path .\docs\sdo.md
+```
 
-# Get version from the SDO YAML manifest
+The command discovers the latest stable releases, updates the YAML manifest,
+and synchronizes matching tool/version rows in the selected Markdown file.
+Use `--dry-run` to preview changes.
+
+## Read the SDO version
+
+```powershell
+Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
 $version = Get-VersionFromYaml -YamlPath "./dev-setup/sdo.yaml"
 ```
 
-For complete automation details, see [Version Automation Guide](version-automation-guide.md).
+The Markdown synchronization is implemented by
+`Sdo/Services/UpdateVersionsInDocs.cs` and invoked by
+`sdo tool manifest update`.

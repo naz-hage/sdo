@@ -1,143 +1,65 @@
-# Code Coverage in SDO
+# Code coverage
 
-The SDO build system includes comprehensive code coverage support that can be easily configured and integrated into your build pipeline.
+SDO collects .NET test coverage and generates HTML, Cobertura, and text
+reports through its build targets.
 
-## Overview
+## Run coverage
 
-Code coverage is automatically collected when running the `TEST` target if the `EnableCodeCoverage` property is set to `true` (which is the default). The system uses XPlat Code Coverage collection and ReportGenerator for creating detailed HTML and text reports.
+Run tests and collect coverage:
 
-## Configuration
-
-### Basic Configuration
-
-The following properties control code coverage behavior:
-
-| Property | Default Value | Description |
-|----------|---------------|-------------|
-| `EnableCodeCoverage` | `true` | Controls whether code coverage is collected during test runs |
-| `CoverageAssemblyFilters` | `+*;-*Tests*;-*Test*` | Filters for assemblies to include/exclude from coverage |
-| `CoverageClassFilters` | `+*;-*.Tests.*;-*.Test.*` | Filters for classes to include/exclude from coverage |
-
-### Customizing Coverage Filters
-
-You can customize coverage filters by setting properties in your project file:
-
-```xml
-<PropertyGroup>
-    <EnableCodeCoverage>true</EnableCodeCoverage>
-    <CoverageAssemblyFilters>+MyProject*;-*Tests*;-*Mock*</CoverageAssemblyFilters>
-    <CoverageClassFilters>+*;-*.Tests.*;-*.Mocks.*</CoverageClassFilters>
-</PropertyGroup>
-```
-
-### Filter Syntax
-
-Coverage filters use the following syntax:
-- `+` includes the pattern
-- `-` excludes the pattern
-- `*` is a wildcard
-- Filters are separated by semicolons (`;`)
-
-## MSBuild Targets
-
-### COVERAGE Target
-
-The `COVERAGE` target generates comprehensive code coverage reports:
-
-```bash
-sdo COVERAGE
-```
-
-This target:
-1. Installs ReportGenerator tool if not present
-2. Processes coverage files from test results
-3. Generates HTML reports in `CoverageReport` folder
-4. Creates text summaries for CI/CD integration
-5. Copies coverage files for GitHub Actions
-
-### COVERAGE_SUMMARY Target
-
-For a quick coverage overview:
-
-```bash
-sdo COVERAGE_SUMMARY
-```
-
-This displays high-level coverage metrics without generating full reports.
-
-### TEST Target with Coverage
-
-The `TEST` target automatically includes coverage collection when `EnableCodeCoverage` is true:
-
-```bash
+```powershell
 sdo TEST
 ```
 
-This runs all tests and collects coverage data in a single step.
+Generate reports from the test results:
 
-## Output Files
+```powershell
+sdo COVERAGE
+```
 
-After running coverage targets, you'll find:
+Display the text summary:
 
-### HTML Reports
-- `CoverageReport/index.html` - Main coverage report
-- `CoverageReport/` - Detailed HTML coverage reports
+```powershell
+sdo COVERAGE_SUMMARY
+```
 
-### Text Reports
-- Console output with coverage summary
-- Coverage files copied to artifacts for CI/CD
+`COVERAGE` requires test results. Run `sdo TEST` first unless a stage build
+has already run the tests. `sdo STAGE` includes testing, report generation,
+and the coverage summary.
 
-### Coverage Data
-- Raw coverage files in test results directory
-- Processed coverage data for further analysis
+## Configure coverage
 
-## CI/CD Integration
-
-### GitHub Actions
-
-Coverage reports are automatically copied to appropriate locations for GitHub Actions integration. The `COVERAGE` target handles this automatically.
-
-### Disabling Coverage
-
-To disable coverage collection (e.g., for faster builds):
+Coverage is enabled by default. Set these MSBuild properties in the project
+file to change the behavior:
 
 ```xml
 <PropertyGroup>
-    <EnableCodeCoverage>false</EnableCodeCoverage>
+  <EnableCodeCoverage>true</EnableCodeCoverage>
+  <CoverageAssemblyFilters>+MyProject*;-*Tests*;-*Mock*</CoverageAssemblyFilters>
+  <CoverageClassFilters>+*;-*.Tests.*;-*.Mocks.*</CoverageClassFilters>
 </PropertyGroup>
 ```
 
-Or via command line:
+Filters use `+` to include, `-` to exclude, `*` as a wildcard, and semicolons
+to separate patterns.
 
-```bash
+Disable coverage for a faster test run:
+
+```powershell
 sdo TEST -p:EnableCodeCoverage=false
 ```
 
-## Examples
+## Output
 
-### Basic Usage
-```bash
-# Run tests with coverage
-sdo TEST
+The report location is the configured `CoverageFolder`, normally:
 
-# Generate coverage reports
-sdo COVERAGE
-
-# Quick coverage summary
-sdo COVERAGE_SUMMARY
+```text
+<artifacts>\CoverageReport\<version>\
 ```
 
-### Custom Configuration
-```xml
-<PropertyGroup>
-    <EnableCodeCoverage>true</EnableCodeCoverage>
-    <CoverageAssemblyFilters>+MyProject*;+MyLibrary*;-*Tests*</CoverageAssemblyFilters>
-    <CoverageClassFilters>+*;-*.Tests.*;-*TestHelpers*</CoverageClassFilters>
-</PropertyGroup>
-```
+Open `index.html` for the detailed report. `Summary.txt` contains the text
+summary, and `coverage.cobertura.xml` is copied to the repository root for CI
+workflows.
 
-### Full Build Pipeline
-```bash
-# Complete build with tests and coverage
-sdo STAGE
-```
+Report generation installs the
+`dotnet-reportgenerator-globaltool` tool when it is not already available.

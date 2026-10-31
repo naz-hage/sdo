@@ -323,7 +323,7 @@ public class WorkItemStateTranslatorTests
 
     #region Round-trip Conversion Tests
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("new", WorkItemState.New)]
     [DataRow("approved", WorkItemState.Approved)]
     [DataRow("committed", WorkItemState.Committed)]
@@ -343,7 +343,7 @@ public class WorkItemStateTranslatorTests
         Assert.AreEqual(expectedAdo, adoState);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("new", "open")]
     [DataRow("approved", "open")]
     [DataRow("committed", "open")]
@@ -396,7 +396,7 @@ public class WorkItemStateTranslatorTests
 
     #region Case Insensitivity Tests
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("DONE")]
     [DataRow("Done")]
     [DataRow("dONe")]
@@ -410,7 +410,7 @@ public class WorkItemStateTranslatorTests
         Assert.AreEqual(WorkItemState.Done, result);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("TO DO")]
     [DataRow("To Do")]
     [DataRow("TO do")]
@@ -426,7 +426,7 @@ public class WorkItemStateTranslatorTests
         Assert.AreEqual(WorkItemState.ToDo, result);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("IN PROGRESS")]
     [DataRow("In Progress")]
     [DataRow("IN progress")]

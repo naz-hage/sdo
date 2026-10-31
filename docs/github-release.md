@@ -1,163 +1,69 @@
-sdo.exe is designed to help you create and manage GitHub releases. Release packages are named `$(SolutionName)-$(ProductVersion).zip`, so the uploaded asset includes both the solution name and version. Tool manifests can reference the corresponding asset with `$(Name)-$(Version).zip`. Check the [versioning](./versioning.md) section for more details.
+# GitHub releases
 
-## Requirements
+SDO creates GitHub releases from the packages produced by the `stage` and
+`prod` build targets. See [buildtypes.md](./buildtypes.md) for package
+creation and [sdo-net.md](./sdo-net.md) for the complete CLI reference.
 
-### Repository Requirements
-- The repository must have:
-  - A GitHub token to create releases (required for private repos and write operations).
-  - A GitHub owner to create releases (can be specified via command line).
-  - A Git branch to create releases.
-  - At least one Git tag prior to creating releases.
+## Release targets
 
-### Authentication Requirements
-- **Public Repositories:** No authentication required for read operations
-- **Private Repositories:** Authentication required for all operations
-- **Write Operations:** Authentication always required (create releases, upload assets)
+Run these targets from a GitHub Actions workflow:
 
-### GitHub Actions Workflow Example
-Here is an example of how to set up authentication in a GitHub Actions workflow file. You can use either a personal access token or GitHub CLI authentication:
+```powershell
+sdo GITHUB_PRE_RELEASE
+sdo GITHUB_RELEASE
+```
 
-**Option 1: Personal Access Token (Recommended for CI/CD)**
-```yml
-- name: Build using sdo
-  run: |
-    & "$env:ProgramFilesPath/nbuild/sdo.exe" ${{ env.Build_Type }} -v ${{ env.Enable_Logging }}
+- `GITHUB_PRE_RELEASE` publishes the stage package as a prerelease.
+- `GITHUB_RELEASE` publishes the production package as a release.
+
+Release packages use this name:
+
+```text
+$(SolutionName)-$(ProductVersion).zip
+```
+
+Production releases remove older stage releases. Release notes are generated
+from commits since the previous matching tag.
+
+## Authentication
+
+Set `API_GITHUB_KEY` in GitHub Actions or in the local PowerShell session:
+
+```powershell
+$env:API_GITHUB_KEY = "ghp_..."
+```
+
+GitHub CLI authentication is also supported locally:
+
+```powershell
+gh auth login
+gh auth status
+```
+
+For GitHub Actions:
+
+```yaml
+- name: Create release
   shell: pwsh
-  working-directory: ${{ github.workspace }}
+  run: sdo GITHUB_RELEASE
   env:
-    OWNER: ${{ github.repository_owner }}
     API_GITHUB_KEY: ${{ secrets.API_GITHUB_KEY }}
-```
-
-**Option 2: GitHub CLI Authentication**
-```yml
-- name: Authenticate with GitHub CLI
-  run: |
-    gh auth login --with-token <<< ${{ secrets.GITHUB_TOKEN }}
-  shell: bash
-
-- name: Build using sdo
-  run: |
-    & "$env:ProgramFilesPath/nbuild/sdo.exe" ${{ env.Build_Type }} -v ${{ env.Enable_Logging }}
-  shell: pwsh
-  working-directory: ${{ github.workspace }}
-  env:
     OWNER: ${{ github.repository_owner }}
 ```
 
-The above actions build, test, and create releases using the GitHubRelease tool and upload to GitHub.
+Public repositories need authentication for write operations. Private
+repositories need authentication for all operations. The token must be able to
+read repository metadata and create releases and assets. For a classic token,
+use the `repo` scope.
 
-### Branch Checkout Example
-Before running the tool, you must checkout a branch. Here is an example of how to checkout a branch in a GitHub Actions workflow file:
+## Private release assets
 
-```yml
-- name: Checkout Repository
-  uses: actions/checkout@7
-  with:
-    token: ${{ secrets.API_GITHUB_KEY }}
-    fetch-depth: 0
-    ref: ${{ github.event.pull_request.head.ref }}
-    repository: ${{ github.event.pull_request.head.repo.full_name }}
+Tool manifests are YAML files. Reference a GitHub release asset with its
+download URL:
+
+```yaml
+WebDownloadFile: "https://github.com/OWNER/REPOSITORY/releases/download/TAG/asset.zip"
 ```
 
-## Repository Visibility-Based Authentication
-
-**Authentication**: SDO determines when authentication is required based on repository visibility and operation type.
-
-### How It Works
-- **Public Repositories:**
-  - Read operations (listing releases, downloading assets) work without authentication
-  - Write operations (creating releases, uploading assets) require authentication
-- **Private Repositories:**
-  - All operations require authentication
-- **Unknown Visibility:**
-  - The tool attempts to determine repository visibility via unauthenticated API calls
-  - If visibility cannot be determined, authentication is required for safety
-
-### Authentication Flow
-1. Tool determines if the operation requires authentication based on repository visibility
-2. If authentication is required, it tries available authentication methods in order:
-   - `API_GITHUB_KEY` environment variable
-   - GitHub CLI authentication (`gh auth token`)
-   - Windows Credential Manager
-3. If no valid authentication is found, clear error messages guide users to set up authentication
-
-### Benefits
-- **Simplified Usage:** Public repositories work without any authentication setup
-- **Security:** Private repositories still require proper authentication
-- **Flexibility:** Multiple authentication methods supported
-- **User-Friendly:** Clear error messages when authentication is needed
-
-### Stage Release
-- When `sdo stage` runs successfully:
-  - The tool creates a stage release tagged with the next stage release number.
-  - The release notes include the commits since the last stage or production tag.
-  - The API token from the repository secrets is used to create this release.
-  - The release package is uploaded to the release.
-
-### Production Release
-- When `sdo prod` runs successfully:
-  - The tool creates a production release tagged with the next production release number.
-  - The release notes include the commits since the last production tag.
-  - All previous stage releases are deleted.
-  - The API token from the repository secrets is used to create this release.
-  - The release package is uploaded to the release.
-
-## Create a GitHub Token
-
-Follow the [GitHub documentation](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token) to create a GitHub token.
-
-### Required Permissions
-The access token must have the following permissions:
-
-| **Permission Type** | **Scope**              | **Description**                          |
-|----------------------|------------------------|------------------------------------------|
-| Repository           | Contents: `Read/Write`| Access repository contents.              |
-|                      | Metadata: `Read-only` | Access repository metadata.              |
-|                      | Actions: `Read/Write` | Manage GitHub Actions (if needed).       |
-|                      | Packages: `Read/Write`| Manage GitHub Packages (if needed).      |
-| Workflow             | Workflows: `Read/Write`| Manage workflows (if needed).           |
-| Release              | Releases: `Read/Write`| Manage GitHub releases.                  |
-
-## GitHubRelease Command Line Options
-
-### Usage
-See [sdo.exe](./sdo-net.md) for the command line options.
-
-## Manifests and private GitHub release assets
-
-- `sdo tool download` and `sdo tool install` can consume JSON manifests that reference GitHub release assets (for example `WebDownloadFile` entries that point at `https://github.com/OWNER/REPO/releases/download/TAG/asset.zip`).
-- For private repositories, unauthenticated requests to the public `releases/download` URL will return 404. `sdo` will attempt an authenticated fallback using the GitHub API when a token is available.
-
-How authentication is provided
-- **Multiple authentication methods supported** (tried in order of preference):
-  1. `API_GITHUB_KEY` environment variable
-  2. GitHub CLI authentication (`gh auth token`)
-  3. Windows Credential Manager (`GitHubRelease`/`API_GITHUB_KEY`)
-- **For private repositories:** Authentication is required for all operations
-- **For public repositories:** Authentication is only required for write operations (creating releases)
-- **GitHub CLI Setup:**
-  ```bash
-  # Install GitHub CLI if not already installed
-  winget install --id GitHub.cli
-  
-  # Authenticate with GitHub
-  gh auth login
-  ```
-- **Environment Variable Setup:**
-  ```powershell
-  $env:API_GITHUB_KEY = 'ghp_XXXX'
-  .\Release\sdo.exe tool install --manifest private-repo.json --verbose
-  ```
-
-Behavior
-- On download failure (404) for a GitHub release URL, `sdo` will parse the owner/repo/tag and call into `GitHubRelease.ReleaseService.DownloadAssetByName(tag, assetName, dest)` which uses the GitHub API to find the asset and download it using the authenticated asset endpoint. This approach supports private repositories when the token has appropriate scopes (typically `repo` and `releases`).
-
-Notes and troubleshooting
-- **Authentication Methods:** The tool supports multiple authentication methods. If one method fails, it will try the next available method.
-- **Token Scopes:** Ensure your authentication method has appropriate scopes:
-  - For private repositories: `repo` scope (includes releases access)
-  - For public repositories: `public_repo` scope for write operations
-- **GitHub CLI:** If using `gh auth login`, ensure the token has the correct scopes by running `gh auth status` to verify.
-- **Environment Variables:** The `API_GITHUB_KEY` takes precedence over other methods when set.
-- **For enterprise GitHub installations with custom hosts:** The `GitHubRelease` helpers must be configured to use the appropriate API base URL.
+If a private asset URL returns `404`, SDO retries through the GitHub API using
+the configured token. Verify the repository, tag, asset name, and credentials.
