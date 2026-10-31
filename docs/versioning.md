@@ -21,7 +21,7 @@ Tags in the [GitHubRelease](./github-release.md) are used to:
 
 ## Version Automation
 
-Tool versions in documentation are automatically updated using the MSBuild task (`UpdateVersionsInDocs`) via the `sdo update_doc_versions` command. This extracts all tool/version pairs from the `NbuildAppList` entries in `dev-setup/sdo.yaml` and `dev-setup/apps.yaml`, then updates the documentation table accordingly.
+Tool versions in documentation can be updated through `sdo tool manifest update --latest --file-path .\docs\sdo.md`. This updates the manifest from the latest stable releases, then extracts all tool/version pairs from `dev-setup/apps.yaml` and updates the documentation table accordingly.
 
 ### PowerShell Module Integration (v3.0.0+)
 

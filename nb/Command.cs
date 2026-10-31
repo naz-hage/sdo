@@ -741,7 +741,7 @@ namespace Nbuild
         /// <param name="manifestPath">The path to the manifest file, if provided.</param>
         /// <returns>The resolved manifest path.</returns>
         /// <exception cref="FileNotFoundException">Thrown if no manifest file is found.</exception>
-        private static string ResolveAndDisplayManifest(string? manifestPath)
+        public static string ResolveManifestPath(string? manifestPath)
         {
             var resolvedPath = !string.IsNullOrWhiteSpace(manifestPath)
                 ? manifestPath
@@ -754,6 +754,12 @@ namespace Nbuild
                 }.FirstOrDefault(File.Exists)
                 ?? throw new FileNotFoundException("No apps.yaml manifest was found.");
 
+            return resolvedPath;
+        }
+
+        private static string ResolveAndDisplayManifest(string? manifestPath)
+        {
+            var resolvedPath = ResolveManifestPath(manifestPath);
             ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(resolvedPath)}");
             return resolvedPath;
         }

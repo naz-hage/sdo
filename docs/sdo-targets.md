@@ -24,7 +24,6 @@
 | INSTALL_DOTNET_OUTDATED_TOOL | Install dotnet-outdated-tool globally |
 | UPDATE_NUGET_PACKAGES | Update all NuGet packages to the latest version |
 | LIST_NUGET_SOURCES  | List all NuGet sources |
-| UPDATE_DOC_VERSIONS |  |
 | GENERATE_COMMIT_MESSAGE | Intelligent commit message generation |
 | GIT_COMMIT_INFRASTRUCTURE | Automated Git commit with intelligent message generation |
 | UPDATE_AND_COMMIT   | Combined target: Update versions and commit with smart message |
@@ -190,5 +189,4 @@
 | UNIT_TEST_SDOTESTS  | Unit tests for all SDO tests with code coverage |
 | UNIT_TEST_NBTESTS   | Unit tests for all nbtests |
 | UNIT_TEST_ALL       | Run all unit tests |
-
 

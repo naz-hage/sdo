@@ -6,7 +6,6 @@
 	<Import Project="unit-tests.targets"/>
 
 	<!-- Update documentation versions from JSON configuration files -->
-	<UsingTask TaskName="NbuildTasks.UpdateVersionsInDocs" AssemblyFile="C:\source\sdo\Release\NbuildTasks.dll" />
 	<UsingTask TaskName="NbuildTasks.GenerateCommitMessage" AssemblyFile="C:\source\sdo\Release\NbuildTasks.dll" />
 
 	<PropertyGroup>
@@ -307,15 +306,6 @@
 		<Message Text="==> DONE"/>
 	</Target>
 
-	
-	<Target Name="UPDATE_DOC_VERSIONS" DependsOnTargets="PROPERTIES">
-		<UpdateVersionsInDocs 
-			DevSetupPath="$(SolutionDir)\dev-setup" 
-			DocsPath="$(SolutionDir)\docs\sdo.md" />
-		<Message Text="Documentation versions updated successfully." />
-		<Message Text="==> DONE"/>
-	</Target>
-
 	<!-- Intelligent commit message generation -->
 	<Target Name="GENERATE_COMMIT_MESSAGE" DependsOnTargets="PROPERTIES">
 		<PropertyGroup>
@@ -337,7 +327,7 @@
 	</Target>
 
 	<!-- Automated Git commit with intelligent message generation -->
-	<Target Name="GIT_COMMIT_INFRASTRUCTURE" DependsOnTargets="UPDATE_DOC_VERSIONS;GENERATE_COMMIT_MESSAGE">
+	<Target Name="GIT_COMMIT_INFRASTRUCTURE" DependsOnTargets="GENERATE_COMMIT_MESSAGE">
 		<PropertyGroup>
 			<!-- Use generated message if no custom message provided -->
 			<FinalCommitMessage Condition="'$(CommitMessage)' == ''">$(GeneratedCommitMessage)</FinalCommitMessage>
@@ -369,7 +359,7 @@
 	</Target>
 
 	<!-- Combined target: Update versions and commit with smart message -->
-	<Target Name="UPDATE_AND_COMMIT" DependsOnTargets="UPDATE_DOC_VERSIONS">
+	<Target Name="UPDATE_AND_COMMIT">
 		<PropertyGroup>
 			<CommitType>docs</CommitType>
 			<CommitScope>automation</CommitScope>

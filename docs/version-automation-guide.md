@@ -33,27 +33,22 @@ $version = Get-VersionFromYaml -YamlPath "./dev-setup/sdo.yaml"
 
 ---
 
-Tool versions in documentation are updated using the MSBuild task (`UpdateVersionsInDocs`) via the `sdo update_doc_versions` command. This extracts all tool/version pairs from the `NbuildAppList` entries in `dev-setup/sdo.yaml` and `dev-setup/apps.yaml`, then updates the documentation table accordingly. See the documentation in `sdo.md` for details.
+Tool versions in documentation can be updated through `sdo tool manifest update --latest --file-path .\docs\sdo.md`. This updates the manifest from the latest stable releases, then extracts all tool/version pairs from `dev-setup/apps.yaml` and updates the documentation table. See the documentation in `sdo.md` for details.
 
-### NBuild Task Integration
+### Service Integration
 
-- **File**: `NbuildTasks/UpdateVersionsInDocs.cs`
-- **Purpose**: MSBuild task for build-time automation
-- **Execution**: Integrated into your existing NBuild workflow
+- **File**: `Sdo/Services/UpdateVersionsInDocs.cs`
+- **Purpose**: Service for updating Markdown tool version tables
+- **Execution**: Invoked by `sdo tool manifest update`
 
 ### Features
-- Native C# MSBuild task implementation
-- YAML parsing using `YamlDotNet`
+- Native C# service implementation
+- YAML and JSON manifest support
 - Regex-based markdown table updating
 - Comprehensive tool name mapping logic
-- Build-time logging and error handling
-- Can be part of CI/CD pipeline
+- Explicit command error handling
 
 ### Usage
-```xml
-<Target Name="UpdateDocVersions">
-  <UpdateVersionsInDocs 
-    DevSetupPath="$(MSBuildProjectDirectory)\dev-setup" 
-    DocsPath="$(MSBuildProjectDirectory)\docs\sdo.md" />
-</Target>
+```powershell
+sdo tool manifest update --latest --file-path .\docs\sdo.md
 ```

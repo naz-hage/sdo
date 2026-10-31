@@ -939,11 +939,16 @@ sdo tool download --name "Go Lang" --dry-run
 sdo tool download --manifest apps.yaml --dry-run
 sdo tool uninstall --manifest apps.yaml --dry-run
 sdo tool install --name "Git for Windows" --appversion 2.51.1 --dry-run
+sdo tool manifest update --latest --file-path .\docs\sdo.md
 ```
 
 Application manifests contain `Version`, `DownloadPath`, and `NbuildAppList`.
 The JSON and YAML formats deserialize into the same production tool model.
 Use `sdo run` for generic workflow YAML; do not pass an apps manifest to it.
+
+`tool manifest update --latest` can also update a Markdown version table after
+the manifest is maintained. Use `--file-path` to specify the Markdown file.
+The documentation update is skipped in dry-run mode.
 
 #### run
 

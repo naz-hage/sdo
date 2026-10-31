@@ -1,12 +1,12 @@
 ## Tool version automation
 
-Tool versions in this table are automatically updated from the single `apps.yaml` file (located at `dev-setup/apps.yaml`) using the `UpdateVersionsInDocs` MSBuild task (C#). To update the table, run:
+Tool versions in this table are automatically updated from the single `apps.yaml` file (located at `dev-setup/apps.yaml`). To update the table, run:
 
 ```
-sdo update_doc_versions
+sdo tool manifest update --latest --file-path .\docs\sdo.md
 ```
 
-This will extract all tool/version pairs from the `NbuildAppList` entries in `dev-setup/apps.yaml` and update the documentation table accordingly. The `dev-setup/apps.yaml` file serves as the **single source of truth** for all developer tools managed by SDO. No PowerShell script is needed or maintained for this process.
+This will update the manifest from the latest stable releases, then extract all tool/version pairs from the `NbuildAppList` entries and update the documentation table. The `--file-path` option accepts any Markdown file containing the version table. The `dev-setup/apps.yaml` file serves as the **single source of truth** for all developer tools managed by SDO. No PowerShell script is needed or maintained for this process.
 The [Windows dev environment](https://learn.microsoft.com/en-us/windows/dev-environment/) has good information on how to setup a Windows dev environment.
 
 - The table below lists the latest development tools used by SDO.

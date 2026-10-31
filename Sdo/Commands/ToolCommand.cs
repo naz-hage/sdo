@@ -1,5 +1,6 @@
 using Launcher.Services;
 using System.CommandLine;
+using Sdo.Services;
 using NbuildCommand = Nbuild.Command;
 
 namespace Sdo.Commands
@@ -95,6 +96,10 @@ namespace Sdo.Commands
             {
                 Description = "Optional application name; updates all applications when omitted"
             };
+            var filePathOption = new Option<string?>("--file-path")
+            {
+                Description = "Optional Markdown file path to update with manifest versions"
+            };
             var latestOption = new Option<bool>("--latest")
             {
                 Description = "Discover and write the latest stable release versions"
@@ -102,6 +107,7 @@ namespace Sdo.Commands
 
             updateCommand.Add(manifestOption);
             updateCommand.Add(nameOption);
+            updateCommand.Add(filePathOption);
             updateCommand.Add(latestOption);
             updateCommand.Add(verboseOption);
             AddDryRunOption(updateCommand, dryRunOption);
@@ -109,6 +115,7 @@ namespace Sdo.Commands
             {
                 var manifest = parseResult.GetValue(manifestOption);
                 var name = parseResult.GetValue(nameOption);
+                var filePath = parseResult.GetValue(filePathOption);
                 var latest = parseResult.GetValue(latestOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult, dryRunOption);
@@ -126,6 +133,18 @@ namespace Sdo.Commands
                     if (!result.IsSuccess())
                     {
                         Console.Error.WriteLine($"Error: {result.GetFirstOutput()}");
+                        return result.Code;
+                    }
+
+                    if (!dryRun && !string.IsNullOrWhiteSpace(filePath))
+                    {
+                        var resolvedManifest = NbuildCommand.ResolveManifestPath(manifest);
+                        var documentationPath = Path.GetFullPath(filePath);
+                        new UpdateVersionsInDocs().Update(
+                            Path.GetDirectoryName(Path.GetFullPath(resolvedManifest))
+                                ?? throw new InvalidOperationException("The manifest directory could not be determined."),
+                            documentationPath);
+                        ConsoleHelper.WriteSuccess($"Updated documentation: {documentationPath}");
                     }
 
                     return result.Code;
