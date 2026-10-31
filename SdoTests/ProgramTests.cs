@@ -636,6 +636,209 @@ steps:
     }
 
     [TestMethod]
+    public void Main_WithToolDownloadNameAndDryRun_UsesDiscoveredManifest()
+    {
+        var result = Program.Main("tool", "download", "-n", "Go Lang", "-dr");
+
+        Assert.AreEqual(0, result);
+    }
+
+    [TestMethod]
+    public void Main_WithToolUninstallNameAndDryRun_ReturnsZero()
+    {
+        var result = Program.Main("tool", "uninstall", "-n", "NonExistentApp", "-dr");
+
+        Assert.AreEqual(0, result);
+    }
+
+    [TestMethod]
+    public void Main_WithInstallMissingApplication_DryRunReturnsZero()
+    {
+        var result = Program.Main("tool", "install", "--name", "NonExistentApp", "--dry-run");
+
+        Assert.AreEqual(0, result);
+    }
+
+    [TestMethod]
+    public void Main_WithToolInstallLatestWithoutName_ReturnsError()
+    {
+        var result = Program.Main("tool", "install", "--latest", "--dry-run");
+
+        Assert.AreEqual(1, result);
+    }
+
+    [TestMethod]
+    public void Main_WithToolInstallLatestAndAppVersion_ReturnsError()
+    {
+        var result = Program.Main("tool", "install", "--name", "NonExistentApp", "--appversion", "1.0.0", "--latest", "--dry-run");
+
+        Assert.AreEqual(1, result);
+    }
+
+    [TestMethod]
+    public void Main_WithInstallManifestShortAlias_UsesExplicitManifest()
+    {
+        var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-update-{Guid.NewGuid():N}.yaml");
+        File.WriteAllText(manifestPath, """
+            Version: '1.2.0'
+            NbuildAppList:
+              - Name: home
+                Version: '1.0.0'
+                AppFileName: home.exe
+                WebDownloadFile: https://example.com/home.zip
+                DownloadedFile: home.zip
+                InstallCommand: cmd.exe
+                InstallArgs: /c exit 0
+                InstallPath: C:\Temp\home
+                UninstallCommand: cmd.exe
+                UninstallArgs: /c exit 0
+            """);
+
+        try
+        {
+            var result = Program.Main("tool", "install", "-n", "home", "-m", manifestPath, "--dry-run");
+
+            Assert.AreEqual(0, result);
+        }
+        finally
+        {
+            File.Delete(manifestPath);
+        }
+    }
+
+    [TestMethod]
+    public void Main_WithInstallYamlAlias_ReturnsError()
+    {
+        var result = Program.Main("tool", "install", "-y", "apps.yaml", "--dry-run");
+
+        Assert.AreEqual(1, result);
+    }
+
+    [TestMethod]
+    public void Main_WithToolList_UsesDefaultManifestAndLatestVersions()
+    {
+        var originalDirectory = Environment.CurrentDirectory;
+        var testDirectory = Path.Combine(Path.GetTempPath(), $"sdo-install-list-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(testDirectory);
+        Environment.CurrentDirectory = testDirectory;
+        File.WriteAllText(Path.Combine(testDirectory, "apps.yaml"), """
+            Version: '1.2.0'
+            NbuildAppList:
+              - Name: home
+                Version: '1.0.0'
+                AppFileName: home.exe
+                WebDownloadFile: https://example.com/home.zip
+                DownloadedFile: home.zip
+                InstallCommand: cmd.exe
+                InstallArgs: /c exit 0
+                InstallPath: C:\Temp\home
+                UninstallCommand: cmd.exe
+                UninstallArgs: /c exit 0
+            """);
+
+        try
+        {
+            var result = Program.Main("tool", "list");
+
+            Assert.AreEqual(0, result);
+        }
+        finally
+        {
+            Environment.CurrentDirectory = originalDirectory;
+            Directory.Delete(testDirectory, true);
+        }
+    }
+
+    [TestMethod]
+    public void Main_WithToolList_NameAndVersionFilters()
+    {
+        var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-list-filter-{Guid.NewGuid():N}.yaml");
+        File.WriteAllText(manifestPath, """
+            Version: '1.2.0'
+            NbuildAppList:
+              - Name: home
+                Version: '1.0.0'
+                AppFileName: home.exe
+                WebDownloadFile: https://example.com/home.zip
+                DownloadedFile: home.zip
+                InstallCommand: cmd.exe
+                InstallArgs: /c exit 0
+                InstallPath: C:\Temp\home
+                UninstallCommand: cmd.exe
+                UninstallArgs: /c exit 0
+            """);
+
+        try
+        {
+            var result = Program.Main(
+                "tool",
+                "list",
+                "--manifest",
+                manifestPath,
+                "--name",
+                "home",
+                "--appversion",
+                "1.0.0");
+
+            Assert.AreEqual(0, result);
+        }
+        finally
+        {
+            File.Delete(manifestPath);
+        }
+    }
+
+    [TestMethod]
+    public void Main_WithToolManifestUpdateWithoutLatest_ReturnsError()
+    {
+        var result = Program.Main("tool", "manifest", "update", "--dry-run");
+
+        Assert.AreEqual(1, result);
+    }
+
+    [TestMethod]
+    public void Main_WithToolList_UsesManifestVersionWhenStoredHashMatchesUnversionedFile()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"sdo-hash-version-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var appPath = Path.Combine(root, "hashed-app.bin");
+        var manifestPath = Path.Combine(root, "apps.yaml");
+        File.WriteAllText(appPath, "installed application");
+        var hash = Convert.ToHexStringLower(
+            System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(appPath)));
+        File.WriteAllText(manifestPath, $$"""
+            Version: '1.2.0'
+            NbuildAppList:
+              - Name: HashedApp
+                Version: '1.2.3'
+                AppFileName: '{{appPath}}'
+                WebDownloadFile: https://example.com/hashed-app.zip
+                DownloadedFile: hashed-app.zip
+                InstallCommand: cmd.exe
+                InstallArgs: /c exit 0
+                InstallPath: C:\Temp\HashedApp
+                UninstallCommand: cmd.exe
+                UninstallArgs: /c exit 0
+                StoredHash: '{{hash}}'
+            """);
+
+        var originalOut = Console.Out;
+        using var output = new StringWriter();
+        Console.SetOut(output);
+
+        try
+        {
+            Assert.AreEqual(0, Program.Main("tool", "list", "--manifest", manifestPath));
+            StringAssert.Contains(output.ToString(), "| HashedApp | 1.2.3");
+        }
+        finally
+        {
+            Console.SetOut(originalOut);
+            Directory.Delete(root, true);
+        }
+    }
+
+    [TestMethod]
     public void Main_WithBackupInitAndRunDryRun_ReturnZero()
     {
         var outputPath = Path.Combine(Path.GetTempPath(), $"sdo-backup-{Guid.NewGuid():N}.json");

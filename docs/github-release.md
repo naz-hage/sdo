@@ -147,7 +147,7 @@ How authentication is provided
 - **Environment Variable Setup:**
   ```powershell
   $env:API_GITHUB_KEY = 'ghp_XXXX'
-  .\Release\sdo.exe tool install --json private-repo.json --verbose
+  .\Release\sdo.exe tool install --manifest private-repo.json --verbose
   ```
 
 Behavior

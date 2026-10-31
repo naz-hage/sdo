@@ -12,7 +12,6 @@
 | [Unzip](#unzip)  | Unzips the specified file. |
 | [Zip](#zip)  | Zips the specified file. |
 | [Pwsh](#pwsh) | Runs a PowerShell Core script from MSBuild. |
-| [UpdateVersionsInDocs](#updateversionsindocs) | Updates version numbers in documentation files. |
 
 Here are examples of custom Tasks that can be used during builds:
 
@@ -111,14 +110,6 @@ Here are examples of custom Tasks that can be used during builds:
 	<Message Text="==> PWSH_DONE" />
 </Target>
 ```
-### UpdateVersionsInDocs
-```xml
-<!-- This target uses the `UpdateVersionsInDocs` task to update version numbers in documentation files -->
-<Target Name="UPDATE_DOC_VERSIONS">
-	<UpdateVersionsInDocs DocsPath="$(SolutionDir)docs" Version="$(Version)" />
-</Target>
-```
-
 ### Modern Approach with sdo-scripts module
 ```xml
 <Target Name="PUBLISH">

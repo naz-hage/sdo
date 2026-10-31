@@ -88,14 +88,35 @@ NbuildAppList:
 | `Version`         | The version of the tool.                                                   |
 | `AppFileName`     | The file name of the tool, used to check if it is already installed.        |
 | `WebDownloadFile` | The URL to download the tool.                                               |
+| `LatestVersionUrl` | (Optional) URL used by `tool list` to discover the latest stable release when the download URL is not a GitHub release URL. |
+| `LatestVersionStrategy` | (Optional) Provider-specific discovery strategy, such as `github-tags`, `mongodb-download-page`, or `docker-appcast`. |
 | `DownloadedFile`  | The name of the downloaded file, used for installation.                    |
 | `InstallCommand`  | The command to install the tool.                                            |
 | `InstallArgs`     | The arguments for the installation command.                                 |
 | `InstallPath`     | The location where the tool will be installed.                              |
 | `UninstallCommand`| The command to uninstall the tool.                                          |
 | `UninstallArgs`   | The arguments for the uninstallation command.                               |
-| `StoredHash`      | (Optional) SHA256 hash of the file for verification.                        |
+| `UpdateInPlace`   | (Optional) Updates the tool without uninstalling the existing installation first. Use this for installers that support in-place upgrades, such as Docker Desktop. |
+| `StoredHash`      | (Optional) SHA256 hash of the file for verification and version reporting when the file has no version metadata. |
 | `AddToPath`       | (Optional) Whether to add the tool's path to the system PATH environment variable. |
+
+`LatestVersionUrl` is not required for normal installation or for tools that
+use a pinned manifest version. The `tool list` command can discover a release
+automatically when `WebDownloadFile` is a GitHub release download URL.
+Add `LatestVersionUrl` only when the download host is different from the
+release host, such as Helm:
+
+```yaml
+- Name: "Helm"
+  Version: "3.21.3"
+  WebDownloadFile: "https://get.helm.sh/helm-v$(Version)-windows-amd64.zip"
+  LatestVersionUrl: "https://github.com/helm/helm"
+```
+
+In this example, Helm releases are discovered from GitHub while the actual
+archive continues to download from `get.helm.sh`. The value should identify
+the GitHub repository (`https://github.com/OWNER/REPOSITORY`); it is not
+required to include a version or release tag.
 
 ---
 

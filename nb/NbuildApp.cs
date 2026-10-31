@@ -19,6 +19,8 @@ namespace Nbuild
         public string? AppFileName { get; set; }     // name of File that hold the app version.  File should have file version info
         [Required(ErrorMessage = "WebDownloadFile is required")]
         public string? WebDownloadFile { get; set; }     // the url to download the app from. can use $(Name) and $(Version) substitutions
+        public string? LatestVersionUrl { get; set; }     // optional URL used to discover the latest stable version
+        public string? LatestVersionStrategy { get; set; } // optional discovery strategy, such as github-tags
         [Required(ErrorMessage = "DownloadedFile is required")]
         public string? DownloadedFile { get; set; }     // the downloaded file name, can use $(Name) and $(Version) substitutions
         [Required(ErrorMessage = "InstallCommand is required")]
@@ -31,6 +33,7 @@ namespace Nbuild
         public string? UninstallCommand { get; set; }  // uninstall command to run to uninstall the app. i.e. setup.exe
         [Required(ErrorMessage = "UninstallArgs is required")]
         public string? UninstallArgs { get; set; }     // the arguments to pass to the uninstall command. can use $(Version) and $(InstallPath) to substitute the version number
+        public bool? UpdateInPlace { get; set; } = false; // update without uninstalling the existing installation first
         public string? StoredHash { get; set; }
         public bool? AddToPath { get; set; } = false; // add the install path to the system path
     }

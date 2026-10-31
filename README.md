@@ -82,20 +82,26 @@ Tool manifests such as `apps.yaml` are handled by `sdo tool`, not `sdo run`.
 
 #### YAML Tool Manifests
 
-`sdo tool` accepts the existing JSON manifest format and the equivalent YAML
-format. Use `--manifest` for either format; `--json` remains available for
-existing scripts.
+`sdo tool` accepts only YAML manifests through `--manifest`.
 
 ```bash
 sdo tool list --manifest .\dev-setup\apps.yaml
 sdo tool install --manifest .\dev-setup\apps.yaml --dry-run
 sdo tool download --manifest .\dev-setup\apps.yaml --dry-run
 sdo tool uninstall --manifest .\dev-setup\apps.yaml --dry-run
+sdo tool list --manifest .\dev-setup\apps.yaml
 
 sdo tool install --name "Git for Windows" --appversion 2.51.1 --dry-run
 ```
 
 Tool manifests contain `Version`, `DownloadPath`, and `NbuildAppList`.
+Each application normally needs only its pinned `Version` and
+`WebDownloadFile`. The optional `LatestVersionUrl` property is used by
+`sdo tool list` when the release metadata is hosted separately
+from the download URL; for example, Helm downloads from `get.helm.sh` but
+discovers releases from `https://github.com/helm/helm`.
+Use `sdo tool list` to discover and display the latest
+version for every application without installing or updating any tool.
 Use `sdo run` for workflow YAML and `sdo e2e` for test metadata YAML.
 
 #### YAML Test Metadata

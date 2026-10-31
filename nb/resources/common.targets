@@ -48,7 +48,6 @@
 	<Import Project="$(BuildTools)\code.targets"/>
 	<Import Project="$(BuildTools)\node.targets"/>
 	<Import Project="$(BuildTools)\mongodb.targets"/>
-	<Import Project="$(BuildTools)\nuget.targets"/>
 	<Import Project="$(BuildTools)\ngit.targets"/>
 	<Import Project="$(BuildTools)\docker.targets"/>
 	<Import Project="$(BuildTools)\terraform.targets"/>
@@ -57,7 +56,6 @@
 	<Target Name="PROPERTIES" DependsOnTargets="TAG">
 		<PropertyGroup>
 			<SdoExe>$(BuildTools)\sdo.exe</SdoExe>
-			<NugetExe>$(BuildTools)\nuget.exe</NugetExe>
 			<ZipExe>$(ProgramFiles)\7-Zip\7z.exe</ZipExe>
 			<TargetRelease>Release</TargetRelease>
 			<TargetDebug>Debug</TargetDebug>

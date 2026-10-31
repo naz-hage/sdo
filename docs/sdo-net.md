@@ -822,29 +822,133 @@ sdo repo delete --force --verbose   # Show mapping
 
 These command groups consolidate the local build, backup, and file-search workflows into SDO.
 
+#### tool list
+
+Display each application's installed version, manifest version, latest stable
+release, and upstream link:
+
+```bash
+sdo tool list
+sdo tool list --manifest .\dev-setup\apps.yaml
+```
+
+The command always reports the manifest path it uses, whether the path was
+provided explicitly or discovered automatically.
+
+Options:
+- `--manifest <path>` (`-m` only) — Optional JSON or YAML manifest path; otherwise the current directory, the executable directory, and the default installation directory are searched
+- `--name <name>` (`-n`) — Restrict the table to one application name
+- `--appversion <version>` (`-av`) — Restrict the table to one manifest version
+- `--verbose` — Enable detailed output
+
+Latest-version discovery does not require an additional manifest property when
+`WebDownloadFile` points directly to a GitHub release download URL. For tools
+whose download URL is hosted elsewhere, add the optional `LatestVersionUrl`
+property to the application entry. This lets SDO use the GitHub repository for
+version discovery while preserving `WebDownloadFile` as the download URL.
+Most applications therefore do not need this property; Helm uses it because
+its archives are hosted at `get.helm.sh`.
+
+#### tool manifest update --latest
+
+Update the selected YAML tool manifest with the latest stable version for
+each application without installing or downloading anything:
+
+```bash
+sdo tool manifest update --latest
+sdo tool manifest update --manifest .\dev-setup\apps.yaml --latest
+sdo tool manifest update --name "Python" --latest --dry-run
+```
+
+When `--manifest` (`-m`) is omitted, SDO searches for `apps.yaml` in the
+current directory, the executable directory, and the default installation
+directory. All applications are updated by default; use `--name` (`-n`) to
+limit the maintenance action to one application. Use `--dry-run` (`-dr`) to
+preview version changes without modifying the manifest. This command updates
+the manifest only and does not install, uninstall, or download applications.
+Applications whose latest version cannot be resolved are reported separately;
+the dry run still displays all other available changes and leaves the manifest
+unchanged. Unresolved applications are warnings and do not prevent the
+command from reporting the manifest as up to date when no resolvable changes
+remain.
+
+#### tool install --latest
+
+Install a named tool using the latest discovered release:
+
+```bash
+sdo tool install --name "Python" --latest
+sdo tool install --name "Python" --latest --manifest .\dev-setup\apps.yaml
+sdo tool install --name "Python" --latest --dry-run
+```
+
+`--name` is required with `--latest`. Use `--manifest` (`-m`) to select a
+specific JSON or YAML manifest. `--appversion` cannot be combined with
+`--latest`.
+
+##### `tool list` columns
+
+The `sdo tool list` table contains one row for each application in the selected
+manifest:
+
+| Column | Meaning |
+| --- | --- |
+| `Name` | The application name from the manifest. |
+| `Installed` | The installed file version when Windows file metadata provides one. If version metadata is unavailable but the file's SHA-256 matches `StoredHash`, this displays the manifest version. Otherwise, `installed` means the configured file or installation directory exists, while `not installed` means neither was found. |
+| `Manifest` | The version configured in the selected manifest. |
+| `Latest` | The latest version discovered from the application's release metadata. It displays `Unresolved` when discovery is not supported or fails. |
+| `Link` | The release or download URL used for version discovery and review. GitHub download URLs are displayed as the repository's latest-release page when possible. |
+
+`tool list` colors the status row as follows:
+
+- **Green:** The installed version matches the manifest version, including a
+  matching `StoredHash` fallback.
+- **Cyan:** The application is not installed.
+- **Yellow:** The application is installed but has an unknown version or does
+  not match the manifest version.
+- **Red:** Reserved for command errors rather than normal version differences.
+
+`Installed` is determined as follows:
+
+- **Applications with valid file-version metadata:** `Installed` displays the
+  version reported by the installed file. The manifest hash is not required for
+  this display.
+- **Applications with `StoredHash`:** When the installed file does not expose
+  usable version metadata, SDO calculates its SHA-256 hash. If it matches
+  `StoredHash`, `Installed` displays the manifest version. If it does not
+  match, `Installed` displays `installed` when the configured file or
+  installation directory exists, or `not installed` otherwise.
+
 #### tool
 
-Environment tool installation, auditing, and manifest management. Use
-`--manifest` for YAML manifests; the legacy `--json` option remains supported for explicitly supplied JSON files.
+Environment tool installation, auditing, and manifest management. Use `--manifest` for JSON or YAML manifests. When it is omitted for a
+named operation, the command searches the current directory, the executable
+directory, and the default installation directory for `apps.yaml`.
 
 Subcommands:
 - `install` — Install tools from a manifest or by application name
-- `list` — Display tools and versions
-- `uninstall` — Uninstall tools from a manifest
+- `list` — Display installed, manifest, and discovered latest versions
+- `uninstall` — Uninstall tools from a manifest or by application name
 - `download` — Download tools from a manifest
 
 ```bash
 sdo tool list
 sdo tool list --manifest .\dev-setup\apps.yaml
 sdo tool install --manifest apps.yaml --dry-run
+sdo tool download --name "Go Lang" --dry-run
 sdo tool download --manifest apps.yaml --dry-run
 sdo tool uninstall --manifest apps.yaml --dry-run
 sdo tool install --name "Git for Windows" --appversion 2.51.1 --dry-run
+sdo tool manifest update --latest --file-path .\docs\sdo.md
 ```
 
 Application manifests contain `Version`, `DownloadPath`, and `NbuildAppList`.
 The JSON and YAML formats deserialize into the same production tool model.
 Use `sdo run` for generic workflow YAML; do not pass an apps manifest to it.
+
+`tool manifest update --latest` can also update a Markdown version table after
+the manifest is maintained. Use `--file-path` to specify the Markdown file.
+The documentation update is skipped in dry-run mode.
 
 #### run
 
@@ -1810,30 +1914,34 @@ Below are practical examples for using `sdo.exe`. These examples assume you are 
 
 ### 1. Install Applications
 
-#### Install from JSON file:
+#### Install from a manifest file:
 ```cmd
-sdo.exe tool install --json "C:\Program Files\tools.json"
+sdo.exe tool install --manifest "C:\Program Files\tools.json"
 ```
-Installs applications specified in the manifest file. The `--manifest` parameter accepts a YAML manifest. The legacy `--json` parameter remains available for an explicitly supplied JSON file. When `--name` is provided without a manifest, automatic discovery searches `apps.yaml` in the current directory, `dev-setup\apps.yaml`, and `C:\Program Files\sdo\apps.yaml`. (Requires admin privileges.)
+Installs applications specified in the manifest file. The `--manifest` parameter accepts JSON or YAML. When `--name` is provided without a manifest, automatic discovery searches `apps.yaml` in the current directory, `dev-setup\apps.yaml`, and `C:\Program Files\sdo\apps.yaml`. (Requires admin privileges.)
 
 #### Install by name from current directory and default location:
 ```cmd
 sdo.exe tool install --name "MyApp"
 sdo.exe tool install --name "MyApp" --appversion "1.2.3"
+sdo.exe install --name "MyApp" --latest
 ```
-Searches for the requested application in the explicit `--json` manifest first when one is provided, then in `apps.yaml` in the current directory, `go\\apps.yaml`, and finally in `C:\\Program Files\\sdo\\apps.yaml`. The `--appversion` parameter is optional and overrides the version specified in the JSON file.
+Searches only the explicit manifest when one is provided. Without an explicit
+manifest, automatic discovery checks `apps.yaml` in the current directory, the
+executable directory, and `C:\\Program Files\\sdo\\apps.yaml`. The
+`--appversion` parameter is optional and overrides the version specified in the
+manifest.
 
 #### Install a named tool from a YAML manifest:
 ```cmd
 sdo.exe tool install --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
 ```
-Installs only the matching tool from the specified manifest. Standalone executables that do not expose Windows file-version metadata use the manifest version for reporting. After installation, SDO displays the installed file's SHA-256 hash; when `StoredHash` is present, the hash is also validated.
+Installs only the matching tool from the specified manifest. Standalone executables that do not expose Windows file-version metadata use the manifest version for reporting when the installed file's SHA-256 hash matches `StoredHash`. After installation, SDO displays the installed file's SHA-256 hash; when `StoredHash` is present, the hash is also validated.
 
-**BREAKING CHANGE (v1.76+):** This command now searches ONLY for `apps.yaml` files, not all JSON files. You must consolidate your application definitions into a single `apps.yaml` file in the target directory or move it to the default installation directory.
+**Manifest discovery:** Automatic discovery searches only for `apps.yaml`.
+Explicit `--manifest` paths may refer to either JSON or YAML manifests.
 
-**Search order:** When `--json` is provided, that file is searched first, followed by `apps.yaml` in the current directory, then `C:\Program Files\nbuild\apps.yaml`. Without `--json`, the current directory is searched first, followed by the default installation directory. The first matching app takes precedence.
-
-**Note:** If you specify both `--json` and `--name`, the command searches the specified JSON file first and falls back to the standard locations if the app is not found there. The `--name` method provides a convenient way to install applications without needing to know the exact path to the JSON configuration file.
+**Search order:** When an explicit manifest is provided, only that file is searched. Without an explicit manifest, the current directory is searched first, followed by the executable and default installation directories. The first matching app takes precedence.
 
 #### Dry-run mode for install:
 ```cmd
@@ -1842,9 +1950,9 @@ sdo.exe tool install --name "MyApp" --appversion "1.2.3" --dry-run
 ```
 
 **Behavior in dry-run mode:**
-- Searches the explicit `--json` file first when provided, then `apps.yaml` in the current directory, then the default installation directory
+- Searches only the explicit `--manifest` file when provided; otherwise checks `apps.yaml` in the current directory, the executable directory, and the default installation directory
 - If app is found: displays `DRY-RUN: would install app 'MyApp'` in yellow and lists version details
-- If app is not found: displays `No apps found matching 'MyApp'` in red, lists the search directories (current directory and default installation directory), and lists available applications found in those `apps.yaml` files
+- If app is not found: displays `No apps found matching 'MyApp'` in red, lists the search directories, and lists available applications found in those `apps.yaml` files
 - Dry-run always returns exit code 0 (success), even when app is not found, as it is a preview/simulation mode
 - Always succeeds (exit code 0) because dry-run is a preview, not actual installation
 - No files are downloaded, installed, or modified
@@ -1852,35 +1960,51 @@ sdo.exe tool install --name "MyApp" --appversion "1.2.3" --dry-run
 
 ### 2. Uninstall Applications
 ```cmd
-sdo.exe tool uninstall --json "C:\Program Files\example-tool.json"
+sdo.exe tool uninstall --manifest "C:\Program Files\example-tool.json"
 ```
 Uninstalls applications as specified in the manifest file. (Requires admin privileges.)
 
 #### Uninstall only one named application:
 ```cmd
+sdo.exe tool uninstall --name "Argo CD"
 sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
 sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml" --appversion "2.5.0"
 ```
-The `--name` (`-n`) option limits uninstall to the matching application instead of processing every entry in the manifest. Use `--appversion` (`-av`) when the manifest contains multiple versions of the same application.
+The `--name` (`-n`) option limits uninstall to the matching application instead of processing every entry in the manifest. When no manifest is supplied, SDO searches `apps.yaml` in the current directory, the executable directory, and the default installation directory. Uninstall determines whether the application is installed from its executable or install path; it does not require the installed version to match the version recorded in `apps.yaml`. Use `--appversion` (`-av`) when the manifest contains multiple versions of the same application.
 
 The sample `dev-setup\apps.yaml` manifest includes Crossplane CLI `2.5.0`, installed to `C:\Program Files\Crossplane` and added to the user PATH. Its configured SHA-256 hash is checked after installation.
+
+### 2.5 List Latest Tool Releases
+```cmd
+sdo.exe tool list
+sdo.exe tool list --manifest ".\dev-setup\apps.yaml"
+```
+The list command queries GitHub release URLs for the latest stable release and
+displays the resolved link. Non-GitHub release URLs require a pinned manifest
+version or an appropriate `LatestVersionUrl`.
 
 ### 3. List Installed Applications
 ```cmd
 sdo.exe tool list
 sdo.exe tool list --manifest "C:\Program Files\sdo\apps.yaml"
 ```
-Lists all applications specified in the provided JSON file. If no `--manifest` option is specified, the default file is used.
+Lists all applications specified in the provided manifest. If no `--manifest` option is specified, the default file is used.
 
 ### 4. Download Applications
 ```cmd
 sdo.exe tool download --manifest "C:\Program Files\sdo\apps.yaml"
 ```
-Downloads tools and applications specified in the manifest file. The output table expands its columns for long application names and filenames and does not add status prefixes inside table rows. (Uses the `--manifest` option to locate the YAML file.)
+Downloads tools and applications specified in the manifest file. The
+`--name` (`-n`) and `--appversion` (`-av`) options can limit the download to
+one application. If `--manifest` (`-m`) is omitted, the command discovers
+`apps.yaml` in the current directory, the executable directory, or the
+default installation directory. The output table expands its columns for
+long application names and filenames and does not add status prefixes inside
+table rows.
 
-### 5. Error Handling for JSON Manifest Files
+### 5. Error Handling for Tool Manifest Files
 
-The `list`, `install`, `uninstall`, and `download` commands require valid YAML manifest files. The following errors may occur:
+The `list`, `install`, `uninstall`, and `download` commands require valid tool manifest files. JSON and YAML are supported through `--manifest`.
 
 #### File Not Found
 ```
