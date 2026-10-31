@@ -779,7 +779,6 @@ public class WorkItemCommandTests
 
         // Assert
         var createSubcommand = command.Subcommands.Single(s => s.Name == "create");
-        Assert.IsNotNull(createSubcommand);
         Assert.AreEqual("Create a new work item", createSubcommand.Description);
     }
 
@@ -792,7 +791,6 @@ public class WorkItemCommandTests
 
         // Assert
         var filePathOption = createCmd.Options.Single(o => o.Name == "--file-path");
-        Assert.IsNotNull(filePathOption);
         Assert.AreEqual("Path to markdown file containing work item details (auto-detected as .temp/wi.md if not provided)", filePathOption.Description);
     }
 
@@ -805,7 +803,6 @@ public class WorkItemCommandTests
 
         // Assert
         var dryRunOption = createCmd.Options.Single(o => o.Name == "--dry-run");
-        Assert.IsNotNull(dryRunOption);
         Assert.AreEqual("Parse and preview work item creation without creating it", dryRunOption.Description);
     }
 
@@ -835,7 +832,7 @@ public class WorkItemCommandTests
 
         // Assert
         var startSubcommand = command.Subcommands.Single(s => s.Name == "start");
-        Assert.IsNotNull(startSubcommand);
+
         Assert.AreEqual("Start work on a work item by creating a feature branch and PR template", startSubcommand.Description);
     }
 
@@ -1069,7 +1066,6 @@ public class WorkItemCommandTests
 
         // Assert
         var closeSubcommand = command.Subcommands.Single(s => s.Name == "close");
-        Assert.IsNotNull(closeSubcommand);
         Assert.AreEqual("Close a work item and clean up feature branch", closeSubcommand.Description);
     }
 
@@ -1095,7 +1091,6 @@ public class WorkItemCommandTests
 
         // Assert
         var verboseOpt = closeCmd.Options.Single(o => o.Name == "--verbose");
-        Assert.IsNotNull(verboseOpt);
         Assert.AreEqual("Enable verbose output", verboseOpt.Description);
     }
 
