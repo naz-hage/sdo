@@ -6,10 +6,9 @@ and Azure DevOps operations on Windows clients and in GitHub Actions.
 ---
 
 ### Getting Started
-- [Installation](installation.md)
+- [Installation and project setup](setup.md)
 - [Features](features.md)
 - [Usage Guide](usage.md)
-- [Project Setup](setup.md)
 - [Architecture Overview](devops-tools-suite-architecture.md)
 - [Build Types](buildtypes.md)
 - [Versioning](versioning.md)
@@ -20,7 +19,6 @@ and Azure DevOps operations on Windows clients and in GitHub Actions.
 
 ### Supporting Components
 - [PowerShell Module - sdo-scripts](sdo-scripts-module.md)
-- [sdo-scripts Module API](sdo-scripts-module-api.md)
 - [Development Tools](sdo.md) - Supporting development utilities
 - [Custom Build Tasks (Nbuild Tasks)](nbuildtasks.md)
 
@@ -29,7 +27,6 @@ and Azure DevOps operations on Windows clients and in GitHub Actions.
 - [SDO Targets](sdo-targets.md)
 
 ### DevOps Integration
-- [Version Automation Guide](version-automation-guide.md)
 - [AzDO Payloads Reference](azdo_payloads.md)
 
 ### Work Item Examples

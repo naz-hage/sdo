@@ -18,16 +18,6 @@ public class ProgramTests
         Assert.AreEqual(1, result);
     }
 
-    [Ignore("System.CommandLine v2.0.2 limitation: --help returns 1 instead of 0")]
-    public void Main_WithHelpOption_ReturnsZero()
-    {
-        // Act
-        var result = Program.Main("--help");
-
-        // Assert
-        Assert.AreEqual(0, result);
-    }
-
     [TestMethod]
     public void Main_WithVersionOption_ReturnsZero()
     {

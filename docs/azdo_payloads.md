@@ -1,69 +1,46 @@
 ---
-title: Azure DevOps JSON-Patch payloads
+title: Azure DevOps work item payloads
 ---
 
-# Azure DevOps JSON-Patch examples
+# Azure DevOps work item payloads
 
-This page contains example request payloads used by the AzDO writer in `atools/add_issue.py` and sample failure responses you may encounter.
+SDO uses Azure DevOps JSON Patch requests when it creates or updates work
+items. This is an Azure DevOps API requirement and is unrelated to tool
+manifest formats; SDO supports YAML tool manifests only.
 
-## Create work item (JSON-Patch) example
+The implementation is in
+[`AzureDevOpsClient.cs`](../Sdo/Services/AzureDevOpsClient.cs).
 
-Request (PATCH array) to create a work item via the AzDO REST API (POST to `https://dev.azure.com/{org}/{project}/_apis/wit/workitems/${type}?api-version=7.0`):
+## Create a work item
+
+Azure DevOps expects a `POST` request with a JSON Patch array:
+
+```http
+POST https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${type}?api-version=7.1
+Content-Type: application/json-patch+json
+```
 
 ```json
 [
   { "op": "add", "path": "/fields/System.Title", "value": "Example issue title" },
-  { "op": "add", "path": "/fields/System.Description", "value": "Full description with markdown or HTML" },
-  { "op": "add", "path": "/fields/Microsoft.VSTS.Common.AcceptanceCriteria", "value": "- AC1\n- AC2" },
-  { "op": "add", "path": "/relations/-", "value": { "rel": "System.LinkTypes.Hierarchy-Reverse", "url": "https://dev.azure.com/.../workitems/123", "attributes": { "comment": "Related work" } } }
+  { "op": "add", "path": "/fields/System.Description", "value": "Description" },
+  { "op": "add", "path": "/fields/Microsoft.VSTS.Common.AcceptanceCriteria", "value": "- AC1\n- AC2" }
 ]
 ```
 
-Notes:
-- The `AcceptanceCriteria` field is optional and will only be included if the project defines a field with that reference name. The writer attempts to discover field reference names via the AzDO work item type schema.
+The acceptance-criteria operation is included only when the project supports
+the `Microsoft.VSTS.Common.AcceptanceCriteria` field. SDO discovers the
+available work-item fields from the Azure DevOps work-item type schema.
 
-## Example success response (201 Created)
+## Authentication
 
-```json
-{
-  "id": 456,
-  "rev": 1,
-  "fields": {
-    "System.Title": "Example issue title",
-    "System.State": "New",
-    "System.WorkItemType": "Task"
-  },
-  "url": "https://dev.azure.com/myorg/_apis/wit/workItems/456"
-}
-```
+Set `AZURE_DEVOPS_PAT` or configure the Azure DevOps credential in Windows
+Credential Manager. The PAT needs permission to read and write work items.
 
-## Example failure responses
+## Common failures
 
-- 401 Unauthorized (invalid/missing PAT):
-
-```json
-{
-  "message": "TF400813: Resource not available for anonymous access. Client authentication required."
-}
-```
-
-- 400 Bad Request (invalid field or missing required fields):
-
-```json
-{
-  "errorCode": "InvalidFieldValue",
-  "message": "The field 'Microsoft.VSTS.Common.AcceptanceCriteria' is not valid for work item type 'Task'."
-}
-```
-
-- 404 Not Found (project or area path missing):
-
-```json
-{
-  "message": "TF400898: The project 'MyProject' does not exist or you do not have permission to access it."
-}
-```
-
-## Troubleshooting
-
-- Ensure PAT has 'Work Items (read and write)' scope and the token is provided via `AZURE_DEVOPS_PAT` environment variable.
+- **401 Unauthorized**: Check `AZURE_DEVOPS_PAT`, Credential Manager, and PAT
+  permissions.
+- **400 Bad Request**: Check the work-item type, field reference names, and
+  required fields.
+- **404 Not Found**: Check the organization, project, and work-item endpoint.

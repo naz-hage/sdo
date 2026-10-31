@@ -1,192 +1,125 @@
-# sdo-scripts PowerShell Module
+# sdo-scripts PowerShell module
 
-This page documents how to install, use, develop, and troubleshoot the `sdo-scripts` PowerShell module. The [module API reference](sdo-scripts-module-api.md) is the canonical list of exported functions.
+The `sdo-scripts` module provides the PowerShell functions used by SDO build
+and CI workflows.
 
-**Location**: `scripts/module-package/sdo-scripts.psm1`
+Source:
+
+```text
+scripts/module-package/sdo-scripts.psm1
+```
 
 ## Quick start
 
-Follow these minimal steps to start using the module locally or in CI.
+Import the module from a repository checkout:
 
 ```powershell
-# Import for local development
-Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
-
-# Check the module version
+Import-Module .\scripts\module-package\sdo-scripts.psm1 -Force
 Get-SdoScriptsVersion
-
-# Install the latest stable SDO release ending in .0
-Install-Sdo
-```
-
-## Table of contents
-
-- [Quick start](#quick-start)
-- [Overview](#overview)
-- [Installation](#installation)
-- [Module information](#module-information)
-- [Usage examples](#usage-examples)
-- [Module development](#module-development)
-- [Troubleshooting](#troubleshooting)
-- [Module API reference](sdo-scripts-module-api.md)
-
-## Overview
-
-The module consolidates build, CI, setup, testing, utility, and release functions from the previous script structure. Only the functions listed in `scripts/module-package/sdo-scripts.psd1` are exported.
-
-Discover the exported commands at runtime:
-
-```powershell
-Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
 Get-Command -Module sdo-scripts | Sort-Object Name
 ```
 
-## Installation
-
-Install the module manually for local development:
+Install the latest stable SDO release:
 
 ```powershell
-Install-NToolsScriptsModule -InstallPath "$env:ProgramFiles\WindowsPowerShell\Modules\sdo-scripts" -Force
-```
-
-
-## Module Information
-
-**Version**: 3.0.0  
-**Location**: `scripts/module-package/sdo-scripts.psm1`  
-**Installation**: Automatically installed via MSBuild targets and GitHub Actions
-
-## Architecture
-
-The module consolidates functionality from the previous script structure. The manifest at `scripts/module-package/sdo-scripts.psd1` controls the public API; see the [module API reference](sdo-scripts-module-api.md) for the exported commands and examples.
-
-## Usage Examples
-Import the module before calling its exported functions:
-
-```powershell
-Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
-```
-
-### Get Module Information
-```powershell
-# Get version
-Get-SdoScriptsVersion
-
-# List all available functions
-Get-Command -Module sdo-scripts | Select-Object Name | Format-Table -AutoSize
-```
-
-### Install SDO with Custom Configuration
-```powershell
-# Install the latest stable release ending in .0
 Install-Sdo
+```
 
-# Install specific version
+Install a specific release:
+
+```powershell
 Install-Sdo -Version "1.29.7" -DownloadsDirectory "C:\MyDownloads"
 ```
 
-### Publish Projects with Deterministic Path
+The module is also installed by the SDO build and GitHub Actions workflows.
+
+## Exported functions
+
+The public API is defined by `FunctionsToExport` in
+`scripts/module-package/sdo-scripts.psd1`.
+
+| Function | Purpose |
+| --- | --- |
+| `Publish-AllProjects` | Build and publish non-test projects. |
+| `Get-SdoScriptsVersion` | Return the module version. |
+| `Set-DevelopmentEnvironment` | Set local development environment variables. |
+| `Get-VersionFromYaml` | Read version fields from an `sdo.yaml` file. |
+| `Write-TestResult` | Write a standardized test result. |
+| `Test-TargetExists` | Check whether an MSBuild target exists. |
+| `Test-TargetDependencies` | Validate MSBuild target dependencies. |
+| `Test-TargetDelegation` | Verify target delegation used by SDO. |
+| `Get-FileHash256` | Compute a SHA-256 file hash. |
+| `Get-FileVersionInfo` | Read file and product version metadata. |
+| `Invoke-FastForward` | Fast-forward a Git ref. |
+| `Write-OutputMessage` | Write consistently formatted output. |
+| `Get-SdoFileVersion` | Read the SDO product version from a binary. |
+| `Add-DeploymentPathToEnvironment` | Add a deployment path to `PATH`. |
+| `Invoke-SdoDownload` | Download an SDO release artifact. |
+| `Get-LatestSdoReleaseVersion` | Find the latest stable SDO release. |
+| `Install-Sdo` | Install an SDO release. |
+
+View the installed commands at any time:
+
 ```powershell
-# Publish all projects with explicit repository root
-Publish-AllProjects -OutputDir "C:\Artifacts" -Version "1.0.0" -RepositoryRoot "C:\MyRepo"
+Get-Command -Module sdo-scripts
 ```
 
-### Run Tests and Coverage
+## Build and CI usage
+
+Publish projects with an explicit repository path:
+
 ```powershell
-# Run code coverage
-Invoke-CodeCoverage
-
-# Test MSBuild delegation (also available via 'sdo smoke_test')
-Test-MSBuildDelegation
-
-# Or use the comprehensive smoke test target
-# sdo smoke_test  # (from command line - includes both artifact validation AND target delegation)
+Publish-AllProjects `
+  -OutputDir C:\Artifacts `
+  -Version 1.0.0 `
+  -RepositoryRoot C:\MyRepo
 ```
 
-### MSBuild Integration
-- **Usage**: `PUBLISH` target uses `Publish-AllProjects` function with deterministic repository path
-- **Smoke Testing**: `SMOKE_TEST` target uses `Test-TargetDelegation` function for build system validation
-- **Location**: Module installed to `$env:ProgramFiles\nbuild\modules\sdo-scripts\`
+Run target validation:
 
-### SMOKE_TEST Target Integration
-The comprehensive `SMOKE_TEST` target combines artifact validation with PowerShell module functions:
-
-```bash
-# Comprehensive smoke test (recommended)
-sdo smoke_test
+```powershell
+Test-TargetDelegation -SolutionDir .
 ```
 
-This target performs:
-1. **Artifact Validation**: Tests the packaged `sdo.exe` executable
-2. **Build System Validation**: Uses `Test-TargetDelegation` function to verify MSBuild target relationships
-3. **Consolidated Results**: Single pass/fail result for all validation checks
+The `PUBLISH` target uses `Publish-AllProjects`. The `SMOKE_TEST` target uses
+`Test-TargetDelegation`.
 
-**Migration Note**: The deprecated `TEST_TARGET_DELEGATION` target functionality is now integrated into `SMOKE_TEST`.
+Example GitHub Actions setup:
 
-### GitHub Actions Integration
 ```yaml
-- name: Install SDO using sdo-scripts module
+- name: Install SDO
+  shell: pwsh
   run: |
-    Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
-  python atools/install-sdo.py --version 1.32.0 --yaml dev-setup/sdo.yaml --downloads-dir ${{ runner.temp }} --dry-run
+    Import-Module ./scripts/module-package/sdo-scripts.psm1 -Force
+    Install-Sdo
 ```
 
-## Module Development
+## Development
 
-### Adding New Functions
-1. Add function to appropriate section in `sdo-scripts.psm1`
-2. Add function name to `Export-ModuleMember` line
-3. Update `FunctionsToExport` in `sdo-scripts.psd1`
-4. Increment module version
-5. Update documentation
+1. Add or update a function in `sdo-scripts.psm1`.
+2. Update `FunctionsToExport` in `sdo-scripts.psd1`.
+3. Update this document.
+4. Run the module tests:
 
-### Testing
 ```powershell
-# Test the module
-Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
-Test-NToolsScriptsModule
+.\scripts\module-package\test-module.ps1
 ```
-
-### Installation
-```powershell
-# Install module manually for development
-Install-NToolsScriptsModule -InstallPath "$env:ProgramFiles\WindowsPowerShell\Modules\sdo-scripts" -Force
-```
-
-## Best Practices
-
-1. **Always specify -Force when importing** to reload changes during development
-2. **Use explicit parameters** like `-RepositoryRoot` for deterministic behavior
-3. **Import the module** before calling any functions
-4. **Check module version** with `Get-NtoolsScriptsVersion` for troubleshooting
-5. **Use the utility functions** like `Write-Info`, `Write-Success` for consistent output
 
 ## Troubleshooting
 
-### Module Not Found
-```powershell
-# Verify module location
-Test-Path "./scripts/module-package/sdo-scripts.psm1"
+Check that the source module exists:
 
-# Check if installed
-Test-Path "$env:ProgramFiles\nbuild\modules\sdo-scripts\sdo-scripts.psm1"
+```powershell
+Test-Path .\scripts\module-package\sdo-scripts.psm1
 ```
 
-### Version Issues
-```powershell
-# Check module version
-Get-NtoolsScriptsVersion
+Check the installed module and version:
 
-# Check installed version vs source
-Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
-Get-NtoolsScriptsVersion
+```powershell
+Get-Module sdo-scripts -ListAvailable
+Import-Module .\scripts\module-package\sdo-scripts.psm1 -Force
+Get-SdoScriptsVersion
 ```
 
-### Function Not Available
-```powershell
-# List all available functions
-Get-Command -Module sdo-scripts
-
-# Check if module is properly imported
-Get-Module sdo-scripts
-```
+For MSBuild task usage, see [NbuildTasks](./nbuildtasks.md). For build target
+details, see [sdo-targets](./sdo-targets.md).

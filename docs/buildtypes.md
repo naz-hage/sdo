@@ -1,36 +1,32 @@
-**SDO** has two predefined build types: `stage` and `prod`. The `stage` build type deploys code to a stage environment used for debugging and testing, while the `prod` build type is used for production deployment. The `stage` build type includes debugging symbols and is not optimized, while the `production` build type is optimized for performance and does not include debugging symbols.
+# Build types
 
-### stage
-The `stage` build type use the following command:
+SDO provides two standard build targets:
+
+- `stage` creates a package for testing.
+- `prod` creates a package for release.
+
+## Stage
 
 ```powershell
 sdo stage
 ```
-It includes the following steps:
 
-- Clean the project
-- Restore the project
-- Build the project
-- Test the project
-- Publish the project to the stage environment
-- Run various tests on the stage environment
-- The version is set according to the rules in [versioning](versioning.md)
+The stage target cleans the solution, updates the stage version tag, builds
+and tests the solution, copies the artifacts, and creates the package.
 
-### prod
-The `prod` build type use the following command:
+## Production
 
 ```powershell
 sdo prod
 ```
-It includes the following steps:
 
-- Clean the project
-- Restore the project
-- Build the project
-- Test the project
-- Publish the project to the production environment
-- Run smoke tests on the production environment
-- This build is available for download from the GitHub release page
-- The version is set according to the rules in [versioning](versioning.md)
+The production target cleans the solution, pulls the latest changes, updates
+the production version tag, builds and tests the solution, copies the
+artifacts, and creates the package.
 
-Your project can have additional build types which you can add to your `sdo.targets` fille, 
+Version increments are documented in [versioning.md](./versioning.md).
+GitHub release behavior is documented in
+[github-release.md](./github-release.md).
+
+Projects can add custom targets in `sdo.targets`. See the
+[target reference](./sdo-targets.md) for the available build targets.

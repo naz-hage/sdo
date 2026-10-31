@@ -35,7 +35,7 @@ The YAML command families have separate purposes:
 
 - `sdo run [--manifest <file>]` runs a YAML Launcher workflow. The default
   manifest is `sdo.yaml` in the current directory.
-- `sdo tool <operation> --manifest <file>` manages JSON or YAML tool manifests.
+- `sdo tool <operation> --manifest <file>` manages YAML tool manifests.
 - `sdo e2e --test-case <path-or-name>` runs test metadata with assertions.
 
 To execute a named stage or selected steps, use exactly one selection option:

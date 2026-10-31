@@ -175,7 +175,6 @@
 | UNIT_TEST_COMMAND   | Unit tests for Command |
 | UNIT_TEST_NB_COMMAND | Unit tests for NbCommand |
 | UNIT_TEST_GIT_CLONE_COMMAND | Unit tests for GitCloneCommand |
-| UNIT_TEST_NTOOLS_JSON | Unit tests for NtoolsJson |
 | UNIT_TEST_PATH_MANAGER | UNIT_TEST_PATH_MANAGER is excluded from UNIT_TEST_ALL and should be run separately with: nb UNIT_TEST_PATH_MANAGER |
 | UNIT_TEST_RELEASE_SERVICE_FACTORY | Unit tests for ReleaseServiceFactory |
 | UNIT_TEST_RESOURCE_HELPER | Unit tests for ResourceHelper |
@@ -189,4 +188,3 @@
 | UNIT_TEST_SDOTESTS  | Unit tests for all SDO tests with code coverage |
 | UNIT_TEST_NBTESTS   | Unit tests for all nbtests |
 | UNIT_TEST_ALL       | Run all unit tests |
-

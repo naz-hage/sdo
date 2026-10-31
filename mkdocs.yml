@@ -39,8 +39,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
-      - Installation: installation.md
-      - Set Up a Project: setup.md
+      - Installation and Project Setup: setup.md
       - Usage Guide: usage.md
   - Using SDO:
       - SDO CLI: sdo-net.md
@@ -48,12 +47,10 @@ nav:
   - Development:
       - Architecture: devops-tools-suite-architecture.md
       - Build Types: buildtypes.md
-      - Versioning: versioning.md
-      - Version Automation Guide: version-automation-guide.md
+      - Versioning and automation: versioning.md
       - Development Tools: sdo.md
       - PowerShell Modules:
           - sdo-scripts Module: sdo-scripts-module.md
-          - sdo-scripts API: sdo-scripts-module-api.md
   - Build and Test:
       - Custom Build Tasks: nbuildtasks.md
       - SDO Targets: sdo-targets.md
