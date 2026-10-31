@@ -43,13 +43,6 @@
         <Message Text="Unit tests for GitCloneCommand complete." />
     </Target>
 
-    <!-- Unit tests for NtoolsJson -->
-    <Target Name="UNIT_TEST_NTOOLS_JSON">
-        <Message Text="Running unit tests for NtoolsJson..." />
-        <Exec Command='dotnet test "$(SolutionDir)\nbtests\nbtests.csproj" --filter "FullyQualifiedName~AppsJsonTests" --logger trx' WorkingDirectory="$(SolutionDir)" />
-        <Message Text="Unit tests for NtoolsJson complete." />
-    </Target>
-
 	<!-- Unit tests for PathManager -->
 	<!-- NOTE: Tests in this class take too long locally and are skipped for now -->
 	<!-- UNIT_TEST_PATH_MANAGER is excluded from UNIT_TEST_ALL and should be run separately with: nb UNIT_TEST_PATH_MANAGER -->

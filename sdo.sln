@@ -49,7 +49,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{B79CBB23-C
 	ProjectSection(SolutionItems) = preProject
 		docs\changelog.md = docs\changelog.md
 		docs\index.md = docs\index.md
-		docs\installation.md = docs\installation.md
 		docs\sdo.md = docs\sdo.md
 		docs\setup.md = docs\setup.md
 		docs\usage.md = docs\usage.md

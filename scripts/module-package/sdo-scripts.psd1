@@ -11,7 +11,6 @@
         'sdo-scripts.psm1'
     )
     FunctionsToExport = @(
-        'Publish-AllProjects',
         'Get-SdoScriptsVersion',
         'Set-DevelopmentEnvironment',
         'Get-VersionFromYaml',

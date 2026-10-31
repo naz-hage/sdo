@@ -1,27 +1,37 @@
-# Setting Up Your Project with dev-setup
+# Install and set up SDO
 
-The dev-setup folder is a critical part of your project setup. It contains scripts and configuration files to automate the installation of development tools and the setup of your development environment.
+## Prerequisites
 
-## PowerShell Module Integration
+- 64-bit [Git for Windows](https://git-scm.com/download/win)
+- [.NET SDK](https://dotnet.microsoft.com/download)
+- PowerShell
 
-**New in v3.0.0**: The project has migrated from NTools to SDO. The
-consolidated `sdo-scripts` PowerShell module now uses `sdo.yaml` and provides
-the `Install-Sdo` command in place of the legacy `Install-NTools` command.
+## Install SDO
 
-### Using sdo-scripts Module
+Clone the repository and install the latest stable SDO release:
+
 ```powershell
-# Import the module
-Import-Module "./scripts/module-package/sdo-scripts.psm1" -Force
-
-# Install the latest stable SDO release ending in .0
+git clone https://github.com/naz-hage/sdo.git
+Set-Location .\sdo
+Import-Module .\scripts\module-package\sdo-scripts.psm1 -Force
 Install-Sdo
-
-# Set up development environment
-Set-DevelopmentEnvironment
-Install-DevelopmentApps
 ```
 
-For complete module documentation, see [sdo-scripts Module](./sdo-scripts-module.md).
+Install a specific release with `-Version`:
+
+```powershell
+Install-Sdo -Version "1.74.0"
+```
+
+Verify the installation:
+
+```powershell
+sdo --help
+sdo --version
+```
+
+For module functions and CI usage, see
+[sdo-scripts-module.md](./sdo-scripts-module.md).
 
 ## Overview of dev-setup Folder
 

@@ -26,7 +26,7 @@ Unified CLI for managing work items, pull requests, pipelines, and repositories 
 - [Troubleshooting](#troubleshooting)
 - [Configuration](#configuration-system-yaml-based)
 - [Markdown input](#markdown-parser-for-content-creation)
-- [Build targets](#nbuild-targets)
+- [Build targets](sdo-targets.md)
 
 ## Overview
 
@@ -836,7 +836,7 @@ The command always reports the manifest path it uses, whether the path was
 provided explicitly or discovered automatically.
 
 Options:
-- `--manifest <path>` (`-m` only) — Optional JSON or YAML manifest path; otherwise the current directory, the executable directory, and the default installation directory are searched
+- `--manifest <path>` (`-m` only) — Optional YAML manifest path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - `--name <name>` (`-n`) — Restrict the table to one application name
 - `--appversion <version>` (`-av`) — Restrict the table to one manifest version
 - `--verbose` — Enable detailed output
@@ -883,7 +883,7 @@ sdo tool install --name "Python" --latest --dry-run
 ```
 
 `--name` is required with `--latest`. Use `--manifest` (`-m`) to select a
-specific JSON or YAML manifest. `--appversion` cannot be combined with
+specific YAML manifest. `--appversion` cannot be combined with
 `--latest`.
 
 ##### `tool list` columns
@@ -921,7 +921,7 @@ manifest:
 
 #### tool
 
-Environment tool installation, auditing, and manifest management. Use `--manifest` for JSON or YAML manifests. When it is omitted for a
+Environment tool installation, auditing, and manifest management. Use `--manifest` for YAML manifests. When it is omitted for a
 named operation, the command searches the current directory, the executable
 directory, and the default installation directory for `apps.yaml`.
 
@@ -935,7 +935,6 @@ Subcommands:
 sdo tool list
 sdo tool list --manifest .\dev-setup\apps.yaml
 sdo tool install --manifest apps.yaml --dry-run
-sdo tool download --name "Go Lang" --dry-run
 sdo tool download --manifest apps.yaml --dry-run
 sdo tool uninstall --manifest apps.yaml --dry-run
 sdo tool install --name "Git for Windows" --appversion 2.51.1 --dry-run
@@ -943,7 +942,6 @@ sdo tool manifest update --latest --file-path .\docs\sdo.md
 ```
 
 Application manifests contain `Version`, `DownloadPath`, and `NbuildAppList`.
-The JSON and YAML formats deserialize into the same production tool model.
 Use `sdo run` for generic workflow YAML; do not pass an apps manifest to it.
 
 `tool manifest update --latest` can also update a Markdown version table after
@@ -1457,66 +1455,6 @@ Under `commands.wi.list` in the YAML file:
 | `iteration` | ✓ | - | Iteration filter (e.g., "Project\\Sprint 1") |
 | `top` | ✓ | ✓ | Maximum items to return (default: 50) |
 
-#### Example Scenarios
-
-**Scenario 1: Team Standardization**
-
-Team commits configuration to project repository:
-```yaml
-# .github/.temp/sdo-config.yaml
-commands:
-  wi:
-    list:
-      area_path: "MyProject\\Backend"
-      state: "In Progress"
-      top: 20
-```
-
-All team members get consistent results without remembering filters:
-```bash
-git clone https://github.com/myorg/myproject
-cd myproject
-sdo wi list  # Gets team's standard view automatically
-```
-
-**Scenario 2: Sprint Planning**
-
-Create sprint-specific configuration:
-```yaml
-# .temp/sdo-sprint-5.yaml
-commands:
-  wi:
-    list:
-      iteration: "MyProject\\Sprint 5"
-      state: "New,Approved,Committed"
-```
-
-Use it explicitly:
-```bash
-sdo wi list --config .temp/sdo-sprint-5.yaml
-```
-
-**Scenario 3: Release Validation**
-
-Store release criteria configuration:
-```yaml
-# .temp/sdo-release.yaml
-commands:
-  wi:
-    list:
-      state: "Done"
-      area_path: "MyProject\\Release"
-      top: 100
-```
-
-Verify release readiness:
-```bash
-sdo wi list --config .temp/sdo-release.yaml
-# Shows all completed release items
-```
-
----
-
 ### Markdown Parser for Content Creation
 
 Create professional work items and pull requests using markdown files with rich formatting support.
@@ -1635,129 +1573,6 @@ sdo wi create --file-path work-item.md --verbose
 # - Warnings for minor issues (unclosed code blocks, etc.)
 ```
 
-#### Example Scenarios
-
-**Scenario 1: Feature Request**
-
-Create `features/auth-redesign.md`:
-````markdown
----
-work_item_type: PBI
-priority: High
-assignee: alice@company.com
-labels: "backend, security, authentication"
----
-
-# Redesign Authentication System
-
-Complete overhaul of the authentication layer to support modern OAuth2 and OpenID Connect standards.
-
-## Acceptance Criteria
-- [ ] OAuth2 provider integration
-- [ ] OpenID Connect support
-- [ ] Token refresh mechanism
-- [ ] Backward compatibility maintained
-- [ ] Documentation updated
-
-## Technical Details
-```csharp
-public interface IAuthenticationProvider
-{
-    Task<AuthToken> AuthenticateAsync(credentials);
-    Task<bool> RefreshTokenAsync(token);
-}
-```
-```
-
-Then create:
-```bash
-sdo wi create --file-path features/auth-redesign.md
-```
-
-**Scenario 2: Bug Report**
-
-Create `bugs/parser-crash.md`:
-```markdown
----
-work_item_type: Bug
-priority: Critical
-target: "github"
----
-
-# Parser Crashes on Malformed Markdown
-
-The markdown parser crashes when encountering headers without proper spacing.
-
-## Acceptance Criteria
-- [ ] Malformed header detected and handled gracefully
-- [ ] Error message is user-friendly
-- [ ] Unit tests added for edge cases
-
-## Reproduction Steps
-```markdown
-#NoSpace Header
-```
-````
-
-**Scenario 3: Pull Request**
-
-Create `prs/feature-merge.md`:
-````markdown
----
-work_item_type: Pull Request
-target: "github"
----
-
-# Add User Authentication to Dashboard
-
-This PR implements OAuth2 authentication for dashboard access.
-
-## Changes
-- Added authentication middleware
-- Integrated identity provider
-- Updated login form
-
-## Testing
-```bash
-npm test
-npm run lint
-```
-````
-
----
-
-## Service Enhancements
-
-Advanced Automation Features includes reliability and performance improvements to core services.
-
-### AzureDevOpsClient Enhancements
-
-- **Endpoint Prioritization**: Queries `/connectionData` first (most reliable), falls back to Graph API
-- **Improved User Detection**: Better identification of current user
-- **Enhanced Error Handling**: Detailed error messages for API failures
-- **Structured Logging**: Better diagnostics for troubleshooting
-
-### GitHubClient Enhancements
-
-- **Better Timeout Handling**: Default 30 seconds, configurable per request
-- **Improved Error Messages**: Clearer feedback on API errors
-- **Enhanced Logging**: Structured logging for debugging
-- **Rate Limiting Awareness**: Better handling of GitHub API rate limits
-
-### Command Improvements
-
-**WorkItemCommand**:
-- Configuration file loading with error validation
-- Comprehensive error handling for list/show/create operations
-- Better user feedback and validation messages
-
-**PullRequestCommand**:
-- Branch existence validation before creation
-- Improved error messages
-- Better diagnostic information
-
----
-
 ### Platform Detection Errors
 
 **Error:** `Could not determine GitHub repository from Git remote`
@@ -1849,287 +1664,3 @@ sdo wi update --id 243 --state closed  # Won't work
 # ✓ Correct
 sdo wi update --id 243 --state Done
 ```
-
-## Build and compatibility reference
-
-The command reference above is the source of truth for `sdo.exe`. This section retains the build infrastructure details and compatibility notes for projects that still use `sdo.targets`.
-
-> **Manifest discovery:** `sdo tool install --name` searches only for `apps.yaml` automatically. Use `--manifest` to select another YAML manifest explicitly.
-
-## Dry-run contract
-
-When `--dry-run` is supplied to `sdo.exe` the CLI will not perform any state-changing
-operations. The intent of `--dry-run` is to provide a safe, predictable preview of
-what the CLI would do without modifying remote services, local files, system
-configuration, or registry state.
-
-Key points:
-- `--dry-run` must never upload files, create or modify GitHub releases, write to
-  Program Files, change PATH, edit the registry, or delete files.
-- For destructive commands (for example `release_create`, `pre_release_create`,
-  `install`, `uninstall`, `upload`) the command will short-circuit and print a
-  concise action summary prefixed with `DRY-RUN:` (for example: `DRY-RUN: would
-  upload asset X to release Y`).
-- For read-only commands (for example `list_release`) the default Behavior is to
-  avoid network access in dry-run and print a short simulated message. If a
-  project requires read-only network access during dry-run, it should be made
-  explicit (for example `--dry-run=fetch`) in a follow-up PBI.
-
----
-
-## nbuild targets
-See [`sdo.targets`](https://github.com/naz-hage/sdo/blob/main/Nbuild/resources/sdo.targets) for more information and checkout other targets in [`Nbuild/resources`] (https://github.com/naz-hage/sdo/blob/main/Nbuild/resources).
-
-### common targets
-- The `common.targets` file includes all the defaults targets needed to build, test and deploy a solution.  The `common.targets` file is located in the `$(ProgramFiles)\Nbuild` folder.  The `sdo.targets` file in the solution folder imports the `common.targets` file
-
-Below is a list of common targets defined in the `common.targets` file:
-
-| **Target Name** | **Description** |
-| --- | --- |
-| PROPERTIES          | Common properties that will be used by all targets |
-| CLEAN               | Clean up the project and artifacts folder |
-| INSTALL_DEP         | Install dependencies |
-| TELEMETRY_OPT_OUT   | Opt out of the DOTNET_CLI_TELEMETRY_OPTOUT - move to common |
-| STAGE             | Create a stage package for testing |
-| PROD          | Create a production package for release |
-| STAGE_DEPLOY      | Create a stage package and deploy for testing |
-| PROD_DEPLOY   | Create a production package and deploy for release |
-| SOLUTION            | Build the solution Release configuration  using dotnet build |
-| SOLUTION_MSBUILD    | Build the solution Release configuration  using MSBuild |
-| PACKAGE             | Create a package for the solution default is a zip file of all artifacts |
-| COPY_ARTIFACTS      | Save the artifacts to the artifacts folder |
-| DEPLOY              | Deploy the package. default is to extract artifacts into DeploymentProperty folder |
-| TEST                | Run all tests using dotnet test in Release mode |
-| TEST_DEBUG          | Run all tests using dotnet test in Debug mode |
-| IS_ADMIN            | Check if current process is running in admin mode AdminCheckExitCode property is set |
-| SingleProject       | Example how to build a single project |
-| HandleError         | Error handling placeholder |
-
----
-
-## Examples
-
-Below are practical examples for using `sdo.exe`. These examples assume you are running in a PowerShell terminal.
-
-### 1. Install Applications
-
-#### Install from a manifest file:
-```cmd
-sdo.exe tool install --manifest "C:\Program Files\tools.json"
-```
-Installs applications specified in the manifest file. The `--manifest` parameter accepts JSON or YAML. When `--name` is provided without a manifest, automatic discovery searches `apps.yaml` in the current directory, `dev-setup\apps.yaml`, and `C:\Program Files\sdo\apps.yaml`. (Requires admin privileges.)
-
-#### Install by name from current directory and default location:
-```cmd
-sdo.exe tool install --name "MyApp"
-sdo.exe tool install --name "MyApp" --appversion "1.2.3"
-sdo.exe install --name "MyApp" --latest
-```
-Searches only the explicit manifest when one is provided. Without an explicit
-manifest, automatic discovery checks `apps.yaml` in the current directory, the
-executable directory, and `C:\\Program Files\\sdo\\apps.yaml`. The
-`--appversion` parameter is optional and overrides the version specified in the
-manifest.
-
-#### Install a named tool from a YAML manifest:
-```cmd
-sdo.exe tool install --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
-```
-Installs only the matching tool from the specified manifest. Standalone executables that do not expose Windows file-version metadata use the manifest version for reporting when the installed file's SHA-256 hash matches `StoredHash`. After installation, SDO displays the installed file's SHA-256 hash; when `StoredHash` is present, the hash is also validated.
-
-**Manifest discovery:** Automatic discovery searches only for `apps.yaml`.
-Explicit `--manifest` paths may refer to either JSON or YAML manifests.
-
-**Search order:** When an explicit manifest is provided, only that file is searched. Without an explicit manifest, the current directory is searched first, followed by the executable and default installation directories. The first matching app takes precedence.
-
-#### Dry-run mode for install:
-```cmd
-sdo.exe tool install --name "MyApp" --dry-run
-sdo.exe tool install --name "MyApp" --appversion "1.2.3" --dry-run
-```
-
-**Behavior in dry-run mode:**
-- Searches only the explicit `--manifest` file when provided; otherwise checks `apps.yaml` in the current directory, the executable directory, and the default installation directory
-- If app is found: displays `DRY-RUN: would install app 'MyApp'` in yellow and lists version details
-- If app is not found: displays `No apps found matching 'MyApp'` in red, lists the search directories, and lists available applications found in those `apps.yaml` files
-- Dry-run always returns exit code 0 (success), even when app is not found, as it is a preview/simulation mode
-- Always succeeds (exit code 0) because dry-run is a preview, not actual installation
-- No files are downloaded, installed, or modified
-- Output uses color coding: yellow for dry-run messages, red for not-found messages
-
-### 2. Uninstall Applications
-```cmd
-sdo.exe tool uninstall --manifest "C:\Program Files\example-tool.json"
-```
-Uninstalls applications as specified in the manifest file. (Requires admin privileges.)
-
-#### Uninstall only one named application:
-```cmd
-sdo.exe tool uninstall --name "Argo CD"
-sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml"
-sdo.exe tool uninstall --name "Crossplane CLI" --manifest ".\dev-setup\apps.yaml" --appversion "2.5.0"
-```
-The `--name` (`-n`) option limits uninstall to the matching application instead of processing every entry in the manifest. When no manifest is supplied, SDO searches `apps.yaml` in the current directory, the executable directory, and the default installation directory. Uninstall determines whether the application is installed from its executable or install path; it does not require the installed version to match the version recorded in `apps.yaml`. Use `--appversion` (`-av`) when the manifest contains multiple versions of the same application.
-
-The sample `dev-setup\apps.yaml` manifest includes Crossplane CLI `2.5.0`, installed to `C:\Program Files\Crossplane` and added to the user PATH. Its configured SHA-256 hash is checked after installation.
-
-### 2.5 List Latest Tool Releases
-```cmd
-sdo.exe tool list
-sdo.exe tool list --manifest ".\dev-setup\apps.yaml"
-```
-The list command queries GitHub release URLs for the latest stable release and
-displays the resolved link. Non-GitHub release URLs require a pinned manifest
-version or an appropriate `LatestVersionUrl`.
-
-### 3. List Installed Applications
-```cmd
-sdo.exe tool list
-sdo.exe tool list --manifest "C:\Program Files\sdo\apps.yaml"
-```
-Lists all applications specified in the provided manifest. If no `--manifest` option is specified, the default file is used.
-
-### 4. Download Applications
-```cmd
-sdo.exe tool download --manifest "C:\Program Files\sdo\apps.yaml"
-```
-Downloads tools and applications specified in the manifest file. The
-`--name` (`-n`) and `--appversion` (`-av`) options can limit the download to
-one application. If `--manifest` (`-m`) is omitted, the command discovers
-`apps.yaml` in the current directory, the executable directory, or the
-default installation directory. The output table expands its columns for
-long application names and filenames and does not add status prefixes inside
-table rows.
-
-### 5. Error Handling for Tool Manifest Files
-
-The `list`, `install`, `uninstall`, and `download` commands require valid tool manifest files. JSON and YAML are supported through `--manifest`.
-
-#### File Not Found
-```
-Error: Manifest not found: 'C:\invalid\path\apps.yaml'. Please provide a valid path to the apps.yaml file.
-Exit code: -1
-```
-
-**Resolution**: Verify the file path is correct. Common locations:
-- Current directory: `.\apps.yaml`
-- Program Files: `C:\Program Files\sdo\apps.yaml`
-- Relative path: `.\dev-setup\apps.yaml`
-
-#### Invalid YAML Format
-```
-Error: Invalid YAML format: '.' is an invalid start of a value. Please check the YAML file for proper escaping of backslashes and quotes.
-Exit code: -1
-```
-
-**Resolution**: Validate your YAML file:
-- Use a YAML validator tool (e.g., yamllint.com)
-- Ensure backslashes in Windows paths are escaped: `C:\\Program Files\\...`
-- Ensure quotes in YAML strings are properly escaped: `\"text\"`
-
-#### Unsupported Version
-```
-Error: YAML Version 1.0.0 is not supported. Please use version 1.2.0
-Exit code: -1
-```
-
-**Resolution**: Update your manifest file to use the correct version in the `"version"` field.
-
-### 6. Display Path Segments
-```cmd
-sdo.exe env path
-```
-Displays each segment of the effective PATH environment variable on a separate line, with duplicates removed. Shows the complete PATH that processes actually use (Machine + User PATH combined). Use `--verbose` for additional output.
-
-### 7. Display Git Information
-```cmd
-sdo.exe repo info
-```
-Displays the current git branch and latest tag information for the local repository.
-
-### 8. Set a Specific Git Tag
-```cmd
-sdo.exe repo tag set --tag 1.24.33
-```
-Sets the specified git tag in the local repository.
-
-### 9. Automatically Set the Next Git Tag
-```cmd
-sdo.exe repo tag auto --buildtype STAGE
-```
-Automatically sets the next git tag based on the specified build type (`STAGE` or `PROD`).
-
-### 10. Push the Next Git Tag to Remote
-```cmd
-sdo.exe repo tag push-auto --buildtype PROD
-```
-Sets the next git tag based on build type and pushes it to the remote repository.
-
-### 11. Display the Current Git Branch
-```cmd
-sdo.exe repo info
-```
-Displays the current git branch in the local repository.
-
-### 12. Clone a Git Repository
-```cmd
-sdo.exe repo clone --url https://github.com/example/repo --path C:\Projects
-```
-Clones the specified git repository into the specified path. Use `--verbose` for detailed output.
-
-### 13. Delete a Specific Tag
-```cmd
-sdo.exe repo tag delete --tag 1.24.33
-```
-Deletes the specified git tag from the local repository.
-
-### 14. Creating a Release
-```cmd
-sdo.exe release create --repo userName/my-repo --tag 1.24.33 --branch main --file C:\Releases\1.0.0.zip
-```
-Creates a GitHub release for the specified repository, tag, branch, and asset file.
-
-### 15. Creating a Pre-Release
-```cmd
-sdo.exe release create --repo userName/my-repo --tag 1.24.33 --branch main --file C:\Releases\1.0.0.zip --prerelease
-```
-Creates a GitHub pre-release for the specified repository, tag, branch, and asset file.
-
-### 16. Downloading an Asset
-```cmd
-sdo.exe release download --repo userName/my-repo --tag 1.24.33 --path C:\Downloads
-```
-Downloads an asset from the specified release to the given path.
-
-### 17. Creating a Release with Full GitHub URL
-```cmd
-sdo.exe release create --repo https://github.com/userName/my-repo --tag 1.24.33 --branch main --file C:\Releases\1.0.0.zip
-```
-Creates a GitHub release using the full GitHub repository URL.
-
-### 18. Downloading an Asset with Full GitHub URL
-```cmd
-sdo.exe release download --repo https://github.com/userName/my-repo --tag 1.24.33 --path C:\Downloads
-```
-Downloads an asset using the full GitHub repository URL.
-
-### 19. List Latest Releases
-```cmd
-sdo.exe release list --repo https://github.com/userName/my-repo
-```
-Lists the latest 3 releases and the newest pre-release (if newer than the latest release). Use `--verbose` for detailed output.
-
-### 20. List Build Targets
-```cmd
-sdo.exe build targets
-```
-Lists all available build targets for the current solution or project.
-
-### 21. Run Any Listed Target
-```cmd
-sdo.exe core
-```
-Runs the target named `core` if it is listed by `sdo build targets`.
-
----
