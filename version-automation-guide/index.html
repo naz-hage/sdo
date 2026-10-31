@@ -900,10 +900,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#nbuild-task-integration" class="md-nav__link">
+  <a href="#service-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NBuild Task Integration
+        Service Integration
       
     </span>
   </a>
@@ -1376,28 +1376,23 @@
 <span class="nv">$version</span> <span class="p">=</span> <span class="nb">Get-VersionFromYaml</span> <span class="n">-YamlPath</span> <span class="s2">"./dev-setup/sdo.yaml"</span>
 </code></pre></div>
 <hr />
-<p>Tool versions in documentation are updated using the MSBuild task (<code>UpdateVersionsInDocs</code>) via the <code>sdo update_doc_versions</code> command. This extracts all tool/version pairs from the <code>NbuildAppList</code> entries in <code>dev-setup/sdo.yaml</code> and <code>dev-setup/apps.yaml</code>, then updates the documentation table accordingly. See the documentation in <code>sdo.md</code> for details.</p>
-<h3 id="nbuild-task-integration">NBuild Task Integration<a class="headerlink" href="#nbuild-task-integration" title="Anchor link to this section for reference">&para;</a></h3>
+<p>Tool versions in documentation can be updated through <code>sdo tool manifest update --latest --file-path .\docs\sdo.md</code>. This updates the manifest from the latest stable releases, then extracts all tool/version pairs from <code>dev-setup/apps.yaml</code> and updates the documentation table. See the documentation in <code>sdo.md</code> for details.</p>
+<h3 id="service-integration">Service Integration<a class="headerlink" href="#service-integration" title="Anchor link to this section for reference">&para;</a></h3>
 <ul>
-<li><strong>File</strong>: <code>NbuildTasks/UpdateVersionsInDocs.cs</code></li>
-<li><strong>Purpose</strong>: MSBuild task for build-time automation</li>
-<li><strong>Execution</strong>: Integrated into your existing NBuild workflow</li>
+<li><strong>File</strong>: <code>Sdo/Services/UpdateVersionsInDocs.cs</code></li>
+<li><strong>Purpose</strong>: Service for updating Markdown tool version tables</li>
+<li><strong>Execution</strong>: Invoked by <code>sdo tool manifest update</code></li>
 </ul>
 <h3 id="features">Features<a class="headerlink" href="#features" title="Anchor link to this section for reference">&para;</a></h3>
 <ul>
-<li>Native C# MSBuild task implementation</li>
-<li>YAML parsing using <code>YamlDotNet</code></li>
+<li>Native C# service implementation</li>
+<li>YAML and JSON manifest support</li>
 <li>Regex-based markdown table updating</li>
 <li>Comprehensive tool name mapping logic</li>
-<li>Build-time logging and error handling</li>
-<li>Can be part of CI/CD pipeline</li>
+<li>Explicit command error handling</li>
 </ul>
 <h3 id="usage">Usage<a class="headerlink" href="#usage" title="Anchor link to this section for reference">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="nt">&lt;Target</span><span class="w"> </span><span class="na">Name=</span><span class="s">"UpdateDocVersions"</span><span class="nt">&gt;</span>
-<span class="w">  </span><span class="nt">&lt;UpdateVersionsInDocs</span><span class="w"> </span>
-<span class="w">    </span><span class="na">DevSetupPath=</span><span class="s">"$(MSBuildProjectDirectory)\dev-setup"</span><span class="w"> </span>
-<span class="w">    </span><span class="na">DocsPath=</span><span class="s">"$(MSBuildProjectDirectory)\docs\sdo.md"</span><span class="w"> </span><span class="nt">/&gt;</span>
-<span class="nt">&lt;/Target&gt;</span>
+<div class="highlight"><pre><span></span><code><span class="n">sdo</span> <span class="n">tool</span> <span class="n">manifest</span> <span class="n">update</span> <span class="p">-</span><span class="n">-latest</span> <span class="p">-</span><span class="o">-file</span><span class="n">-path</span> <span class="p">.\</span><span class="n">docs</span><span class="p">\</span><span class="n">sdo</span><span class="p">.</span><span class="nb">md</span>
 </code></pre></div>
 
 

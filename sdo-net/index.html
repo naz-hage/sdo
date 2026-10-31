@@ -3480,10 +3480,14 @@ sdo<span class="w"> </span>tool<span class="w"> </span>download<span class="w"> 
 sdo<span class="w"> </span>tool<span class="w"> </span>download<span class="w"> </span>--manifest<span class="w"> </span>apps.yaml<span class="w"> </span>--dry-run
 sdo<span class="w"> </span>tool<span class="w"> </span>uninstall<span class="w"> </span>--manifest<span class="w"> </span>apps.yaml<span class="w"> </span>--dry-run
 sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span><span class="w"> </span>--appversion<span class="w"> </span><span class="m">2</span>.51.1<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>tool<span class="w"> </span>manifest<span class="w"> </span>update<span class="w"> </span>--latest<span class="w"> </span>--file-path<span class="w"> </span>.<span class="se">\d</span>ocs<span class="se">\s</span>do.md
 </code></pre></div>
 <p>Application manifests contain <code>Version</code>, <code>DownloadPath</code>, and <code>NbuildAppList</code>.
 The JSON and YAML formats deserialize into the same production tool model.
 Use <code>sdo run</code> for generic workflow YAML; do not pass an apps manifest to it.</p>
+<p><code>tool manifest update --latest</code> can also update a Markdown version table after
+the manifest is maintained. Use <code>--file-path</code> to specify the Markdown file.
+The documentation update is skipped in dry-run mode.</p>
 <h4 id="run">run<a class="headerlink" href="#run" title="Anchor link to this section for reference">&para;</a></h4>
 <p>Execute a YAML Launcher workflow manifest:</p>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>run

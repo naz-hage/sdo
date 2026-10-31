@@ -1331,7 +1331,7 @@
 <li>Generate release notes based on commits since the last tag.</li>
 </ul>
 <h2 id="version-automation">Version Automation<a class="headerlink" href="#version-automation" title="Anchor link to this section for reference">&para;</a></h2>
-<p>Tool versions in documentation are automatically updated using the MSBuild task (<code>UpdateVersionsInDocs</code>) via the <code>sdo update_doc_versions</code> command. This extracts all tool/version pairs from the <code>NbuildAppList</code> entries in <code>dev-setup/sdo.yaml</code> and <code>dev-setup/apps.yaml</code>, then updates the documentation table accordingly.</p>
+<p>Tool versions in documentation can be updated through <code>sdo tool manifest update --latest --file-path .\docs\sdo.md</code>. This updates the manifest from the latest stable releases, then extracts all tool/version pairs from <code>dev-setup/apps.yaml</code> and updates the documentation table accordingly.</p>
 <h3 id="powershell-module-integration-v300">PowerShell Module Integration (v3.0.0+)<a class="headerlink" href="#powershell-module-integration-v300" title="Anchor link to this section for reference">&para;</a></h3>
 <ul>
 <li><strong>Module</strong>: <code>scripts/module-package/sdo-scripts.psm1</code></li>

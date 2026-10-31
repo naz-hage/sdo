@@ -1204,17 +1204,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#updateversionsindocs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        UpdateVersionsInDocs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#modern-approach-with-sdo-scripts-module" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1454,10 +1443,6 @@
 <td><a href="#pwsh">Pwsh</a></td>
 <td>Runs a PowerShell Core script from MSBuild.</td>
 </tr>
-<tr>
-<td><a href="#updateversionsindocs">UpdateVersionsInDocs</a></td>
-<td>Updates version numbers in documentation files.</td>
-</tr>
 </tbody>
 </table>
 <p>Here are examples of custom Tasks that can be used during builds:</p>
@@ -1545,12 +1530,6 @@
 <span class="w">    </span><span class="nt">&lt;Pwsh</span><span class="w"> </span><span class="na">Script=</span><span class="s">"$(ScriptPath)"</span><span class="w"> </span><span class="na">Arguments=</span><span class="s">"$(ScriptArgs)"</span><span class="w"> </span><span class="na">NoProfile=</span><span class="s">"true"</span><span class="w"> </span><span class="na">ExecutionPolicy=</span><span class="s">"Bypass"</span><span class="w"> </span><span class="nt">/&gt;</span>
 
 <span class="w">    </span><span class="nt">&lt;Message</span><span class="w"> </span><span class="na">Text=</span><span class="s">"==&gt; PWSH_DONE"</span><span class="w"> </span><span class="nt">/&gt;</span>
-<span class="nt">&lt;/Target&gt;</span>
-</code></pre></div>
-<h3 id="updateversionsindocs">UpdateVersionsInDocs<a class="headerlink" href="#updateversionsindocs" title="Anchor link to this section for reference">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="cm">&lt;!-- This target uses the `UpdateVersionsInDocs` task to update version numbers in documentation files --&gt;</span>
-<span class="nt">&lt;Target</span><span class="w"> </span><span class="na">Name=</span><span class="s">"UPDATE_DOC_VERSIONS"</span><span class="nt">&gt;</span>
-<span class="w">    </span><span class="nt">&lt;UpdateVersionsInDocs</span><span class="w"> </span><span class="na">DocsPath=</span><span class="s">"$(SolutionDir)docs"</span><span class="w"> </span><span class="na">Version=</span><span class="s">"$(Version)"</span><span class="w"> </span><span class="nt">/&gt;</span>
 <span class="nt">&lt;/Target&gt;</span>
 </code></pre></div>
 <h3 id="modern-approach-with-sdo-scripts-module">Modern Approach with sdo-scripts module<a class="headerlink" href="#modern-approach-with-sdo-scripts-module" title="Anchor link to this section for reference">&para;</a></h3>
