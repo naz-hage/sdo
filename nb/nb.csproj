@@ -36,9 +36,6 @@
 		<EmbeddedResource Include="resources\mongodb.targets" />
 		<EmbeddedResource Include="resources\sdo.targets" />
 		<EmbeddedResource Include="resources\node.targets" />
-		<EmbeddedResource Include="resources\nuget.targets">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>

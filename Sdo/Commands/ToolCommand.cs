@@ -1,5 +1,5 @@
-using System.CommandLine;
 using Launcher.Services;
+using System.CommandLine;
 using NbuildCommand = Nbuild.Command;
 
 namespace Sdo.Commands
@@ -17,6 +17,7 @@ namespace Sdo.Commands
         {
             AddInstallCommand(verboseOption, dryRunOption);
             AddListCommand(verboseOption, dryRunOption);
+            AddManifestCommand(verboseOption, dryRunOption);
             AddUninstallCommand(verboseOption, dryRunOption);
             AddDownloadCommand(verboseOption, dryRunOption);
         }
@@ -81,6 +82,65 @@ namespace Sdo.Commands
             });
 
             Subcommands.Add(installCommand);
+        }
+
+        private void AddManifestCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
+        {
+            var manifestCommand = new System.CommandLine.Command("manifest", "Maintain tool manifests.");
+            var updateCommand = new System.CommandLine.Command("update", "Update manifest versions from the latest stable releases.");
+            var manifestOption = new Option<string?>("--manifest", ["-m"])
+            {
+                Description = "Path to the YAML tools manifest; if omitted, searches apps.yaml in the current directory, the executable directory, and the default installation directory"
+            };
+            var nameOption = new Option<string?>("--name", ["-n"])
+            {
+                Description = "Optional application name; updates all applications when omitted"
+            };
+            var latestOption = new Option<bool>("--latest")
+            {
+                Description = "Discover and write the latest stable release versions"
+            };
+
+            updateCommand.Add(manifestOption);
+            updateCommand.Add(nameOption);
+            updateCommand.Add(latestOption);
+            updateCommand.Add(verboseOption);
+            AddDryRunOption(updateCommand, dryRunOption);
+            updateCommand.SetAction(parseResult =>
+            {
+                var manifest = parseResult.GetValue(manifestOption);
+                var name = parseResult.GetValue(nameOption);
+                var latest = parseResult.GetValue(latestOption);
+                var verbose = parseResult.GetValue(verboseOption);
+                var dryRun = GetDryRunValue(parseResult, dryRunOption);
+
+                if (!latest)
+                {
+                    Console.Error.WriteLine("Error: --latest is required.");
+                    return 1;
+                }
+
+                WriteManifestNotice(manifest);
+                WriteDryRunNotice(dryRun);
+                try
+                {
+                    var result = NbuildCommand.UpdateManifest(manifest, name, verbose, dryRun);
+                    if (!result.IsSuccess())
+                    {
+                        Console.Error.WriteLine($"Error: {result.GetFirstOutput()}");
+                    }
+
+                    return result.Code;
+                }
+                catch (Exception exception)
+                {
+                    Console.Error.WriteLine($"Error: {exception.Message}");
+                    return -1;
+                }
+            });
+
+            manifestCommand.Subcommands.Add(updateCommand);
+            Subcommands.Add(manifestCommand);
         }
 
         private void AddUninstallCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)

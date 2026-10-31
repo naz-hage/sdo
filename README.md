@@ -82,7 +82,7 @@ Tool manifests such as `apps.yaml` are handled by `sdo tool`, not `sdo run`.
 
 #### YAML Tool Manifests
 
-`sdo tool` accepts JSON and YAML manifests through `--manifest`.
+`sdo tool` accepts only YAML manifests through `--manifest`.
 
 ```bash
 sdo tool list --manifest .\dev-setup\apps.yaml

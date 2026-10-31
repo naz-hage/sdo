@@ -28,7 +28,6 @@ The [Windows dev environment](https://learn.microsoft.com/en-us/windows/dev-envi
 | [Node.js](https://nodejs.org/en/download/) | 22.21.0    | 24-May-26      |
 | [SDO](https://github.com/naz-hage/sdo/releases) | 1.47.0     | 24-May-26     |
 | [GitHub CLI](https://github.com/cli/cli/releases) | 2.82.1     | 24-May-26      |
-| [NuGet](https://www.nuget.org/downloads) | 6.12.1     | 24-May-26      |
 | [pnpm](https://pnpm.io/) | 10.19.0    | 24-May-26      |
 | [Postman Get Started for Free](https://www.postman.com/downloads/)                                        | v11.36.0    | 10-Mar-25       |
 | [PowerShell](https://github.com/PowerShell/PowerShell/releases) | 7.5.4      | 24-May-26      |

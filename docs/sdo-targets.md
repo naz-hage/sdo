@@ -133,14 +133,6 @@
 | MONGODB_INSTALL     | Display mongodb version specified in TargetNodeVersion property and install |
 
 
-- **C:\Program Files\nbuild\nuget.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| NUGET_VERSION       | Display the installed nuget version |
-| NUGET_INSTALL       | Download latest nuget.exe and install |
-
-
 - **C:\Program Files\nbuild\ngit.targets Targets**
 
 | **Target Name** | **Description** |

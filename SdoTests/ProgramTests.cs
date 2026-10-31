@@ -781,6 +781,14 @@ steps:
     }
 
     [TestMethod]
+    public void Main_WithToolManifestUpdateWithoutLatest_ReturnsError()
+    {
+        var result = Program.Main("tool", "manifest", "update", "--dry-run");
+
+        Assert.AreEqual(1, result);
+    }
+
+    [TestMethod]
     public void Main_WithToolList_UsesManifestVersionWhenStoredHashMatchesUnversionedFile()
     {
         var root = Path.Combine(Path.GetTempPath(), $"sdo-hash-version-{Guid.NewGuid():N}");

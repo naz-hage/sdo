@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -520,6 +521,174 @@ namespace Nbuild
 
             Console.WriteLine();
             return ResultHelper.Success();
+        }
+
+        public static ResultHelper UpdateManifest(
+            string? manifestPath,
+            string? name = null,
+            bool verbose = false,
+            bool dryRun = false)
+        {
+            Verbose = verbose;
+
+            string resolvedPath;
+            try
+            {
+                resolvedPath = ResolveDefaultAppsManifest(manifestPath);
+            }
+            catch (Exception exception)
+            {
+                return ResultHelper.Fail(-1, exception.Message);
+            }
+
+            if (!resolvedPath.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) &&
+                !resolvedPath.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))
+            {
+                return ResultHelper.Fail(-1, "Manifest maintenance requires a YAML apps.yaml file.");
+            }
+
+            string content;
+            try
+            {
+                content = File.ReadAllText(resolvedPath);
+            }
+            catch (Exception exception)
+            {
+                return ResultHelper.Fail(-1, $"Failed to read manifest '{resolvedPath}': {exception.Message}");
+            }
+
+            List<NbuildApp> apps;
+            try
+            {
+                apps = GetApps(resolvedPath)
+                    .Where(app => string.IsNullOrWhiteSpace(name) ||
+                        string.Equals(app.Name, name, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            catch (Exception exception)
+            {
+                return ResultHelper.Fail(-1, $"Failed to load manifest '{resolvedPath}': {exception.Message}");
+            }
+
+            if (!apps.Any())
+            {
+                return ResultHelper.Fail(-1, string.IsNullOrWhiteSpace(name)
+                    ? "No applications found in the manifest."
+                    : $"No application named '{name}' was found in the manifest.");
+            }
+
+            var updates = new List<(NbuildApp App, string LatestVersion)>();
+            var discoveryFailures = new List<string>();
+            var preview = new List<(NbuildApp App, string? LatestVersion, string? Error)>();
+            foreach (var app in apps)
+            {
+                if (!TryGetLatestVersion(app, out var latestVersion, out _, out var error))
+                {
+                    discoveryFailures.Add($"{app.Name}: {error}");
+                    preview.Add((app, null, error));
+                    continue;
+                }
+
+                preview.Add((app, latestVersion, null));
+                if (!string.IsNullOrWhiteSpace(latestVersion) &&
+                    !string.Equals(app.Version, latestVersion, StringComparison.OrdinalIgnoreCase))
+                {
+                    updates.Add((app, latestVersion));
+                }
+            }
+
+            foreach (var (app, latestVersion, error) in preview)
+            {
+                WriteManifestPreviewLine(app, latestVersion);
+                if (verbose && !string.IsNullOrWhiteSpace(error))
+                {
+                    ConsoleHelper.WriteVerbose($"Latest version discovery failed for '{app.Name}': {error}");
+                }
+            }
+
+            if (!updates.Any() && !discoveryFailures.Any())
+            {
+                ConsoleHelper.WriteWarning("Manifest is already up to date.");
+                return ResultHelper.Success();
+            }
+
+            if (!updates.Any())
+            {
+                return ResultHelper.Fail(-1, "No manifest changes were available because latest versions could not be resolved.");
+            }
+
+            if (dryRun)
+            {
+                return discoveryFailures.Any()
+                    ? ResultHelper.Fail(-1, "Some application versions could not be resolved; manifest was not modified.")
+                    : ResultHelper.Success("DRY-RUN: manifest was not modified.");
+            }
+
+            var updatedContent = content;
+            foreach (var (app, latestVersion) in updates)
+            {
+                if (string.IsNullOrWhiteSpace(app.Name) || string.IsNullOrWhiteSpace(app.Version))
+                {
+                    return ResultHelper.Fail(-1, "Manifest contains an application without a name or version.");
+                }
+
+                var escapedName = Regex.Escape(app.Name);
+                var blockPattern =
+                    $@"(?ms)^(?<block>\s*-\s+Name:\s*[""']?{escapedName}[""']?.*?)(?=^\s*-\s+Name:|\z)";
+                var blockMatch = Regex.Match(updatedContent, blockPattern);
+                if (!blockMatch.Success)
+                {
+                    return ResultHelper.Fail(-1, $"Could not locate application '{app.Name}' in '{resolvedPath}'.");
+                }
+
+                var block = blockMatch.Groups["block"].Value;
+                var replacementBlock = block.Replace(
+                    app.Version,
+                    latestVersion,
+                    StringComparison.OrdinalIgnoreCase);
+                updatedContent = updatedContent.Remove(blockMatch.Groups["block"].Index, block.Length)
+                    .Insert(blockMatch.Groups["block"].Index, replacementBlock);
+            }
+
+            try
+            {
+                File.WriteAllText(resolvedPath, updatedContent);
+            }
+            catch (Exception exception)
+            {
+                return ResultHelper.Fail(-1, $"Failed to write manifest '{resolvedPath}': {exception.Message}");
+            }
+
+            ConsoleHelper.WriteSuccess($"Updated manifest: {resolvedPath}");
+            return discoveryFailures.Any()
+                ? ResultHelper.Fail(-1, "Manifest was updated, but some application versions could not be resolved.")
+                : ResultHelper.Success();
+        }
+
+        private static void WriteManifestPreviewLine(
+            NbuildApp app,
+            string? latestVersion)
+        {
+            var currentVersion = app.Version ?? string.Empty;
+            var appName = app.Name ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(latestVersion))
+            {
+                ConsoleHelper.WriteLine(
+                    $"{appName}: {currentVersion} -> unable to identify latest version",
+                    ConsoleColor.Red);
+            }
+            else if (string.Equals(currentVersion, latestVersion, StringComparison.OrdinalIgnoreCase))
+            {
+                ConsoleHelper.WriteLine(
+                    $"{appName}: {currentVersion} -> {latestVersion}",
+                    ConsoleColor.Green);
+            }
+            else
+            {
+                ConsoleHelper.WriteLine(
+                    $"{appName}: {currentVersion} -> {latestVersion}",
+                    ConsoleColor.Magenta);
+            }
         }
 
         private static string ResolveDefaultAppsManifest(string? manifestPath)

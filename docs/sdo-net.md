@@ -846,6 +846,27 @@ version discovery while preserving `WebDownloadFile` as the download URL.
 Most applications therefore do not need this property; Helm uses it because
 its archives are hosted at `get.helm.sh`.
 
+#### tool manifest update --latest
+
+Update the selected YAML tool manifest with the latest stable version for
+each application without installing or downloading anything:
+
+```bash
+sdo tool manifest update --latest
+sdo tool manifest update --manifest .\dev-setup\apps.yaml --latest
+sdo tool manifest update --name "Python" --latest --dry-run
+```
+
+When `--manifest` (`-m`) is omitted, SDO searches for `apps.yaml` in the
+current directory, the executable directory, and the default installation
+directory. All applications are updated by default; use `--name` (`-n`) to
+limit the maintenance action to one application. Use `--dry-run` (`-dr`) to
+preview version changes without modifying the manifest. This command updates
+the manifest only and does not install, uninstall, or download applications.
+Applications whose latest version cannot be resolved are reported separately;
+the dry run still displays all other available changes and leaves the manifest
+unchanged.
+
 #### tool install --latest
 
 Install a named tool using the latest discovered release:
