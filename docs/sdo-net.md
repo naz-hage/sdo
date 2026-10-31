@@ -832,6 +832,9 @@ sdo tool list
 sdo tool list --manifest .\dev-setup\apps.yaml
 ```
 
+The command always reports the manifest path it uses, whether the path was
+provided explicitly or discovered automatically.
+
 Options:
 - `--manifest <path>` (`-m` only) — Optional JSON or YAML manifest path; otherwise the current directory, the executable directory, and the default installation directory are searched
 - `--name <name>` (`-n`) — Restrict the table to one application name

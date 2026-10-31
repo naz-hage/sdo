@@ -469,6 +469,7 @@ namespace Nbuild
             Verbose = verbose;
 
             var manifestPath = ResolveDefaultAppsManifest(json);
+            ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(manifestPath)}");
             var apps = GetApps(manifestPath)
                 .Where(app =>
                     (string.IsNullOrWhiteSpace(name) ||
@@ -540,6 +541,8 @@ namespace Nbuild
             {
                 return ResultHelper.Fail(-1, exception.Message);
             }
+
+            ConsoleHelper.WriteInfo($"Using tool manifest: {Path.GetFullPath(resolvedPath)}");
 
             if (!resolvedPath.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) &&
                 !resolvedPath.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))

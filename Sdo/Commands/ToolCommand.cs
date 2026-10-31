@@ -66,7 +66,6 @@ namespace Sdo.Commands
                     return 1;
                 }
 
-                WriteManifestNotice(manifest);
                 WriteDryRunNotice(dryRun);
                 try
                 {
@@ -120,7 +119,6 @@ namespace Sdo.Commands
                     return 1;
                 }
 
-                WriteManifestNotice(manifest);
                 WriteDryRunNotice(dryRun);
                 try
                 {
@@ -275,7 +273,6 @@ namespace Sdo.Commands
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult, dryRunOption);
 
-                WriteManifestNotice(manifest);
                 WriteDryRunNotice(dryRun);
                 try
                 {
