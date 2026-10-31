@@ -1056,6 +1056,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#tool-manifest-update-latest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tool manifest update --latest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tool-install-latest" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3371,6 +3382,22 @@ property to the application entry. This lets SDO use the GitHub repository for
 version discovery while preserving <code>WebDownloadFile</code> as the download URL.
 Most applications therefore do not need this property; Helm uses it because
 its archives are hosted at <code>get.helm.sh</code>.</p>
+<h4 id="tool-manifest-update-latest">tool manifest update --latest<a class="headerlink" href="#tool-manifest-update-latest" title="Anchor link to this section for reference">&para;</a></h4>
+<p>Update the selected YAML tool manifest with the latest stable version for
+each application without installing or downloading anything:</p>
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>manifest<span class="w"> </span>update<span class="w"> </span>--latest
+sdo<span class="w"> </span>tool<span class="w"> </span>manifest<span class="w"> </span>update<span class="w"> </span>--manifest<span class="w"> </span>.<span class="se">\d</span>ev-setup<span class="se">\a</span>pps.yaml<span class="w"> </span>--latest
+sdo<span class="w"> </span>tool<span class="w"> </span>manifest<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Python"</span><span class="w"> </span>--latest<span class="w"> </span>--dry-run
+</code></pre></div>
+<p>When <code>--manifest</code> (<code>-m</code>) is omitted, SDO searches for <code>apps.yaml</code> in the
+current directory, the executable directory, and the default installation
+directory. All applications are updated by default; use <code>--name</code> (<code>-n</code>) to
+limit the maintenance action to one application. Use <code>--dry-run</code> (<code>-dr</code>) to
+preview version changes without modifying the manifest. This command updates
+the manifest only and does not install, uninstall, or download applications.
+Applications whose latest version cannot be resolved are reported separately;
+the dry run still displays all other available changes and leaves the manifest
+unchanged.</p>
 <h4 id="tool-install-latest">tool install --latest<a class="headerlink" href="#tool-install-latest" title="Anchor link to this section for reference">&para;</a></h4>
 <p>Install a named tool using the latest discovered release:</p>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Python"</span><span class="w"> </span>--latest
