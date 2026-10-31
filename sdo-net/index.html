@@ -3397,7 +3397,9 @@ preview version changes without modifying the manifest. This command updates
 the manifest only and does not install, uninstall, or download applications.
 Applications whose latest version cannot be resolved are reported separately;
 the dry run still displays all other available changes and leaves the manifest
-unchanged.</p>
+unchanged. Unresolved applications are warnings and do not prevent the
+command from reporting the manifest as up to date when no resolvable changes
+remain.</p>
 <h4 id="tool-install-latest">tool install --latest<a class="headerlink" href="#tool-install-latest" title="Anchor link to this section for reference">&para;</a></h4>
 <p>Install a named tool using the latest discovered release:</p>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Python"</span><span class="w"> </span>--latest
