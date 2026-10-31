@@ -25,7 +25,7 @@
     
     
       
-        <title>Azure DevOps JSON-Patch payloads - Ntools - Work in Progress</title>
+        <title>Azure DevOps work item payloads - Ntools - Work in Progress</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#azure-devops-json-patch-examples" class="md-skip">
+        <a href="#azure-devops-work-item-payloads" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Azure DevOps JSON-Patch payloads
+              Azure DevOps work item payloads
             
           </span>
         </div>
@@ -230,7 +230,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installation/" class="md-tabs__link">
+        <a href="../setup/" class="md-tabs__link">
           
   
   
@@ -457,34 +457,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../setup/" class="md-nav__link">
         
   
@@ -492,7 +464,7 @@
   <span class="md-ellipsis">
     
   
-    Set Up a Project
+    Installation and Project Setup
   
 
     
@@ -778,35 +750,7 @@
   <span class="md-ellipsis">
     
   
-    Versioning
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../version-automation-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Version Automation Guide
+    Versioning and automation
   
 
     
@@ -868,10 +812,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
             
   
   
@@ -889,8 +833,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -915,34 +859,6 @@
     
   
     sdo-scripts Module
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sdo-scripts-module-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sdo-scripts API
   
 
     
@@ -1238,10 +1154,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#create-work-item-json-patch-example" class="md-nav__link">
+  <a href="#create-a-work-item" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Create work item (JSON-Patch) example
+        Create a work item
       
     </span>
   </a>
@@ -1249,10 +1165,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-success-response-201-created" class="md-nav__link">
+  <a href="#authentication" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example success response (201 Created)
+        Authentication
       
     </span>
   </a>
@@ -1260,21 +1176,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-failure-responses" class="md-nav__link">
+  <a href="#common-failures" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example failure responses
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
+        Common failures
       
     </span>
   </a>
@@ -1317,57 +1222,36 @@
   
 
 
-<h1 id="azure-devops-json-patch-examples">Azure DevOps JSON-Patch examples<a class="headerlink" href="#azure-devops-json-patch-examples" title="Anchor link to this section for reference">&para;</a></h1>
-<p>This page contains example request payloads used by the AzDO writer in <code>atools/add_issue.py</code> and sample failure responses you may encounter.</p>
-<h2 id="create-work-item-json-patch-example">Create work item (JSON-Patch) example<a class="headerlink" href="#create-work-item-json-patch-example" title="Anchor link to this section for reference">&para;</a></h2>
-<p>Request (PATCH array) to create a work item via the AzDO REST API (POST to <code>https://dev.azure.com/{org}/{project}/_apis/wit/workitems/${type}?api-version=7.0</code>):</p>
+<h1 id="azure-devops-work-item-payloads">Azure DevOps work item payloads<a class="headerlink" href="#azure-devops-work-item-payloads" title="Anchor link to this section for reference">&para;</a></h1>
+<p>SDO uses Azure DevOps JSON Patch requests when it creates or updates work
+items. This is an Azure DevOps API requirement and is unrelated to tool
+manifest formats; SDO supports YAML tool manifests only.</p>
+<p>The implementation is in
+<a href="../Sdo/Services/AzureDevOpsClient.cs"><code>AzureDevOpsClient.cs</code></a>.</p>
+<h2 id="create-a-work-item">Create a work item<a class="headerlink" href="#create-a-work-item" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Azure DevOps expects a <code>POST</code> request with a JSON Patch array:</p>
+<div class="highlight"><pre><span></span><code><span class="err">POST https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${type}?api-version=7.1</span>
+<span class="err">Content-Type: application/json-patch+json</span>
+</code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="p">[</span>
 <span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"add"</span><span class="p">,</span><span class="w"> </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/fields/System.Title"</span><span class="p">,</span><span class="w"> </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Example issue title"</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"add"</span><span class="p">,</span><span class="w"> </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/fields/System.Description"</span><span class="p">,</span><span class="w"> </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Full description with markdown or HTML"</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"add"</span><span class="p">,</span><span class="w"> </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/fields/Microsoft.VSTS.Common.AcceptanceCriteria"</span><span class="p">,</span><span class="w"> </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"- AC1\n- AC2"</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"add"</span><span class="p">,</span><span class="w"> </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/relations/-"</span><span class="p">,</span><span class="w"> </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"rel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"System.LinkTypes.Hierarchy-Reverse"</span><span class="p">,</span><span class="w"> </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://dev.azure.com/.../workitems/123"</span><span class="p">,</span><span class="w"> </span><span class="nt">"attributes"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"comment"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Related work"</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"add"</span><span class="p">,</span><span class="w"> </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/fields/System.Description"</span><span class="p">,</span><span class="w"> </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Description"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"add"</span><span class="p">,</span><span class="w"> </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/fields/Microsoft.VSTS.Common.AcceptanceCriteria"</span><span class="p">,</span><span class="w"> </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"- AC1\n- AC2"</span><span class="w"> </span><span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div>
-<p>Notes:
-- The <code>AcceptanceCriteria</code> field is optional and will only be included if the project defines a field with that reference name. The writer attempts to discover field reference names via the AzDO work item type schema.</p>
-<h2 id="example-success-response-201-created">Example success response (201 Created)<a class="headerlink" href="#example-success-response-201-created" title="Anchor link to this section for reference">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">456</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"rev"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"fields"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">"System.Title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Example issue title"</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">"System.State"</span><span class="p">:</span><span class="w"> </span><span class="s2">"New"</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">"System.WorkItemType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Task"</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://dev.azure.com/myorg/_apis/wit/workItems/456"</span>
-<span class="p">}</span>
-</code></pre></div>
-<h2 id="example-failure-responses">Example failure responses<a class="headerlink" href="#example-failure-responses" title="Anchor link to this section for reference">&para;</a></h2>
+<p>The acceptance-criteria operation is included only when the project supports
+the <code>Microsoft.VSTS.Common.AcceptanceCriteria</code> field. SDO discovers the
+available work-item fields from the Azure DevOps work-item type schema.</p>
+<h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Set <code>AZURE_DEVOPS_PAT</code> or configure the Azure DevOps credential in Windows
+Credential Manager. The PAT needs permission to read and write work items.</p>
+<h2 id="common-failures">Common failures<a class="headerlink" href="#common-failures" title="Anchor link to this section for reference">&para;</a></h2>
 <ul>
-<li>401 Unauthorized (invalid/missing PAT):</li>
-</ul>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TF400813: Resource not available for anonymous access. Client authentication required."</span>
-<span class="p">}</span>
-</code></pre></div>
-<ul>
-<li>400 Bad Request (invalid field or missing required fields):</li>
-</ul>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"errorCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"InvalidFieldValue"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The field 'Microsoft.VSTS.Common.AcceptanceCriteria' is not valid for work item type 'Task'."</span>
-<span class="p">}</span>
-</code></pre></div>
-<ul>
-<li>404 Not Found (project or area path missing):</li>
-</ul>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TF400898: The project 'MyProject' does not exist or you do not have permission to access it."</span>
-<span class="p">}</span>
-</code></pre></div>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Anchor link to this section for reference">&para;</a></h2>
-<ul>
-<li>Ensure PAT has 'Work Items (read and write)' scope and the token is provided via <code>AZURE_DEVOPS_PAT</code> environment variable.</li>
+<li><strong>401 Unauthorized</strong>: Check <code>AZURE_DEVOPS_PAT</code>, Credential Manager, and PAT
+  permissions.</li>
+<li><strong>400 Bad Request</strong>: Check the work-item type, field reference names, and
+  required fields.</li>
+<li><strong>404 Not Found</strong>: Check the organization, project, and work-item endpoint.</li>
 </ul>
 
 

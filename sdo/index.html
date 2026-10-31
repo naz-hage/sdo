@@ -13,7 +13,7 @@
       
       
       
-        <link rel="prev" href="../version-automation-guide/">
+        <link rel="prev" href="../versioning/">
       
       
         <link rel="next" href="../sdo-scripts-module/">
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tool-version-automation" class="md-skip">
+        <a href="#managed-tool-versions" class="md-skip">
           Skip to content
         </a>
       
@@ -232,7 +232,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installation/" class="md-tabs__link">
+        <a href="../setup/" class="md-tabs__link">
           
   
   
@@ -459,34 +459,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../setup/" class="md-nav__link">
         
   
@@ -494,7 +466,7 @@
   <span class="md-ellipsis">
     
   
-    Set Up a Project
+    Installation and Project Setup
   
 
     
@@ -785,35 +757,7 @@
   <span class="md-ellipsis">
     
   
-    Versioning
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../version-automation-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Version Automation Guide
+    Versioning and automation
   
 
     
@@ -890,10 +834,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tool-version-automation" class="md-nav__link">
+  <a href="#managed-tool-versions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tool version automation
+        Managed tool versions
       
     </span>
   </a>
@@ -932,10 +876,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
             
   
   
@@ -953,8 +897,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -979,34 +923,6 @@
     
   
     sdo-scripts Module
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sdo-scripts-module-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sdo-scripts API
   
 
     
@@ -1287,15 +1203,12 @@
 
   <h1>Development Tools</h1>
 
-<h2 id="tool-version-automation">Tool version automation<a class="headerlink" href="#tool-version-automation" title="Anchor link to this section for reference">&para;</a></h2>
-<p>Tool versions in this table are automatically updated from the single <code>apps.yaml</code> file (located at <code>dev-setup/apps.yaml</code>). To update the table, run:</p>
+<h2 id="managed-tool-versions">Managed tool versions<a class="headerlink" href="#managed-tool-versions" title="Anchor link to this section for reference">&para;</a></h2>
+<p>This table is generated from <code>dev-setup/apps.yaml</code>. Update it with:</p>
 <div class="highlight"><pre><span></span><code>sdo tool manifest update --latest --file-path .\docs\sdo.md
 </code></pre></div>
-<p>This will update the manifest from the latest stable releases, then extract all tool/version pairs from the <code>NbuildAppList</code> entries and update the documentation table. The <code>--file-path</code> option accepts any Markdown file containing the version table. The <code>dev-setup/apps.yaml</code> file serves as the <strong>single source of truth</strong> for all developer tools managed by SDO. No PowerShell script is needed or maintained for this process.
-The <a href="https://learn.microsoft.com/en-us/windows/dev-environment/">Windows dev environment</a> has good information on how to setup a Windows dev environment.</p>
-<ul>
-<li>The table below lists the latest development tools used by SDO.</li>
-</ul>
+<p>The command updates the manifest from the latest stable releases and
+synchronizes this table. <code>dev-setup/apps.yaml</code> is the source of truth.</p>
 <table>
 <thead>
 <tr>

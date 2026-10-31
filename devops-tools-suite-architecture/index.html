@@ -232,7 +232,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installation/" class="md-tabs__link">
+        <a href="../setup/" class="md-tabs__link">
           
   
   
@@ -459,34 +459,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../setup/" class="md-nav__link">
         
   
@@ -494,7 +466,7 @@
   <span class="md-ellipsis">
     
   
-    Set Up a Project
+    Installation and Project Setup
   
 
     
@@ -794,67 +766,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#go-executables" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Go Executables
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#manifest-file-processing-getapps-method" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Manifest File Processing (GetApps Method)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Manifest File Processing (GetApps Method)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#file-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        File Validation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#error-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Handling
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#benefits" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Benefits
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#file-structure" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1149,35 +1060,7 @@
   <span class="md-ellipsis">
     
   
-    Versioning
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../version-automation-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Version Automation Guide
+    Versioning and automation
   
 
     
@@ -1242,10 +1125,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
             
   
   
@@ -1263,8 +1146,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1289,34 +1172,6 @@
     
   
     sdo-scripts Module
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sdo-scripts-module-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sdo-scripts API
   
 
     
@@ -1607,52 +1462,6 @@
 <li><strong>Pipeline Management</strong>: CI/CD pipeline creation, execution, and monitoring.</li>
 <li><strong>Advanced Automation</strong>: Auto-discovering YAML configuration system, Markdown parser for rich content generation, and dry-run mode.</li>
 </ul>
-<h4 id="go-executables">Go Executables<a class="headerlink" href="#go-executables" title="Anchor link to this section for reference">&para;</a></h4>
-<ul>
-<li><strong>Purpose</strong>: Various utilities written in Go</li>
-<li><strong>Location</strong>: <code>go/</code> directory</li>
-<li><strong>Examples</strong>: build-apps.exe for building applications</li>
-</ul>
-<h3 id="manifest-file-processing-getapps-method">Manifest File Processing (GetApps Method)<a class="headerlink" href="#manifest-file-processing-getapps-method" title="Anchor link to this section for reference">&para;</a></h3>
-<p>The SDO tool-management command handles loading and parsing manifest JSON files for tool installation and management. This command implements strict file validation:</p>
-<h4 id="file-validation">File Validation<a class="headerlink" href="#file-validation" title="Anchor link to this section for reference">&para;</a></h4>
-<ul>
-<li><strong>Purpose</strong>: Ensures clear, actionable error messages when JSON manifest files are missing or invalid</li>
-<li><strong>Validation Steps</strong>:</li>
-<li><strong>File Existence Check</strong>: Verifies the specified file path exists before attempting to parse</li>
-<li><strong>File Reading</strong>: Reads the file contents into memory</li>
-<li><strong>JSON Parsing</strong>: Deserializes the JSON content into <code>NbuildApps</code> object</li>
-<li><strong>Version Verification</strong>: Validates that the manifest's version matches the supported version</li>
-</ul>
-<h4 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Anchor link to this section for reference">&para;</a></h4>
-<table>
-<thead>
-<tr>
-<th>Scenario</th>
-<th>Error Message</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>File not found</td>
-<td><code>YAML manifest not found: '&lt;path&gt;'. Please provide a valid path to the apps.yaml file.</code></td>
-</tr>
-<tr>
-<td>Invalid YAML format</td>
-<td><code>Invalid YAML format: &lt;error details&gt;. Please check the YAML file for proper formatting.</code></td>
-</tr>
-<tr>
-<td>Unsupported version</td>
-<td><code>Json Version &lt;version&gt; is not supported. Please use version &lt;supported_version&gt;</code></td>
-</tr>
-</tbody>
-</table>
-<h4 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Anchor link to this section for reference">&para;</a></h4>
-<ul>
-<li><strong>Early validation</strong>: Fails fast with clear error messages instead of confusing JSON parse errors</li>
-<li><strong>User-friendly</strong>: Distinguishes between file not found vs. invalid JSON content</li>
-<li><strong>Consistent</strong>: All commands (<code>sdo tool list</code>, <code>sdo tool install</code>, <code>sdo tool uninstall</code>, <code>sdo tool download</code>) use the same validation logic</li>
-</ul>
 <h3 id="file-structure">File Structure<a class="headerlink" href="#file-structure" title="Anchor link to this section for reference">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>sdo/
 ├── sdo.sln                    # Main solution file
@@ -1674,14 +1483,14 @@
 │   ├── Sdo.csproj
 │   ├── Program.cs                # CLI setup and command registration
 │   ├── Command.cs                # Core command implementations with GetApps() method
-│   │                               # GetApps() - Loads and validates manifest JSON files
+│   │                               # GetApps() - Loads and validates YAML manifests
 │   │                               # Install, Uninstall, List, Download command logic
 │   └── resources/                # Embedded resources and templates
 │
 ├── nbtests/                      # Unit tests for Nbuild
 │   ├── nbtests.csproj
 │   ├── CommandTests.cs           # Tests for Command class
-│   ├── AppsJsonTests.cs          # Tests for JSON manifest loading
+│   ├── AppsYamlTests.cs          # Tests for YAML manifest loading
 │   ├── CliTests.cs               # CLI tests
 │   └── other test files/
 │
@@ -1727,11 +1536,6 @@
 ├── lfTests/                      # Unit tests for lf
 │   ├── lfTests.csproj
 │   └── ListSearcherTests.cs
-│
-├── go/                           # Go-based utilities
-│   ├── build-apps/               # Application builder
-│   ├── other-tools/              # Additional Go tools
-│   └── build-scripts/            # Go build scripts
 │
 ├── Sdo/                          # sdo (C# executable) - Simple DevOps Operations Tool
 │   ├── Sdo.csproj
@@ -1818,7 +1622,6 @@
 - MSBuild
 - Custom build targets (sdo.targets)
 - Shared build tasks (NbuildTasks)</p>
-<p>Go executables are built using the Go toolchain and custom build scripts.</p>
 <hr />
 <h2 id="sdo-simple-devops-operations-tool-architecture-design">sdo (Simple DevOps Operations Tool) - Architecture &amp; Design<a class="headerlink" href="#sdo-simple-devops-operations-tool-architecture-design" title="Anchor link to this section for reference">&para;</a></h2>
 <h3 id="overview">Overview<a class="headerlink" href="#overview" title="Anchor link to this section for reference">&para;</a></h3>
@@ -1925,7 +1728,6 @@
 <li><strong>Configuration</strong>: YamlDotNet 15.1.1 for YAML parsing (Advanced Automation Features)</li>
 <li><strong>API Clients</strong>: Octokit.NET (GitHub API), Microsoft.TeamFoundationServer.Client (Azure DevOps API)</li>
 <li><strong>HTTP</strong>: System.Net.Http for REST calls</li>
-<li><strong>JSON</strong>: System.Text.Json for JSON processing</li>
 <li><strong>Development &amp; Testing</strong>: xunit, Moq, Microsoft.NET.Test.Sdk</li>
 <li><strong>Installation Scripts</strong>: Python (for cross-platform installer compatibility only)</li>
 </ul>

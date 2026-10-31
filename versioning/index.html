@@ -16,7 +16,7 @@
         <link rel="prev" href="../buildtypes/">
       
       
-        <link rel="next" href="../version-automation-guide/">
+        <link rel="next" href="../sdo/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Versioning - Ntools - Work in Progress</title>
+        <title>Versioning and automation - Ntools - Work in Progress</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#version-and-tag" class="md-skip">
+        <a href="#versioning-and-automation" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Versioning
+              Versioning and automation
             
           </span>
         </div>
@@ -232,7 +232,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installation/" class="md-tabs__link">
+        <a href="../setup/" class="md-tabs__link">
           
   
   
@@ -459,34 +459,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../setup/" class="md-nav__link">
         
   
@@ -494,7 +466,7 @@
   <span class="md-ellipsis">
     
   
-    Set Up a Project
+    Installation and Project Setup
   
 
     
@@ -794,7 +766,7 @@
   <span class="md-ellipsis">
     
   
-    Versioning
+    Versioning and automation
   
 
     
@@ -812,7 +784,7 @@
   <span class="md-ellipsis">
     
   
-    Versioning
+    Versioning and automation
   
 
     
@@ -838,30 +810,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#version-automation" class="md-nav__link">
+  <a href="#update-tool-versions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Version Automation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Version Automation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#powershell-module-integration-v300" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        PowerShell Module Integration (v3.0.0+)
+        Update tool versions
       
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#read-the-sdo-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read the SDO version
+      
+    </span>
+  </a>
   
 </li>
       
@@ -869,34 +835,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../version-automation-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Version Automation Guide
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -953,10 +891,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
             
   
   
@@ -974,8 +912,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1000,34 +938,6 @@
     
   
     sdo-scripts Module
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sdo-scripts-module-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sdo-scripts API
   
 
     
@@ -1306,45 +1216,49 @@
   
 
 
-<h1 id="version-and-tag">Version and Tag<a class="headerlink" href="#version-and-tag" title="Anchor link to this section for reference">&para;</a></h1>
-<p>Throughout this document, the terms "version" and "tag" are used interchangeably. The version applies to binaries, product, or repository tagging. The rules for SDO versioning are as follows:</p>
-<ol>
-<li>The version is a string in the format of <code>X.Y.Z</code>, where <code>X</code>, <code>Y</code>, and <code>Z</code> are integers.</li>
-<li>The version is incremented as follows:<ul>
-<li><code>X</code> is the major number:</li>
-<li>Incremented for breaking changes.</li>
-<li><code>Y</code> is the minor number:</li>
-<li>Incremented for new features or bug fixes.</li>
-<li>Incremented when <a href="../buildtypes/#prod">production</a> Build Type is deployed.</li>
-<li>Incrementing <code>Y</code> resets <code>Z</code> to 0.</li>
-<li><code>Z</code> is the build number:<ul>
-<li>Incremented when <a href="../buildtypes/#stage">staging</a> Build Type is deployed.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<p>Tags in the <a href="../github-release/">GitHubRelease</a> are used to:</p>
-<ul>
-<li>Identify specific versions of the repository.</li>
-<li>Associate release assets with a particular version.</li>
-<li>Generate release notes based on commits since the last tag.</li>
-</ul>
-<h2 id="version-automation">Version Automation<a class="headerlink" href="#version-automation" title="Anchor link to this section for reference">&para;</a></h2>
-<p>Tool versions in documentation can be updated through <code>sdo tool manifest update --latest --file-path .\docs\sdo.md</code>. This updates the manifest from the latest stable releases, then extracts all tool/version pairs from <code>dev-setup/apps.yaml</code> and updates the documentation table accordingly.</p>
-<h3 id="powershell-module-integration-v300">PowerShell Module Integration (v3.0.0+)<a class="headerlink" href="#powershell-module-integration-v300" title="Anchor link to this section for reference">&para;</a></h3>
-<ul>
-<li><strong>Module</strong>: <code>scripts/module-package/sdo-scripts.psm1</code></li>
-<li><strong>Function</strong>: <code>Get-VersionFromYaml</code></li>
-<li><strong>Purpose</strong>: Consolidated version management within the SDO scripts module</li>
-</ul>
-<div class="highlight"><pre><span></span><code><span class="c"># Import the module</span>
-<span class="nb">Import-Module</span> <span class="s2">"./scripts/module-package/sdo-scripts.psm1"</span> <span class="n">-Force</span>
-
-<span class="c"># Get version from the SDO YAML manifest</span>
+<h1 id="versioning-and-automation">Versioning and automation<a class="headerlink" href="#versioning-and-automation" title="Anchor link to this section for reference">&para;</a></h1>
+<p>SDO uses <code>X.Y.Z</code> versions for binaries, products, and repository tags:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Changes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>X</code></td>
+<td>A breaking change is released.</td>
+</tr>
+<tr>
+<td><code>Y</code></td>
+<td>A feature or fix is released, or a production build is deployed. Incrementing <code>Y</code> resets <code>Z</code> to <code>0</code>.</td>
+</tr>
+<tr>
+<td><code>Z</code></td>
+<td>A staging build is deployed.</td>
+</tr>
+</tbody>
+</table>
+<p>Tags identify repository versions, associate release assets, and generate
+release notes from commits since the previous tag. See
+<a href="../buildtypes/">buildtypes.md</a> for staging and production builds and
+<a href="../github-release/">github-release.md</a> for release behavior.</p>
+<h2 id="update-tool-versions">Update tool versions<a class="headerlink" href="#update-tool-versions" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Tool versions are maintained in <code>dev-setup/apps.yaml</code>. Update the manifest
+and a Markdown version table with:</p>
+<div class="highlight"><pre><span></span><code><span class="n">sdo</span> <span class="n">tool</span> <span class="n">manifest</span> <span class="n">update</span> <span class="p">-</span><span class="n">-latest</span> <span class="p">-</span><span class="o">-file</span><span class="n">-path</span> <span class="p">.\</span><span class="n">docs</span><span class="p">\</span><span class="n">sdo</span><span class="p">.</span><span class="nb">md</span>
+</code></pre></div>
+<p>The command discovers the latest stable releases, updates the YAML manifest,
+and synchronizes matching tool/version rows in the selected Markdown file.
+Use <code>--dry-run</code> to preview changes.</p>
+<h2 id="read-the-sdo-version">Read the SDO version<a class="headerlink" href="#read-the-sdo-version" title="Anchor link to this section for reference">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="nb">Import-Module</span> <span class="s2">"./scripts/module-package/sdo-scripts.psm1"</span> <span class="n">-Force</span>
 <span class="nv">$version</span> <span class="p">=</span> <span class="nb">Get-VersionFromYaml</span> <span class="n">-YamlPath</span> <span class="s2">"./dev-setup/sdo.yaml"</span>
 </code></pre></div>
-<p>For complete automation details, see <a href="../version-automation-guide/">Version Automation Guide</a>.</p>
+<p>The Markdown synchronization is implemented by
+<code>Sdo/Services/UpdateVersionsInDocs.cs</code> and invoked by
+<code>sdo tool manifest update</code>.</p>
 
 
 

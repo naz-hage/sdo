@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#stage" class="md-skip">
+        <a href="#build-types" class="md-skip">
           Skip to content
         </a>
       
@@ -232,7 +232,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installation/" class="md-tabs__link">
+        <a href="../setup/" class="md-tabs__link">
           
   
   
@@ -459,34 +459,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../setup/" class="md-nav__link">
         
   
@@ -494,7 +466,7 @@
   <span class="md-ellipsis">
     
   
-    Set Up a Project
+    Installation and Project Setup
   
 
     
@@ -756,6 +728,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -798,6 +772,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -809,7 +785,7 @@
   <a href="#stage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        stage
+        Stage
       
     </span>
   </a>
@@ -817,10 +793,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#prod" class="md-nav__link">
+  <a href="#production" class="md-nav__link">
     <span class="md-ellipsis">
       
-        prod
+        Production
       
     </span>
   </a>
@@ -850,35 +826,7 @@
   <span class="md-ellipsis">
     
   
-    Versioning
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../version-automation-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Version Automation Guide
+    Versioning and automation
   
 
     
@@ -943,10 +891,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
             
   
   
@@ -964,8 +912,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -990,34 +938,6 @@
     
   
     sdo-scripts Module
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sdo-scripts-module-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sdo-scripts API
   
 
     
@@ -1296,39 +1216,28 @@
   
 
 
-  <h1>Build Types</h1>
-
-<p><strong>SDO</strong> has two predefined build types: <code>stage</code> and <code>prod</code>. The <code>stage</code> build type deploys code to a stage environment used for debugging and testing, while the <code>prod</code> build type is used for production deployment. The <code>stage</code> build type includes debugging symbols and is not optimized, while the <code>production</code> build type is optimized for performance and does not include debugging symbols.</p>
-<h3 id="stage">stage<a class="headerlink" href="#stage" title="Anchor link to this section for reference">&para;</a></h3>
-<p>The <code>stage</code> build type use the following command:</p>
-<p><div class="highlight"><pre><span></span><code><span class="n">sdo</span> <span class="n">stage</span>
-</code></pre></div>
-It includes the following steps:</p>
+<h1 id="build-types">Build types<a class="headerlink" href="#build-types" title="Anchor link to this section for reference">&para;</a></h1>
+<p>SDO provides two standard build targets:</p>
 <ul>
-<li>Clean the project</li>
-<li>Restore the project</li>
-<li>Build the project</li>
-<li>Test the project</li>
-<li>Publish the project to the stage environment</li>
-<li>Run various tests on the stage environment</li>
-<li>The version is set according to the rules in <a href="../versioning/">versioning</a></li>
+<li><code>stage</code> creates a package for testing.</li>
+<li><code>prod</code> creates a package for release.</li>
 </ul>
-<h3 id="prod">prod<a class="headerlink" href="#prod" title="Anchor link to this section for reference">&para;</a></h3>
-<p>The <code>prod</code> build type use the following command:</p>
-<p><div class="highlight"><pre><span></span><code><span class="n">sdo</span> <span class="n">prod</span>
+<h2 id="stage">Stage<a class="headerlink" href="#stage" title="Anchor link to this section for reference">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">sdo</span> <span class="n">stage</span>
 </code></pre></div>
-It includes the following steps:</p>
-<ul>
-<li>Clean the project</li>
-<li>Restore the project</li>
-<li>Build the project</li>
-<li>Test the project</li>
-<li>Publish the project to the production environment</li>
-<li>Run smoke tests on the production environment</li>
-<li>This build is available for download from the GitHub release page</li>
-<li>The version is set according to the rules in <a href="../versioning/">versioning</a></li>
-</ul>
-<p>Your project can have additional build types which you can add to your <code>sdo.targets</code> fille, </p>
+<p>The stage target cleans the solution, updates the stage version tag, builds
+and tests the solution, copies the artifacts, and creates the package.</p>
+<h2 id="production">Production<a class="headerlink" href="#production" title="Anchor link to this section for reference">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">sdo</span> <span class="n">prod</span>
+</code></pre></div>
+<p>The production target cleans the solution, pulls the latest changes, updates
+the production version tag, builds and tests the solution, copies the
+artifacts, and creates the package.</p>
+<p>Version increments are documented in <a href="../versioning/">versioning.md</a>.
+GitHub release behavior is documented in
+<a href="../github-release/">github-release.md</a>.</p>
+<p>Projects can add custom targets in <code>sdo.targets</code>. See the
+<a href="../sdo-targets/">target reference</a> for the available build targets.</p>
 
 
 

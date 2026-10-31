@@ -13,7 +13,7 @@
       
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="..">
       
       
         <link rel="next" href="../usage/">
@@ -27,7 +27,7 @@
     
     
       
-        <title>Set Up a Project - Ntools - Work in Progress</title>
+        <title>Installation and Project Setup - Ntools - Work in Progress</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#setting-up-your-project-with-dev-setup" class="md-skip">
+        <a href="#install-and-set-up-sdo" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Set Up a Project
+              Installation and Project Setup
             
           </span>
         </div>
@@ -234,7 +234,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../installation/" class="md-tabs__link">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -461,34 +461,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -508,7 +480,7 @@
   <span class="md-ellipsis">
     
   
-    Set Up a Project
+    Installation and Project Setup
   
 
     
@@ -526,7 +498,7 @@
   <span class="md-ellipsis">
     
   
-    Set Up a Project
+    Installation and Project Setup
   
 
     
@@ -552,30 +524,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#powershell-module-integration" class="md-nav__link">
+  <a href="#prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
-        PowerShell Module Integration
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="PowerShell Module Integration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#using-sdo-scripts-module" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Using sdo-scripts Module
+        Prerequisites
       
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#install-sdo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install SDO
+      
+    </span>
+  </a>
   
 </li>
       
@@ -943,35 +909,7 @@
   <span class="md-ellipsis">
     
   
-    Versioning
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../version-automation-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Version Automation Guide
+    Versioning and automation
   
 
     
@@ -1033,10 +971,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
             
   
   
@@ -1054,8 +992,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1080,34 +1018,6 @@
     
   
     sdo-scripts Module
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sdo-scripts-module-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sdo-scripts API
   
 
     
@@ -1386,24 +1296,29 @@
   
 
 
-<h1 id="setting-up-your-project-with-dev-setup">Setting Up Your Project with dev-setup<a class="headerlink" href="#setting-up-your-project-with-dev-setup" title="Anchor link to this section for reference">&para;</a></h1>
-<p>The dev-setup folder is a critical part of your project setup. It contains scripts and configuration files to automate the installation of development tools and the setup of your development environment.</p>
-<h2 id="powershell-module-integration">PowerShell Module Integration<a class="headerlink" href="#powershell-module-integration" title="Anchor link to this section for reference">&para;</a></h2>
-<p><strong>New in v3.0.0</strong>: The project has migrated from NTools to SDO. The
-consolidated <code>sdo-scripts</code> PowerShell module now uses <code>sdo.yaml</code> and provides
-the <code>Install-Sdo</code> command in place of the legacy <code>Install-NTools</code> command.</p>
-<h3 id="using-sdo-scripts-module">Using sdo-scripts Module<a class="headerlink" href="#using-sdo-scripts-module" title="Anchor link to this section for reference">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c"># Import the module</span>
-<span class="nb">Import-Module</span> <span class="s2">"./scripts/module-package/sdo-scripts.psm1"</span> <span class="n">-Force</span>
-
-<span class="c"># Install the latest stable SDO release ending in .0</span>
+<h1 id="install-and-set-up-sdo">Install and set up SDO<a class="headerlink" href="#install-and-set-up-sdo" title="Anchor link to this section for reference">&para;</a></h1>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Anchor link to this section for reference">&para;</a></h2>
+<ul>
+<li>64-bit <a href="https://git-scm.com/download/win">Git for Windows</a></li>
+<li><a href="https://dotnet.microsoft.com/download">.NET SDK</a></li>
+<li>PowerShell</li>
+</ul>
+<h2 id="install-sdo">Install SDO<a class="headerlink" href="#install-sdo" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Clone the repository and install the latest stable SDO release:</p>
+<div class="highlight"><pre><span></span><code><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">://</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">naz-hage</span><span class="p">/</span><span class="n">sdo</span><span class="p">.</span><span class="n">git</span>
+<span class="nb">Set-Location</span> <span class="p">.\</span><span class="n">sdo</span>
+<span class="nb">Import-Module</span> <span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">module-package</span><span class="p">\</span><span class="n">sdo-scripts</span><span class="p">.</span><span class="n">psm1</span> <span class="n">-Force</span>
 <span class="nb">Install-Sdo</span>
-
-<span class="c"># Set up development environment</span>
-<span class="nb">Set-DevelopmentEnvironment</span>
-<span class="nb">Install-DevelopmentApps</span>
 </code></pre></div>
-<p>For complete module documentation, see <a href="../sdo-scripts-module/">sdo-scripts Module</a>.</p>
+<p>Install a specific release with <code>-Version</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">Install-Sdo</span> <span class="n">-Version</span> <span class="s2">"1.74.0"</span>
+</code></pre></div>
+<p>Verify the installation:</p>
+<div class="highlight"><pre><span></span><code><span class="n">sdo</span> <span class="p">-</span><span class="n">-help</span>
+<span class="n">sdo</span> <span class="p">-</span><span class="n">-version</span>
+</code></pre></div>
+<p>For module functions and CI usage, see
+<a href="../sdo-scripts-module/">sdo-scripts-module.md</a>.</p>
 <h2 id="overview-of-dev-setup-folder">Overview of dev-setup Folder<a class="headerlink" href="#overview-of-dev-setup-folder" title="Anchor link to this section for reference">&para;</a></h2>
 <p>The dev-setup folder typically includes the following files:</p>
 <ul>

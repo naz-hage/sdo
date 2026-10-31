@@ -23,7 +23,7 @@
     
     
       
-        <title>SDO Features - Ntools - Work in Progress</title>
+        <title>SDO features - Ntools - Work in Progress</title>
       
     
     
@@ -108,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              SDO Features
+              SDO features
             
           </span>
         </div>
@@ -228,7 +228,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installation/" class="md-tabs__link">
+        <a href="../setup/" class="md-tabs__link">
           
   
   
@@ -453,34 +453,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../setup/" class="md-nav__link">
         
   
@@ -488,7 +460,7 @@
   <span class="md-ellipsis">
     
   
-    Set Up a Project
+    Installation and Project Setup
   
 
     
@@ -774,35 +746,7 @@
   <span class="md-ellipsis">
     
   
-    Versioning
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../version-automation-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Version Automation Guide
+    Versioning and automation
   
 
     
@@ -864,10 +808,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
             
   
   
@@ -885,8 +829,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -911,34 +855,6 @@
     
   
     sdo-scripts Module
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sdo-scripts-module-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sdo-scripts API
   
 
     
@@ -1217,23 +1133,19 @@
   
 
 
-<h1 id="sdo-features">SDO Features<a class="headerlink" href="#sdo-features" title="Anchor link to this section for reference">&para;</a></h1>
+<h1 id="sdo-features">SDO features<a class="headerlink" href="#sdo-features" title="Anchor link to this section for reference">&para;</a></h1>
 <ul>
-<li><strong>Build &amp; Test</strong>: Comprehensive build system with .NET SDK integration and extensive testing support</li>
-<li><strong>Git Operations</strong>: Complete Git workflow automation including tagging, branching, and repository cloning</li>
-<li><strong>GitHub Integration</strong>: Automated release creation and asset management</li>
-<li><strong>Project Management</strong>: Manage work items, repositories, branches, and pull requests across Azure DevOps and GitHub</li>
-<li><strong>Platform Agnostic</strong>: Consistent command syntax across Azure DevOps and GitHub</li>
-<li><strong>Global Options</strong>: <code>--dry-run</code> and <code>--verbose</code> options available across all commands</li>
-<li><strong>Unified CLI</strong>: One command-line utility with consistent commands and options</li>
-<li><strong>Modular Architecture</strong>: Clean separation of concerns with service-based design</li>
-<li><strong>Extensive Testing</strong>: Comprehensive unit test suite with targeted execution options</li>
-<li><strong>Modern .NET Runtime</strong>: Built on .NET 10.0 with C# 14.0 syntax support and current runtime features</li>
-<li><strong>.NET SDK Integration</strong>: Uses the .NET SDK with automatic <code>dotnet.exe</code> detection</li>
-<li><strong>CLI Framework</strong>: Uses System.CommandLine 2.0.1 with global option support</li>
-<li><strong>Targeted Testing</strong>: Supports granular unit testing targets for efficient test execution</li>
-<li><strong>Documentation</strong>: Includes CLI reference and build target documentation</li>
+<li>Build and test .NET solutions with <code>sdo solution</code>, <code>sdo clean</code>, and <code>sdo test</code>.</li>
+<li>Run YAML workflows with <code>sdo run</code>.</li>
+<li>Install, update, inspect, download, and uninstall tools from <code>apps.yaml</code>.</li>
+<li>Create GitHub releases and upload release assets.</li>
+<li>Manage Git repositories, branches, tags, pull requests, and work items.</li>
+<li>Work with GitHub and Azure DevOps using one command-line interface.</li>
+<li>Preview supported operations with <code>--dry-run</code> and diagnose them with
+  <code>--verbose</code>.</li>
 </ul>
+<p>For commands and options, see the <a href="../sdo-net/">CLI reference</a>. For setup,
+see <a href="../usage/">usage</a>.</p>
 
 
 
