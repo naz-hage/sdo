@@ -25,6 +25,11 @@ Install the latest stable SDO release:
 Install-Sdo
 ```
 
+When no version is supplied, `Install-Sdo` queries the GitHub releases API.
+The module uses `API_GITHUB_KEY`, then `GITHUB_TOKEN`, and finally a token
+from `gh auth token` when GitHub CLI is authenticated. In GitHub Actions, the
+workflow passes its repository token to `API_GITHUB_KEY` automatically.
+
 Install a specific release:
 
 ```powershell
@@ -40,7 +45,6 @@ The public API is defined by `FunctionsToExport` in
 
 | Function | Purpose |
 | --- | --- |
-| `Publish-AllProjects` | Legacy compatibility function; `PUBLISH` uses `dotnet publish` directly. |
 | `Get-SdoScriptsVersion` | Return the module version. |
 | `Set-DevelopmentEnvironment` | Set local development environment variables. |
 | `Get-VersionFromYaml` | Read version fields from an `sdo.yaml` file. |
@@ -76,17 +80,6 @@ dotnet publish .\Sdo\Sdo.csproj `
   --property:DebugSymbols=false `
   --property:DebugType=None
 ```
-
-`Publish-AllProjects` remains available for compatibility but is not used by
-the `PUBLISH` target. The target publishes every non-test project to one
-versioned output folder and removes `.pdb` files.
-
-Run target validation:
-
-```powershell
-Test-TargetDelegation -SolutionDir .
-```
-
 The `PUBLISH` target invokes `dotnet publish` once per non-test project and
 writes every project to the same versioned output folder. The `SMOKE_TEST`
 target uses `Test-TargetDelegation`.

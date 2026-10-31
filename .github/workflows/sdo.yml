@@ -104,6 +104,8 @@ jobs:
 
         "SDO_PATH=$sdoPath" | Out-File -FilePath $env:GITHUB_ENV -Append
         & $sdoPath --version
+      env:
+        API_GITHUB_KEY: ${{ secrets.API_GITHUB_KEY || github.token }}
       shell: pwsh
       working-directory: ${{ github.workspace }}
 
