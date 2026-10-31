@@ -3,7 +3,7 @@ NbuildAppList:
   - Name: "7-zip"
     Version: "26.05"
     AppFileName: "$(InstallPath)\\7z.exe"
-    WebDownloadFile: "https://www.7-zip.org/a/7z2301-x64.exe"
+    WebDownloadFile: "https://www.7-zip.org/a/7z2605-x64.exe"
     LatestVersionUrl: "https://github.com/ip7z/7zip"
     DownloadedFile: "7zip.exe"
     InstallCommand: "$(DownloadedFile)"
