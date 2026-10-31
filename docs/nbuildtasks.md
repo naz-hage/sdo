@@ -17,7 +17,7 @@ included in the consolidated `sdo.dll` assembly.
 | `Pwsh` | Run a PowerShell script. |
 
 The tasks are registered by
-[`common.targets`](../nb/resources/common.targets).
+[`common.targets`](../Sdo/Resources/common.targets).
 
 ## Examples
 

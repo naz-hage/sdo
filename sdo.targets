@@ -42,10 +42,10 @@
 					$(SolutionDir)\scripts\module-package\*.ps1;
 					$(SolutionDir)\scripts\module-package\*.psd1;
 					$(SolutionDir)\scripts\module-package\*.psm1;
-					$(SolutionDir)\nb\resources\*.json"
+					$(SolutionDir)\Sdo\Resources\*.json"
 					/>
 
-			<BuildToolTargetFiles Include="$(SolutionDir)\nb\resources\*.targets" />
+			<BuildToolTargetFiles Include="$(SolutionDir)\Sdo\Resources\*.targets" />
 			<BinaryFiles Include="@(BuildToolTargetFiles)" />
 
 			<RunTimesNetStandard20 Include = "
@@ -507,6 +507,7 @@
         <!-- Test each executable using MSBuild batching -->
         <Message Text="Testing executables..." />
         <Exec Command='"%(ExistingExecutables.Identity)" %(ExistingExecutables.TestCommand)' 
+              Condition="'@(ExistingExecutables)' != ''"
               ContinueOnError="true" 
               IgnoreExitCode="true">
             <Output TaskParameter="ExitCode" PropertyName="ExitCode_%(ExistingExecutables.Filename)" />
@@ -527,7 +528,7 @@
             <SourceTarget Condition="'$(SourceTarget)' == ''">STAGE</SourceTarget>
             <DelegateTarget Condition="'$(DelegateTarget)' == ''">STAGE_NEW</DelegateTarget>
             <SourceFile Condition="'$(SourceFile)' == ''">$(SolutionDir)\sdo.targets</SourceFile>
-            <DelegateFile Condition="'$(DelegateFile)' == ''">$(SolutionDir)\nb\resources\common.targets</DelegateFile>
+            <DelegateFile Condition="'$(DelegateFile)' == ''">$(SolutionDir)\Sdo\Resources\common.targets</DelegateFile>
         </PropertyGroup>
         
         <Message Text="Testing MSBuild target delegation: $(SourceTarget) -> $(DelegateTarget)" />
