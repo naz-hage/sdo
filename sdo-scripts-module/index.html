@@ -1266,6 +1266,10 @@ and CI workflows.</p>
 <p>Install the latest stable SDO release:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">Install-Sdo</span>
 </code></pre></div>
+<p>When no version is supplied, <code>Install-Sdo</code> queries the GitHub releases API.
+The module uses <code>API_GITHUB_KEY</code>, then <code>GITHUB_TOKEN</code>, and finally a token
+from <code>gh auth token</code> when GitHub CLI is authenticated. In GitHub Actions, the
+workflow passes its repository token to <code>API_GITHUB_KEY</code> automatically.</p>
 <p>Install a specific release:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">Install-Sdo</span> <span class="n">-Version</span> <span class="s2">"1.29.7"</span> <span class="n">-DownloadsDirectory</span> <span class="s2">"C:\MyDownloads"</span>
 </code></pre></div>
@@ -1281,10 +1285,6 @@ and CI workflows.</p>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code>Publish-AllProjects</code></td>
-<td>Build and publish non-test projects.</td>
-</tr>
 <tr>
 <td><code>Get-SdoScriptsVersion</code></td>
 <td>Return the module version.</td>
@@ -1355,17 +1355,17 @@ and CI workflows.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">Get-Command</span> <span class="n">-Module</span> <span class="n">sdo-scripts</span>
 </code></pre></div>
 <h2 id="build-and-ci-usage">Build and CI usage<a class="headerlink" href="#build-and-ci-usage" title="Anchor link to this section for reference">&para;</a></h2>
-<p>Publish projects with an explicit repository path:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">Publish-AllProjects</span> <span class="p">`</span>
-  <span class="n">-OutputDir</span> <span class="n">C</span><span class="p">:\</span><span class="n">Artifacts</span> <span class="p">`</span>
-  <span class="n">-Version</span> <span class="n">1</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span> <span class="p">`</span>
-  <span class="n">-RepositoryRoot</span> <span class="n">C</span><span class="p">:\</span><span class="n">MyRepo</span>
+<p>For direct project publishing, use the .NET CLI:</p>
+<p><div class="highlight"><pre><span></span><code><span class="n">dotnet</span> <span class="n">publish</span> <span class="p">.\</span><span class="n">Sdo</span><span class="p">\</span><span class="n">Sdo</span><span class="p">.</span><span class="n">csproj</span> <span class="p">`</span>
+  <span class="p">-</span><span class="n">-configuration</span> <span class="n">Release</span> <span class="p">`</span>
+  <span class="p">-</span><span class="n">-output</span> <span class="n">C</span><span class="p">:\</span><span class="n">Artifacts</span> <span class="p">`</span>
+  <span class="p">-</span><span class="n">-property</span><span class="p">:</span><span class="n">Version</span><span class="p">=</span><span class="n">1</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span> <span class="p">`</span>
+  <span class="p">-</span><span class="n">-property</span><span class="p">:</span><span class="n">DebugSymbols</span><span class="p">=</span><span class="n">false</span> <span class="p">`</span>
+  <span class="p">-</span><span class="n">-property</span><span class="p">:</span><span class="n">DebugType</span><span class="p">=</span><span class="n">None</span>
 </code></pre></div>
-<p>Run target validation:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">Test-TargetDelegation</span> <span class="n">-SolutionDir</span> <span class="p">.</span>
-</code></pre></div>
-<p>The <code>PUBLISH</code> target uses <code>Publish-AllProjects</code>. The <code>SMOKE_TEST</code> target uses
-<code>Test-TargetDelegation</code>.</p>
+The <code>PUBLISH</code> target invokes <code>dotnet publish</code> once per non-test project and
+writes every project to the same versioned output folder. The <code>SMOKE_TEST</code>
+target uses <code>Test-TargetDelegation</code>.</p>
 <p>Example GitHub Actions setup:</p>
 <div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install SDO</span>
 <span class="w">  </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pwsh</span>
