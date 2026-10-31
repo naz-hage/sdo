@@ -78,22 +78,6 @@
 
 	</Target>
 	
-	<!-- Download Nbuild specified in the NbuildTargetVersion -->
-	<Target Name="NBUILD_DOWNLOAD" DependsOnTargets="IS_ADMIN">
-		<PropertyGroup>
-		<WebUri>https://github.com/naz-hage/sdo/releases/download/$(NbuildTargetVersion)/$(NbuildTargetVersion).zip</WebUri>
-		<FileName>$(DownloadsDirectory)\NBuildTools.zip</FileName>
-		</PropertyGroup>
-
-		<RedError Condition="'$(IsAdmin)' == false" Message="Must be an admin to install $(NbuildAppName)" />
-		
-		<Delete Files="$(FileName)" Condition="Exists('$(FileName)') == true" />
-		
-		<WebDownload WebUri="$(WebUri)" FileName="$(FileName)" />
-		
-		<Message Text="==> NBUILD_DONE"/>
-	</Target>
-
 	<!-- Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment -->
 	<Target Name="SETUP_ENVIRONMENT" DependsOnTargets="IS_ADMIN">
 		<Message Text="Setting up development environment (Set-DevelopmentEnvironment)" Importance="high" />

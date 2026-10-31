@@ -4,7 +4,6 @@
 | --- | --- |
 | ARTIFACTS           | Setup the ARTIFACTS folders for binaries and test results - override |
 | FILE_VERSIONS       | Test for FileVersion task and powershell file-version.ps1 |
-| NBUILD_DOWNLOAD     | Download Nbuild specified in the NbuildTargetVersion |
 | SETUP_ENVIRONMENT   | Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment |
 | TEST_NTOOLS_SCRIPTS | Test that sdo-scripts module is installed and can report a version |
 | MKDOCS              | Build docs locally for testing |
@@ -92,56 +91,6 @@ Test projects are excluded from the project list. Debug symbols are disabled,
 and any `.pdb` files remaining in the output folder are removed before the
 target completes.
 
-- **C:\Program Files\nbuild\apps-versions.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| APP_COMMON          | Defines the download location for the apps |
-
-
-- **C:\Program Files\nbuild\git.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| GIT_DOWNLOAD        | Download Git For Windows version specified in GitTargetVersion - Requires admin mode |
-| GIT_INSTALL         | Download Git For Windows version specified in GitTargetVersion property and install |
-| GIT_UPDATE          | Update the current Git for Windows |
-
-
-- **C:\Program Files\nbuild\dotnet.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| DOTNET_SDK_DOWNLOAD | Download dotnet Core sdk |
-| DOTNET_SDK_INSTALL  | Download and install dotnet Core sdk |
-| DOTNET_DOWNLOAD     | Download DotNet Core |
-| DOTNET_INSTALL      | Download and install DotNet Core |
-
-
-- **C:\Program Files\nbuild\code.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| CODE_DOWNLOAD       | Download node version specified in CodeTargetVersion - Requires admin mode |
-| CODE_INSTALL        | Download node version specified in CodeTargetVersion property and install |
-
-
-- **C:\Program Files\nbuild\node.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| NODE_DOWNLOAD       | Download node version specified in NodeTargetVersion - Requires admin mode |
-| NODE_INSTALL        | Download node version specified in NodeTargetVersion property and install |
-| NODE_VERSION        | Display the installed note version |
-
-
-- **C:\Program Files\nbuild\mongodb.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| MONGODB_INSTALL     | Display mongodb version specified in TargetNodeVersion property and install |
-
-
 - **C:\Program Files\nbuild\ngit.targets Targets**
 
 | **Target Name** | **Description** |
@@ -154,25 +103,6 @@ target completes.
 | TAG                 | Get the tag from git |
 | PUSH_TAG            | Push the tag to the remote repo |
 | GIT_BRANCH          | Get the current git branch |
-
-
-- **C:\Program Files\nbuild\docker.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| DOCKER_DOWNLOAD     | Download Docker version specified in DockerTargetVersion - Requires admin mode |
-| DOCKER_INSTALL      | Download Docker version specified in DockerTargetVersion property and install |
-
-
-- **C:\Program Files\nbuild\terraform.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| TF_WORKSPACE        | Create a new terraform workspace `dev` and select it |
-| TF_INIT             | Init terraform |
-| TF_PLAN             | terraform plan |
-| TF_APPLY            | terraform apply |
-| TF_DESTROY          | terraform destroy |
 
 
 - **unit-tests.targets Targets**

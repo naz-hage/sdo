@@ -32,10 +32,7 @@
 
 	<ItemGroup>
 		<EmbeddedResource Include="resources\common.targets" />
-		<EmbeddedResource Include="resources\dotnet.targets" />
-		<EmbeddedResource Include="resources\mongodb.targets" />
 		<EmbeddedResource Include="resources\sdo.targets" />
-		<EmbeddedResource Include="resources\node.targets" />
 	</ItemGroup>
 
 	<ItemGroup>
