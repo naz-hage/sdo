@@ -865,7 +865,9 @@ preview version changes without modifying the manifest. This command updates
 the manifest only and does not install, uninstall, or download applications.
 Applications whose latest version cannot be resolved are reported separately;
 the dry run still displays all other available changes and leaves the manifest
-unchanged.
+unchanged. Unresolved applications are warnings and do not prevent the
+command from reporting the manifest as up to date when no resolvable changes
+remain.
 
 #### tool install --latest
 

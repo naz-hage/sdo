@@ -578,13 +578,11 @@ namespace Nbuild
             }
 
             var updates = new List<(NbuildApp App, string LatestVersion)>();
-            var discoveryFailures = new List<string>();
             var preview = new List<(NbuildApp App, string? LatestVersion, string? Error)>();
             foreach (var app in apps)
             {
                 if (!TryGetLatestVersion(app, out var latestVersion, out _, out var error))
                 {
-                    discoveryFailures.Add($"{app.Name}: {error}");
                     preview.Add((app, null, error));
                     continue;
                 }
@@ -606,22 +604,15 @@ namespace Nbuild
                 }
             }
 
-            if (!updates.Any() && !discoveryFailures.Any())
+            if (!updates.Any())
             {
                 ConsoleHelper.WriteWarning("Manifest is already up to date.");
                 return ResultHelper.Success();
             }
 
-            if (!updates.Any())
-            {
-                return ResultHelper.Fail(-1, "No manifest changes were available because latest versions could not be resolved.");
-            }
-
             if (dryRun)
             {
-                return discoveryFailures.Any()
-                    ? ResultHelper.Fail(-1, "Some application versions could not be resolved; manifest was not modified.")
-                    : ResultHelper.Success("DRY-RUN: manifest was not modified.");
+                return ResultHelper.Success("DRY-RUN: manifest was not modified.");
             }
 
             var updatedContent = content;
@@ -660,9 +651,7 @@ namespace Nbuild
             }
 
             ConsoleHelper.WriteSuccess($"Updated manifest: {resolvedPath}");
-            return discoveryFailures.Any()
-                ? ResultHelper.Fail(-1, "Manifest was updated, but some application versions could not be resolved.")
-                : ResultHelper.Success();
+            return ResultHelper.Success();
         }
 
         private static void WriteManifestPreviewLine(
@@ -687,8 +676,31 @@ namespace Nbuild
             {
                 ConsoleHelper.WriteLine(
                     $"{appName}: {currentVersion} -> {latestVersion}",
-                    ConsoleColor.Magenta);
+                    GetManifestVersionChangeColor(currentVersion, latestVersion));
             }
+        }
+
+        private static ConsoleColor GetManifestVersionChangeColor(
+            string currentVersion,
+            string latestVersion)
+        {
+            if (!Version.TryParse(currentVersion, out var current) ||
+                !Version.TryParse(latestVersion, out var latest))
+            {
+                return ConsoleColor.Magenta;
+            }
+
+            if (current.Major != latest.Major)
+            {
+                return ConsoleColor.Magenta;
+            }
+
+            if (current.Minor != latest.Minor)
+            {
+                return ConsoleColor.Yellow;
+            }
+
+            return ConsoleColor.Blue;
         }
 
         private static string ResolveDefaultAppsManifest(string? manifestPath)
@@ -1505,7 +1517,18 @@ namespace Nbuild
                 : $"https://api.github.com/repos/{repository}/releases/latest";
             try
             {
-                using var response = LatestVersionClient.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
+                using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                var githubToken = Credentials.GetTokenOrDefault();
+                if (!string.IsNullOrWhiteSpace(githubToken))
+                {
+                    request.Headers.TryAddWithoutValidation(
+                        "Authorization",
+                        $"Bearer {githubToken}");
+                }
+
+                using var response = LatestVersionClient.SendAsync(
+                    request,
+                    HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
                 if (!response.IsSuccessStatusCode)
                 {
                     error = $"Failed to discover the latest version for '{app.Name}' from GitHub ({(int)response.StatusCode} {response.ReasonPhrase}).";

@@ -1,7 +1,7 @@
 Version: "1.2.0"
 NbuildAppList:
   - Name: "7-zip"
-    Version: "23.01"
+    Version: "26.05"
     AppFileName: "$(InstallPath)\\7z.exe"
     WebDownloadFile: "https://www.7-zip.org/a/7z2301-x64.exe"
     LatestVersionUrl: "https://github.com/ip7z/7zip"
@@ -12,7 +12,7 @@ NbuildAppList:
     UninstallCommand: "$(InstallPath)\\Uninstall.exe"
     UninstallArgs: "/S"
   - Name: "Argo CD"
-    Version: "3.5.4"
+    Version: "3.5.6"
     AppFileName: "$(InstallPath)\\argocd.exe"
     WebDownloadFile: "https://github.com/argoproj/argo-cd/releases/download/v$(Version)/argocd-windows-amd64.exe"
     DownloadedFile: "argocd.exe"
@@ -57,7 +57,7 @@ NbuildAppList:
     UninstallCommand: "powershell.exe"
     UninstallArgs: "-Command \"Uninstall-Module -Name Az -AllVersions -Force\""
   - Name: "Docker"
-    Version: "4.48.0"
+    Version: "4.97.0"
     AppFileName: "$(InstallPath)\\Docker Desktop.exe"
     WebDownloadFile: "https://desktop.docker.com/win/main/amd64/240135/Docker%20Desktop%20Installer.exe"
     LatestVersionUrl: "https://desktop.docker.com/win/main/amd64/appcast.xml"
@@ -122,7 +122,7 @@ NbuildAppList:
     StoredHash: "d303d8ac3f5e9438bf7c977b64dd6425513eae46218f8881d30694f28c1d0dfd"
     AddToPath: true
   - Name: "Git for Windows"
-    Version: "2.51.1"
+    Version: "2.56.0"
     AppFileName: "$(InstallPath)\\bin\\git.exe"
     WebDownloadFile: "https://github.com/git-for-windows/git/releases/download/v$(Version).windows.1/Git-$(Version)-64-bit.exe"
     DownloadedFile: "Git-$(Version)-64-bit.exe"
@@ -143,7 +143,7 @@ NbuildAppList:
     UninstallArgs: "/x $(DownloadedFile) /quiet /qn"
     StoredHash: "CB582FD4CD2A768077B584D69344543138FA120CD38DE7CF4E42C70C96195768"
   - Name: "kubectl"
-    Version: "1.34.1"
+    Version: "1.37.2"
     AppFileName: "$(InstallPath)\\kubectl.exe"
     WebDownloadFile: "https://dl.k8s.io/release/v$(Version)/bin/windows/amd64/kubectl.exe"
     LatestVersionUrl: "https://github.com/kubernetes/kubernetes"
@@ -170,7 +170,7 @@ NbuildAppList:
     StoredHash: "a1de20a2a3375ded8aef59af573d4ed44aa68661a21100b64fe3ec59147299db"
     AddToPath: true
   - Name: "minikube"
-    Version: "1.37.0"
+    Version: "1.39.0"
     AppFileName: "$(InstallPath)\\minikube.exe"
     WebDownloadFile: "https://github.com/kubernetes/minikube/releases/latest/download/minikube-installer.exe"
     DownloadedFile: "minikube-installer.exe"
@@ -182,7 +182,7 @@ NbuildAppList:
     StoredHash: "7B7D2DCB130DC066D6F2D01DD1A54B92A35F8F7B0F849283A8BF4455DFF8DAEA"
     AddToPath: true
   - Name: "MongoDB"
-    Version: "8.2.1"
+    Version: "9.0.4"
     AppFileName: "$(InstallPath)\\bin\\mongod.exe"
     WebDownloadFile: "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-$(Version)-signed.msi"
     LatestVersionUrl: "https://www.mongodb.com/try/download/community"
@@ -217,7 +217,7 @@ NbuildAppList:
     UninstallArgs: "-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force"
     AddToPath: true
   - Name: "Ntools"
-    Version: "1.47.0"
+    Version: "2.4.0"
     AppFileName: "$(InstallPath)\\sdo.exe"
     WebDownloadFile: "https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Name)-$(Version).zip"
     DownloadedFile: "$(Name)-$(Version).zip"
@@ -228,7 +228,7 @@ NbuildAppList:
     UninstallArgs: "-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force"
     AddToPath: true
   - Name: "pnpm"
-    Version: "10.19.0"
+    Version: "12.16.1"
     AppFileName: "$(InstallPath)\\pnpm.exe"
     WebDownloadFile: "https://github.com/pnpm/pnpm/releases/download/v$(Version)/pnpm-win-x64.exe"
     DownloadedFile: "pnpm-win-x64.exe"
@@ -239,7 +239,7 @@ NbuildAppList:
     UninstallArgs: "-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force"
     AddToPath: true
   - Name: "Powershell"
-    Version: "7.5.4"
+    Version: "7.6.9"
     AppFileName: "$(InstallPath)\\pwsh.exe"
     WebDownloadFile: "https://github.com/PowerShell/PowerShell/releases/download/v$(Version)/PowerShell-$(Version)-win-x64.msi"
     DownloadedFile: "PowerShell-$(Version)-win-x64.msi"
@@ -281,7 +281,7 @@ NbuildAppList:
     StoredHash: "990EA1F1665D1B4E0C827AB39D6835E949928DEC28D5458B3C429778041FF72C"
     AddToPath: true
   - Name: "terraform lint"
-    Version: "0.55.1"
+    Version: "0.65.0"
     AppFileName: "$(InstallPath)\\tflint.exe"
     WebDownloadFile: "https://github.com/terraform-linters/tflint/releases/download/v$(Version)/tflint_windows_amd64.zip"
     DownloadedFile: "tflint.zip"
@@ -293,7 +293,7 @@ NbuildAppList:
     StoredHash: "2F4D6E4D96F817938DA43E786E4F2E97791CA15962DAE4EF8EF97D0A0CD49A14"
     AddToPath: true
   - Name: "Visual Studio Code"
-    Version: "1.105.1"
+    Version: "1.144.0"
     AppFileName: "$(InstallPath)\\Code.exe"
     WebDownloadFile: "https://aka.ms/win32-x64-system-stable"
     DownloadedFile: "VSCodeSetup-x64-$(Version).exe"
