@@ -40,7 +40,7 @@ The public API is defined by `FunctionsToExport` in
 
 | Function | Purpose |
 | --- | --- |
-| `Publish-AllProjects` | Build and publish non-test projects. |
+| `Publish-AllProjects` | Legacy compatibility function; `PUBLISH` uses `dotnet publish` directly. |
 | `Get-SdoScriptsVersion` | Return the module version. |
 | `Set-DevelopmentEnvironment` | Set local development environment variables. |
 | `Get-VersionFromYaml` | Read version fields from an `sdo.yaml` file. |
@@ -66,14 +66,20 @@ Get-Command -Module sdo-scripts
 
 ## Build and CI usage
 
-Publish projects with an explicit repository path:
+For direct project publishing, use the .NET CLI:
 
 ```powershell
-Publish-AllProjects `
-  -OutputDir C:\Artifacts `
-  -Version 1.0.0 `
-  -RepositoryRoot C:\MyRepo
+dotnet publish .\Sdo\Sdo.csproj `
+  --configuration Release `
+  --output C:\Artifacts `
+  --property:Version=1.0.0 `
+  --property:DebugSymbols=false `
+  --property:DebugType=None
 ```
+
+`Publish-AllProjects` remains available for compatibility but is not used by
+the `PUBLISH` target. The target publishes every non-test project to one
+versioned output folder and removes `.pdb` files.
 
 Run target validation:
 
@@ -81,8 +87,9 @@ Run target validation:
 Test-TargetDelegation -SolutionDir .
 ```
 
-The `PUBLISH` target uses `Publish-AllProjects`. The `SMOKE_TEST` target uses
-`Test-TargetDelegation`.
+The `PUBLISH` target invokes `dotnet publish` once per non-test project and
+writes every project to the same versioned output folder. The `SMOKE_TEST`
+target uses `Test-TargetDelegation`.
 
 Example GitHub Actions setup:
 

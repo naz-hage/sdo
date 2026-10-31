@@ -47,7 +47,7 @@
 | PROD                | Create a PROD package for release (delegates to PROD_NEW in common.targets) |
 | SMOKE_TEST          | Comprehensive smoke test to verify published artifacts and build system integrity |
 | TEST                | This prevents double test execution that causes conflicts |
-| PUBLISH             | Publish all non-test projects to artifacts folder |
+| PUBLISH             | Publish all non-test projects to one versioned artifacts folder without PDB files |
 
 
 - **C:\Program Files\Nbuild\common.targets Targets**
@@ -72,7 +72,7 @@
 | DEPLOY              | Deploy the package. default is to extract artifacts into DeploymentProperty folder |
 | TEST                | Run all tests using dotnet test in Release mode |
 | TEST_DEBUG          | Run all tests using dotnet test in Debug mode |
-| PUBLISH             | Publish all non-test projects to artifacts folder |
+| PUBLISH             | Publish all non-test projects to one versioned artifacts folder without PDB files |
 | COVERAGE            | Generate code coverage reports |
 | COVERAGE_SUMMARY    | Display high-level code coverage summary |
 | STAGE_NEW           | Enhanced stage package for testing with coverage and smoke tests |
@@ -81,6 +81,16 @@
 | SingleProject       | Example how to build a single project |
 | HandleError         | Error handling placeholder |
 
+
+## PUBLISH output
+
+`PUBLISH` uses `dotnet publish` for each non-test project. All projects use the
+Release configuration, `$(ProductVersion)`, and the same output folder:
+`$(ArtifactsFolder)`.
+
+Test projects are excluded from the project list. Debug symbols are disabled,
+and any `.pdb` files remaining in the output folder are removed before the
+target completes.
 
 - **C:\Program Files\nbuild\apps-versions.targets Targets**
 

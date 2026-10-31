@@ -627,11 +627,32 @@
 	</Target>
 
 	<!-- Publish all non-test projects to artifacts folder -->
-	<Target Name="PUBLISH" DependsOnTargets="ARTIFACTS;TAG">
+	<Target Name="PUBLISH_LEGACY" DependsOnTargets="ARTIFACTS;TAG">
 		<RemoveDir Directories="$(ArtifactsFolder)"></RemoveDir>
 		<Message Text="Publishing all non-test projects using sdo-scripts module" Importance="high" />
 		<Exec Command='pwsh -NoProfile -ExecutionPolicy Bypass -Command "Import-Module &apos;$(BuildTools)\sdo-scripts.psm1&apos; -Force; Publish-AllProjects -OutputDir &apos;$(ArtifactsFolder)&apos; -Version &apos;$(ProductVersion)&apos; -RepositoryRoot &apos;$(SolutionDir)&apos;"' WorkingDirectory="$(SolutionDir)" />
 		<Message Text="All non-test projects published to $(ArtifactsFolder)" Importance="high" />
+
+		<Message Text="==> PUBLISH_LEGACY DONE"/>
+	</Target>
+	
+	<!-- Publish all non-test projects to one versioned artifacts folder -->
+	<Target Name="PUBLISH" DependsOnTargets="ARTIFACTS;TAG">
+		<ItemGroup>
+			<PublishProjects
+				Include="$(SolutionDir)\**\*.csproj"
+				Exclude="$(SolutionDir)\**\*test*\**\*.csproj;$(SolutionDir)\**\*test*.csproj" />
+		</ItemGroup>
+		<RemoveDir Directories="$(ArtifactsFolder)" />
+		<Message Text="Publishing @(PublishProjects->Count()) non-test projects to $(ArtifactsFolder)" Importance="high" />
+		<Exec
+			Command='dotnet publish "%(PublishProjects.Identity)" --configuration "$(TargetRelease)" --output "$(ArtifactsFolder)" --property:Version="$(ProductVersion)" --property:DebugSymbols=false --property:DebugType=None --property:CopyOutputSymbolsToPublishDirectory=false'
+			WorkingDirectory="$(SolutionDir)" />
+		<ItemGroup>
+			<PublishedPdbFiles Include="$(ArtifactsFolder)\**\*.pdb" />
+		</ItemGroup>
+		<Delete Files="@(PublishedPdbFiles)" />
+		<Message Text="All non-test projects published to $(ArtifactsFolder) without PDB files" Importance="high" />
 
 		<Message Text="==> PUBLISH DONE"/>
 	</Target>
