@@ -3444,6 +3444,15 @@ manifest:</p>
 </tr>
 </tbody>
 </table>
+<p><code>tool list</code> colors the status row as follows:</p>
+<ul>
+<li><strong>Green:</strong> The installed version matches the manifest version, including a
+  matching <code>StoredHash</code> fallback.</li>
+<li><strong>Cyan:</strong> The application is not installed.</li>
+<li><strong>Yellow:</strong> The application is installed but has an unknown version or does
+  not match the manifest version.</li>
+<li><strong>Red:</strong> Reserved for command errors rather than normal version differences.</li>
+</ul>
 <p><code>Installed</code> is determined as follows:</p>
 <ul>
 <li><strong>Applications with valid file-version metadata:</strong> <code>Installed</code> displays the
@@ -3456,8 +3465,9 @@ manifest:</p>
   installation directory exists, or <code>not installed</code> otherwise.</li>
 </ul>
 <h4 id="tool">tool<a class="headerlink" href="#tool" title="Anchor link to this section for reference">&para;</a></h4>
-<p>Environment tool installation, auditing, and manifest management. Use
-<code>--manifest</code> for JSON or YAML manifests.</p>
+<p>Environment tool installation, auditing, and manifest management. Use <code>--manifest</code> for JSON or YAML manifests. When it is omitted for a
+named operation, the command searches the current directory, the executable
+directory, and the default installation directory for <code>apps.yaml</code>.</p>
 <p>Subcommands:
 - <code>install</code> — Install tools from a manifest or by application name
 - <code>list</code> — Display installed, manifest, and discovered latest versions
@@ -3466,6 +3476,7 @@ manifest:</p>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>list
 sdo<span class="w"> </span>tool<span class="w"> </span>list<span class="w"> </span>--manifest<span class="w"> </span>.<span class="se">\d</span>ev-setup<span class="se">\a</span>pps.yaml
 sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--manifest<span class="w"> </span>apps.yaml<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>tool<span class="w"> </span>download<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Go Lang"</span><span class="w"> </span>--dry-run
 sdo<span class="w"> </span>tool<span class="w"> </span>download<span class="w"> </span>--manifest<span class="w"> </span>apps.yaml<span class="w"> </span>--dry-run
 sdo<span class="w"> </span>tool<span class="w"> </span>uninstall<span class="w"> </span>--manifest<span class="w"> </span>apps.yaml<span class="w"> </span>--dry-run
 sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Git for Windows"</span><span class="w"> </span>--appversion<span class="w"> </span><span class="m">2</span>.51.1<span class="w"> </span>--dry-run
@@ -4390,7 +4401,13 @@ Lists all applications specified in the provided manifest. If no <code>--manifes
 <h3 id="4-download-applications">4. Download Applications<a class="headerlink" href="#4-download-applications" title="Anchor link to this section for reference">&para;</a></h3>
 <p><div class="highlight"><pre><span></span><code>sdo.exe tool download --manifest "C:\Program Files\sdo\apps.yaml"
 </code></pre></div>
-Downloads tools and applications specified in the manifest file. The output table expands its columns for long application names and filenames and does not add status prefixes inside table rows. (Uses the <code>--manifest</code> option to locate the YAML file.)</p>
+Downloads tools and applications specified in the manifest file. The
+<code>--name</code> (<code>-n</code>) and <code>--appversion</code> (<code>-av</code>) options can limit the download to
+one application. If <code>--manifest</code> (<code>-m</code>) is omitted, the command discovers
+<code>apps.yaml</code> in the current directory, the executable directory, or the
+default installation directory. The output table expands its columns for
+long application names and filenames and does not add status prefixes inside
+table rows.</p>
 <h3 id="5-error-handling-for-tool-manifest-files">5. Error Handling for Tool Manifest Files<a class="headerlink" href="#5-error-handling-for-tool-manifest-files" title="Anchor link to this section for reference">&para;</a></h3>
 <p>The <code>list</code>, <code>install</code>, <code>uninstall</code>, and <code>download</code> commands require valid tool manifest files. JSON and YAML are supported through <code>--manifest</code>.</p>
 <h4 id="file-not-found">File Not Found<a class="headerlink" href="#file-not-found" title="Anchor link to this section for reference">&para;</a></h4>
