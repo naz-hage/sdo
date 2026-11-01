@@ -45,7 +45,10 @@
 					$(SolutionDir)\Sdo\Resources\*.json"
 					/>
 
-			<BuildToolTargetFiles Include="$(SolutionDir)\Sdo\Resources\*.targets" />
+			<BuildToolTargetFiles Include="
+				$(SolutionDir)\Sdo\Resources\common.targets;
+				$(SolutionDir)\Sdo\Resources\ngit.targets;
+				$(SolutionDir)\Sdo\Resources\sdo.targets" />
 			<BinaryFiles Include="@(BuildToolTargetFiles)" />
 
 			<RunTimesNetStandard20 Include = "

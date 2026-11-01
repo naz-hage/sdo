@@ -34,6 +34,7 @@
 	  <EmbeddedResource Include="Resources\mapping.md" LogicalName="Sdo.mapping.md" />
 	  <EmbeddedResource Include="Resources\Nbackup.json" LogicalName="Sdo.Resources.Nbackup.json" />
 	  <EmbeddedResource Include="Resources\common.targets" LogicalName="nb.resources.common.targets" />
+	  <EmbeddedResource Include="Resources\ngit.targets" LogicalName="nb.resources.ngit.targets" />
 	  <EmbeddedResource Include="Resources\sdo.targets" LogicalName="nb.resources.sdo.targets" />
 	</ItemGroup>
 

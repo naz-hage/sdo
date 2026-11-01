@@ -275,6 +275,7 @@
 		</PropertyGroup>
 
 		<Exec Command='"$(ZipExe)" x $(PackageFile) -o"$(DeploymentFolder)" -y'/>
+		<Error Condition="!Exists('$(DeploymentFolder)\ngit.targets')" Text="Deployment failed: ngit.targets was not copied to $(DeploymentFolder)." />
 		<RemoveDir Directories="$(SetupDir)"></RemoveDir>
 		<Message Text="Deployed Success to $(DeploymentFolder)"/>
 		<Message Text="==> COMMON_DONE"/>
