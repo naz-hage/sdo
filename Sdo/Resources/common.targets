@@ -120,31 +120,7 @@
 				SOLUTION;
                 TEST">
   	</Target>
-	
-	<!-- Create a stage package for testing -->
-	<Target Name="STAGE" DependsOnTargets="
-                CLEAN;
-                TAG;
-                AUTOTAG_STAGE;
-				SOLUTION;
-                TEST;
-				COPY_ARTIFACTS;
-                PACKAGE">
-  </Target>
-
-  <!-- Create a PROD package for release -->
-  <Target Name="PROD" DependsOnTargets="
-                CLEAN;
-                GIT_PULL;
-                TAG;
-                AUTOTAG_PROD;
-                SOLUTION;
-				TEST;
-                COPY_ARTIFACTS;
-                PACKAGE">
   
-  </Target>
-
 	<!-- Creates a prod release -->
 	<Target Name="GITHUB_RELEASE" DependsOnTargets="ARTIFACTS;PACKAGE_FILE;GIT_BRANCH" AfterTargets="PROD" Condition="'$(GITHUB_ACTIONS)' != ''" >
 		<Git Command="PushTag" TaskParameter="$(ProductVersion)">
@@ -300,7 +276,10 @@
 	</Target>
 
 	<!-- Publish all non-test projects to one versioned artifacts folder -->
-	<Target Name="PUBLISH" DependsOnTargets="ARTIFACTS;TAG">
+	<Target Name="PUBLISH" DependsOnTargets="PROPERTIES">
+		<PropertyGroup>
+			<ArtifactsFolder Condition="'$(ArtifactsFolder)' == ''">$(ArtifactsDir)\$(SolutionName)\$(TargetRelease)\$(ProductVersion)</ArtifactsFolder>
+		</PropertyGroup>
 		<ItemGroup>
 			<PublishProjects
 				Include="$(SolutionDir)\**\*.csproj"
@@ -408,7 +387,7 @@
 	</Target>
 
 	<!-- Enhanced stage package for testing with coverage and smoke tests -->
-	<Target Name="STAGE_NEW" DependsOnTargets="
+	<Target Name="STAGE" DependsOnTargets="
                 CLEAN;
                 TAG;
                 AUTOTAG_STAGE;
@@ -422,7 +401,7 @@
   	</Target>
 
 	<!-- Enhanced prod package for release with coverage and smoke tests -->
-	<Target Name="PROD_NEW" DependsOnTargets="
+	<Target Name="PROD" DependsOnTargets="
 				CLEAN;
 				TAG;
 				AUTOTAG_PROD;

@@ -44,8 +44,6 @@ namespace Nbuild.Tests
                 "PUBLISH",
                 "COVERAGE",
                 "COVERAGE_SUMMARY",
-                "STAGE_NEW",
-                "PROD_NEW",
                 "IS_ADMIN",
                 "SingleProject",
                 "HandleError"

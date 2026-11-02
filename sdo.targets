@@ -18,7 +18,7 @@
 		<MkDocsExe>$(USERPROFILE)\AppData\Roaming\Python\Python313\Scripts\mkdocs.exe</MkDocsExe>
 	</PropertyGroup>
 
-	<!--Setup the ARTIFACTS folders for binaries and test results - override -->
+	<!-- Legacy setup for COPY_ARTIFACTS and package/deploy flows. -->
 	<Target Name="ARTIFACTS" DependsOnTargets="TAG">
 	  <PropertyGroup>
 		 <ArtifactsSolutionFolder>$(ArtifactsDir)\$(SolutionName)</ArtifactsSolutionFolder>
@@ -48,6 +48,7 @@
 			<BuildToolTargetFiles Include="
 				$(SolutionDir)\Sdo\Resources\common.targets;
 				$(SolutionDir)\Sdo\Resources\ngit.targets;
+				$(SolutionDir)\dev-setup\apps.yaml;
 				$(SolutionDir)\Sdo\Resources\sdo.targets" />
 			<BinaryFiles Include="@(BuildToolTargetFiles)" />
 
@@ -455,19 +456,6 @@
 		<Message Text=">== NB_TEST_DIAG_ALL completed" Importance="high" />
 	</Target>
 
-
-	<!-- Create a stage package for testing -->
-	<Target Name="STAGE" DependsOnTargets="STAGE_NEW" >
-		<Message Text="STAGE target completed - delegated to STAGE_NEW in common.targets" />
-		<Message Text="==> DONE"/>
-  	</Target>
-
-	<!-- Create a PROD package for release (delegates to PROD_NEW in common.targets) -->
-	<Target Name="PROD" DependsOnTargets="PROD_NEW" >
-		<Message Text="PROD target completed - delegated to PROD_NEW in common.targets" />
-		<Message Text="==> DONE"/>
-	</Target>
-
     <!-- Comprehensive smoke test to verify published artifacts and build system integrity -->
     <Target Name="SMOKE_TEST" DependsOnTargets="ARTIFACTS">
         <Message Text="Running comprehensive smoke test for artifacts and build system..." />
@@ -529,7 +517,7 @@
         <!-- Target delegation validation -->
         <PropertyGroup>
             <SourceTarget Condition="'$(SourceTarget)' == ''">STAGE</SourceTarget>
-            <DelegateTarget Condition="'$(DelegateTarget)' == ''">STAGE_NEW</DelegateTarget>
+            <DelegateTarget Condition="'$(DelegateTarget)' == ''">STAGE</DelegateTarget>
             <SourceFile Condition="'$(SourceFile)' == ''">$(SolutionDir)\sdo.targets</SourceFile>
             <DelegateFile Condition="'$(DelegateFile)' == ''">$(SolutionDir)\Sdo\Resources\common.targets</DelegateFile>
         </PropertyGroup>
@@ -573,27 +561,6 @@
 		<Exec Command='dotnet test "$(SolutionDir)\SdoTests\SdoTests.csproj" --configuration $(TargetRelease) --filter "Category!=Integration" --logger trx --results-directory:$(ArtifactsTestResultsFolder) --collect:"XPlat Code Coverage"'/>
 		<Message Text="TEST target completed - consolidated SdoTests project executed with code coverage" />
 		<Message Text="==> COMMON_DONE"/>
-	</Target>
-
-	<!-- Publish all non-test projects to one versioned artifacts folder -->
-	<Target Name="PUBLISH" DependsOnTargets="ARTIFACTS;TAG">
-		<ItemGroup>
-			<PublishProjects
-				Include="$(SolutionDir)\**\*.csproj"
-				Exclude="$(SolutionDir)\**\*test*\**\*.csproj;$(SolutionDir)\**\*test*.csproj" />
-		</ItemGroup>
-		<RemoveDir Directories="$(ArtifactsFolder)" />
-		<Message Text="Publishing @(PublishProjects->Count()) non-test projects to $(ArtifactsFolder)" Importance="high" />
-		<Exec
-			Command='dotnet publish "%(PublishProjects.Identity)" --configuration "$(TargetRelease)" --output "$(ArtifactsFolder)" --property:Version="$(ProductVersion)" --property:DebugSymbols=false --property:DebugType=None --property:CopyOutputSymbolsToPublishDirectory=false'
-			WorkingDirectory="$(SolutionDir)" />
-		<ItemGroup>
-			<PublishedPdbFiles Include="$(ArtifactsFolder)\**\*.pdb" />
-		</ItemGroup>
-		<Delete Files="@(PublishedPdbFiles)" />
-		<Message Text="All non-test projects published to $(ArtifactsFolder) without PDB files" Importance="high" />
-
-		<Message Text="==> PUBLISH DONE"/>
 	</Target>
 
 	<Target Name="VALIDATE_BUILD_TOOL_RESOURCES" AfterTargets="COPY_ARTIFACTS">

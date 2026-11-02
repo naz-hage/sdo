@@ -157,7 +157,7 @@ steps:
         exit 1
       };
       Import-Module $module -Force;
-      Test-TargetDelegation -SourceTarget STAGE -DelegateTarget STAGE_NEW
+      Test-TargetDelegation -SourceTarget STAGE -DelegateTarget STAGE
       -SourceFile $source -DelegateFile $delegate;
       if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"
     workingDirectory: .

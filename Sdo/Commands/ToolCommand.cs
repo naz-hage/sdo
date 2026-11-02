@@ -70,9 +70,15 @@ namespace Sdo.Commands
                 WriteDryRunNotice(dryRun);
                 try
                 {
-                    return latest
-                        ? NbuildCommand.InstallLatest(manifest, name, version, verbose, dryRun, latest: true).Code
-                        : NbuildCommand.Install(manifest, name, version, verbose, dryRun).Code;
+                    var result = latest
+                        ? NbuildCommand.InstallLatest(manifest, name, version, verbose, dryRun, latest: true)
+                        : NbuildCommand.Install(manifest, name, version, verbose, dryRun);
+                    if (!result.IsSuccess())
+                    {
+                        Console.Error.WriteLine($"Error: {result.GetFirstOutput()}");
+                    }
+
+                    return result.Code;
                 }
                 catch (Exception exception)
                 {

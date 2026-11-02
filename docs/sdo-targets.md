@@ -2,7 +2,7 @@
 
 | **Target Name** | **Description** |
 | --- | --- |
-| ARTIFACTS           | Setup the ARTIFACTS folders for binaries and test results - override |
+| ARTIFACTS           | Deprecated for `PUBLISH`; retained for legacy artifact copy and package/deploy workflows |
 | FILE_VERSIONS       | Test for FileVersion task and powershell file-version.ps1 |
 | SETUP_ENVIRONMENT   | Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment |
 | TEST_NTOOLS_SCRIPTS | Test that sdo-scripts module is installed and can report a version |
@@ -43,10 +43,13 @@
 | NB_DIAG_GitHubReleaseTests |  |
 | NB_TEST_DIAG_ALL    | Aggregate target: run all per-project diagnostics sequentially |
 | STAGE               | Create a stage package for testing |
-| PROD                | Create a PROD package for release (delegates to PROD_NEW in common.targets) |
+| PROD                | Create a PROD package for release |
 | SMOKE_TEST          | Comprehensive smoke test to verify published artifacts and build system integrity |
 | TEST                | This prevents double test execution that causes conflicts |
-| PUBLISH             | Publish all non-test projects to one versioned artifacts folder without PDB files |
+
+`PUBLISH` is provided by `common.targets` and prepares its output folder directly.
+It does not depend on the legacy `ARTIFACTS` target, which remains for existing
+artifact copy and package/deploy workflows.
 
 
 - **C:\Program Files\Nbuild\common.targets Targets**
@@ -74,8 +77,6 @@
 | PUBLISH             | Publish all non-test projects to one versioned artifacts folder without PDB files |
 | COVERAGE            | Generate code coverage reports |
 | COVERAGE_SUMMARY    | Display high-level code coverage summary |
-| STAGE_NEW           | Enhanced stage package for testing with coverage and smoke tests |
-| PROD_NEW            | Enhanced prod package for release with coverage and smoke tests |
 | IS_ADMIN            | Check if current process is running in admin mode AdminCheckExitCode property is set |
 | SingleProject       | Example how to build a single project |
 | HandleError         | Error handling placeholder |
