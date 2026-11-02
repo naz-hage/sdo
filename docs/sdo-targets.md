@@ -4,7 +4,6 @@
 | --- | --- |
 | ARTIFACTS           | Setup the ARTIFACTS folders for binaries and test results - override |
 | FILE_VERSIONS       | Test for FileVersion task and powershell file-version.ps1 |
-| NBUILD_DOWNLOAD     | Download Nbuild specified in the NbuildTargetVersion |
 | SETUP_ENVIRONMENT   | Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment |
 | TEST_NTOOLS_SCRIPTS | Test that sdo-scripts module is installed and can report a version |
 | MKDOCS              | Build docs locally for testing |
@@ -47,7 +46,7 @@
 | PROD                | Create a PROD package for release (delegates to PROD_NEW in common.targets) |
 | SMOKE_TEST          | Comprehensive smoke test to verify published artifacts and build system integrity |
 | TEST                | This prevents double test execution that causes conflicts |
-| PUBLISH             | Publish all non-test projects to artifacts folder |
+| PUBLISH             | Publish all non-test projects to one versioned artifacts folder without PDB files |
 
 
 - **C:\Program Files\Nbuild\common.targets Targets**
@@ -72,7 +71,7 @@
 | DEPLOY              | Deploy the package. default is to extract artifacts into DeploymentProperty folder |
 | TEST                | Run all tests using dotnet test in Release mode |
 | TEST_DEBUG          | Run all tests using dotnet test in Debug mode |
-| PUBLISH             | Publish all non-test projects to artifacts folder |
+| PUBLISH             | Publish all non-test projects to one versioned artifacts folder without PDB files |
 | COVERAGE            | Generate code coverage reports |
 | COVERAGE_SUMMARY    | Display high-level code coverage summary |
 | STAGE_NEW           | Enhanced stage package for testing with coverage and smoke tests |
@@ -82,55 +81,15 @@
 | HandleError         | Error handling placeholder |
 
 
-- **C:\Program Files\nbuild\apps-versions.targets Targets**
+## PUBLISH output
 
-| **Target Name** | **Description** |
-| --- | --- |
-| APP_COMMON          | Defines the download location for the apps |
+`PUBLISH` uses `dotnet publish` for each non-test project. All projects use the
+Release configuration, `$(ProductVersion)`, and the same output folder:
+`$(ArtifactsFolder)`.
 
-
-- **C:\Program Files\nbuild\git.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| GIT_DOWNLOAD        | Download Git For Windows version specified in GitTargetVersion - Requires admin mode |
-| GIT_INSTALL         | Download Git For Windows version specified in GitTargetVersion property and install |
-| GIT_UPDATE          | Update the current Git for Windows |
-
-
-- **C:\Program Files\nbuild\dotnet.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| DOTNET_SDK_DOWNLOAD | Download dotnet Core sdk |
-| DOTNET_SDK_INSTALL  | Download and install dotnet Core sdk |
-| DOTNET_DOWNLOAD     | Download DotNet Core |
-| DOTNET_INSTALL      | Download and install DotNet Core |
-
-
-- **C:\Program Files\nbuild\code.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| CODE_DOWNLOAD       | Download node version specified in CodeTargetVersion - Requires admin mode |
-| CODE_INSTALL        | Download node version specified in CodeTargetVersion property and install |
-
-
-- **C:\Program Files\nbuild\node.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| NODE_DOWNLOAD       | Download node version specified in NodeTargetVersion - Requires admin mode |
-| NODE_INSTALL        | Download node version specified in NodeTargetVersion property and install |
-| NODE_VERSION        | Display the installed note version |
-
-
-- **C:\Program Files\nbuild\mongodb.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| MONGODB_INSTALL     | Display mongodb version specified in TargetNodeVersion property and install |
-
+Test projects are excluded from the project list. Debug symbols are disabled,
+and any `.pdb` files remaining in the output folder are removed before the
+target completes.
 
 - **C:\Program Files\nbuild\ngit.targets Targets**
 
@@ -146,47 +105,8 @@
 | GIT_BRANCH          | Get the current git branch |
 
 
-- **C:\Program Files\nbuild\docker.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| DOCKER_DOWNLOAD     | Download Docker version specified in DockerTargetVersion - Requires admin mode |
-| DOCKER_INSTALL      | Download Docker version specified in DockerTargetVersion property and install |
-
-
-- **C:\Program Files\nbuild\terraform.targets Targets**
-
-| **Target Name** | **Description** |
-| --- | --- |
-| TF_WORKSPACE        | Create a new terraform workspace `dev` and select it |
-| TF_INIT             | Init terraform |
-| TF_PLAN             | terraform plan |
-| TF_APPLY            | terraform apply |
-| TF_DESTROY          | terraform destroy |
-
-
 - **unit-tests.targets Targets**
 
 | **Target Name** | **Description** |
 | --- | --- |
-| UNIT_TEST_CLI_VALIDATION | Unit tests for CLI validation |
-| UNIT_TEST_BUILD_STARTER | Unit tests for BuildStarter |
-| UNIT_TEST_CLI       | Unit tests for CLI |
-| UNIT_TEST_COMMAND   | Unit tests for Command |
-| UNIT_TEST_NB_COMMAND | Unit tests for NbCommand |
-| UNIT_TEST_GIT_CLONE_COMMAND | Unit tests for GitCloneCommand |
-| UNIT_TEST_NTOOLS_JSON | Unit tests for NtoolsJson |
-| UNIT_TEST_PATH_MANAGER | UNIT_TEST_PATH_MANAGER is excluded from UNIT_TEST_ALL and should be run separately with: nb UNIT_TEST_PATH_MANAGER |
-| UNIT_TEST_RELEASE_SERVICE_FACTORY | Unit tests for ReleaseServiceFactory |
-| UNIT_TEST_RESOURCE_HELPER | Unit tests for ResourceHelper |
-| UNIT_TEST_WORKITEM_COMMAND | Unit tests for WorkItemCommand |
-| UNIT_TEST_REPOSITORY_COMMAND | Unit tests for WorkItemCommand |
-| UNIT_TEST_PIPELINE_COMMAND | Unit tests for PipelineCommand |
-| UNIT_TEST_ADHOC_GET_PIPELINE_ASYNC | Ad hoc integration-style test for AzureDevOpsClient.GetPipelineAsync |
-| UNIT_TEST_PULL_REQUEST_COMMAND | Unit tests for PullRequestCommand |
-| UNIT_TEST_WORKITEM_STATE_TRANSLATOR | Unit tests for WorkItemStateTranslator |
-| UNIT_TEST_MAPPING_GENERATOR | Unit tests for MappingGenerator |
-| UNIT_TEST_SDOTESTS  | Unit tests for all SDO tests with code coverage |
-| UNIT_TEST_NBTESTS   | Unit tests for all nbtests |
-| UNIT_TEST_ALL       | Run all unit tests |
-
+| UNIT_TEST_ALL | Run all SDO unit tests |

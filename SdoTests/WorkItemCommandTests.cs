@@ -769,88 +769,6 @@ public class WorkItemCommandTests
 
     #endregion
 
-    #region Update Subcommand Integration Tests (Phase 3.2+)
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires GitHub credentials")]
-    public void IntegrationTest_Update_GitHub_WithValidIssueAndAutoDetect()
-    {
-        // TODO: Implement real GitHub API integration test with auto-detection
-        // 1. Create a test issue
-        // 2. Start work on issue (creates branch with ID prefix)
-        // 3. Update using auto-detected ID
-        // 4. Verify update via GitHub API
-        // 5. Clean up test issue and branch
-        Assert.IsTrue(true);
-    }
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires Azure DevOps credentials")]
-    public void IntegrationTest_Update_AzureDevOps_WithValidWorkItemAndAutoDetect()
-    {
-        // TODO: Implement real Azure DevOps API integration test with auto-detection
-        // 1. Create a test work item
-        // 2. Start work on work item (creates branch with ID prefix)
-        // 3. Update using auto-detected ID
-        // 4. Verify update via Azure DevOps API
-        // 5. Clean up test work item and branch
-        Assert.IsTrue(true);
-    }
-
-    #endregion
-
-    #region TDD Placeholder Tests for Comment Subcommand
-
-    [Ignore("TDD: Comment subcommand not yet implemented")]
-    public void Constructor_AddsCommentSubcommand()
-    {
-        // Act
-        var command = new WorkItemCommand(_verboseOption);
-
-        // Assert
-        var commentSubcommand = command.Subcommands.Single(s => s.Name == "comment");
-        Assert.IsNotNull(commentSubcommand);
-        Assert.AreEqual("Add a comment to a work item", commentSubcommand.Description);
-    }
-
-    [Ignore("TDD: Comment subcommand not yet implemented")]
-    public void CommentSubcommand_HasIdOption()
-    {
-        // Act
-        var command = new WorkItemCommand(_verboseOption);
-        var commentCmd = command.Subcommands.Single(s => s.Name == "comment");
-
-        // Assert
-        var idOption = commentCmd.Options.Single(o => o.Name == "--id");
-        Assert.IsNotNull(idOption);
-    }
-
-    [Ignore("TDD: Comment subcommand not yet implemented")]
-    public void CommentSubcommand_HasTextOption()
-    {
-        // Act
-        var command = new WorkItemCommand(_verboseOption);
-        var commentCmd = command.Subcommands.Single(s => s.Name == "comment");
-
-        // Assert
-        var textOption = commentCmd.Options.Single(o => o.Name == "--text");
-        Assert.IsNotNull(textOption);
-    }
-
-    [Ignore("TDD: Comment subcommand not yet implemented")]
-    public void CommentSubcommand_WithValidArguments_ReturnsExitCode()
-    {
-        // Arrange
-        var command = new WorkItemCommand(_verboseOption);
-        var args = new[] { "comment", "--id", "123", "--text", "This is a comment" };
-
-        // Act
-        var result = command.Parse(args).Invoke();
-
-        // Assert
-        Assert.IsTrue(result == 0 || result == 1, $"Expected exit code 0 or 1, got {result}");
-    }
-
-    #endregion
-
     #region Create Subcommand Tests
 
     [TestMethod]
@@ -861,7 +779,6 @@ public class WorkItemCommandTests
 
         // Assert
         var createSubcommand = command.Subcommands.Single(s => s.Name == "create");
-        Assert.IsNotNull(createSubcommand);
         Assert.AreEqual("Create a new work item", createSubcommand.Description);
     }
 
@@ -874,7 +791,6 @@ public class WorkItemCommandTests
 
         // Assert
         var filePathOption = createCmd.Options.Single(o => o.Name == "--file-path");
-        Assert.IsNotNull(filePathOption);
         Assert.AreEqual("Path to markdown file containing work item details (auto-detected as .temp/wi.md if not provided)", filePathOption.Description);
     }
 
@@ -887,7 +803,6 @@ public class WorkItemCommandTests
 
         // Assert
         var dryRunOption = createCmd.Options.Single(o => o.Name == "--dry-run");
-        Assert.IsNotNull(dryRunOption);
         Assert.AreEqual("Parse and preview work item creation without creating it", dryRunOption.Description);
     }
 
@@ -917,7 +832,7 @@ public class WorkItemCommandTests
 
         // Assert
         var startSubcommand = command.Subcommands.Single(s => s.Name == "start");
-        Assert.IsNotNull(startSubcommand);
+
         Assert.AreEqual("Start work on a work item by creating a feature branch and PR template", startSubcommand.Description);
     }
 
@@ -1040,100 +955,6 @@ public class WorkItemCommandTests
 
     #endregion
 
-    #region Integration Tests (Phase 3.2+)
-
-    /// <summary>
-    /// Integration tests for actual API calls.
-    /// These require valid credentials and network access.
-    /// Scaffolded for Phase 3.2 implementation.
-    /// </summary>
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires GitHub credentials")]
-    public void IntegrationTest_Create_GitHub_WithValidRepository()
-    {
-        // TODO: Implement real GitHub API integration test
-        // 1. Create new issue using wi create command
-        // 2. Verify issue created via GitHub API
-        // 3. Clean up test issue
-        Assert.IsTrue(true);
-    }
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires Azure DevOps credentials")]
-    public void IntegrationTest_Create_AzureDevOps_WithValidProject()
-    {
-        // TODO: Implement real Azure DevOps API integration test
-        // 1. Create new work item using wi create command
-        // 2. Verify work item created via Azure DevOps API
-        // 3. Clean up test work item
-        Assert.IsTrue(true);
-    }
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires GitHub credentials and git")]
-    public void IntegrationTest_Start_GitHub_WithValidRepository()
-    {
-        // TODO: Implement real GitHub API + git integration test
-        // 1. Start work on issue using wi start command
-        // 2. Verify branch created locally
-        // 3. Verify PR template file generated
-        // 4. Clean up branch
-        Assert.IsTrue(true);
-    }
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires Azure DevOps credentials and git")]
-    public void IntegrationTest_Start_AzureDevOps_WithValidProject()
-    {
-        // TODO: Implement real Azure DevOps API + git integration test
-        // 1. Start work on work item using wi start command
-        // 2. Verify branch created locally
-        // 3. Verify PR template file generated
-        // 4. Clean up branch
-        Assert.IsTrue(true);
-    }
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires GitHub credentials")]
-    public void IntegrationTest_Update_GitHub_WithValidIssue()
-    {
-        // TODO: Implement real GitHub API integration test
-        // 1. Create a test issue
-        // 2. Update it using wi update command
-        // 3. Verify update via GitHub API
-        // 4. Clean up test issue
-        Assert.IsTrue(true);
-    }
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires Azure DevOps credentials")]
-    public void IntegrationTest_Update_AzureDevOps_WithValidWorkItem()
-    {
-        // TODO: Implement real Azure DevOps API integration test
-        // 1. Create a test work item
-        // 2. Update it using wi update command
-        // 3. Verify update via Azure DevOps API
-        // 4. Clean up test work item
-        Assert.IsTrue(true);
-    }
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires GitHub credentials")]
-    public void IntegrationTest_Comment_GitHub_WithValidIssue()
-    {
-        // TODO: Implement real GitHub API integration test
-        // 1. Create a test issue
-        // 2. Add comment using wi comment command
-        // 3. Verify comment via GitHub API
-        // 4. Clean up test issue
-        Assert.IsTrue(true);
-    }
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires Azure DevOps credentials")]
-    public void IntegrationTest_Comment_AzureDevOps_WithValidWorkItem()
-    {
-        // TODO: Implement real Azure DevOps API integration test
-        // 1. Create a test work item
-        // 2. Add comment using wi comment command
-        // 3. Verify comment via Azure DevOps API
-        // 4. Clean up test work item
-        Assert.IsTrue(true);
-    }
-
     #region Config File and Defaults Tests
 
     [TestMethod]
@@ -1245,7 +1066,6 @@ public class WorkItemCommandTests
 
         // Assert
         var closeSubcommand = command.Subcommands.Single(s => s.Name == "close");
-        Assert.IsNotNull(closeSubcommand);
         Assert.AreEqual("Close a work item and clean up feature branch", closeSubcommand.Description);
     }
 
@@ -1271,7 +1091,6 @@ public class WorkItemCommandTests
 
         // Assert
         var verboseOpt = closeCmd.Options.Single(o => o.Name == "--verbose");
-        Assert.IsNotNull(verboseOpt);
         Assert.AreEqual("Enable verbose output", verboseOpt.Description);
     }
 
@@ -1336,34 +1155,6 @@ public class WorkItemCommandTests
         Assert.IsNotNull(result);
         Assert.IsEmpty(result.Errors); // Parsing should succeed; runtime auto-detection happens in CloseWorkItem
     }
-
-    #endregion
-
-    #region Close Subcommand Integration Tests (Phase 3.2+)
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires GitHub credentials and git")]
-    public void IntegrationTest_Close_GitHub_WithValidRepository()
-    {
-        // TODO: Implement real GitHub API + git integration test
-        // 1. Start work on issue using wi start command (creates feature branch)
-        // 2. Close work item using wi close command
-        // 3. Verify branch deleted locally
-        // 4. Verify checked out to main branch
-        Assert.IsTrue(true);
-    }
-
-    [Ignore("Integration: Scaffolded for Phase 3.2 - requires Azure DevOps credentials and git")]
-    public void IntegrationTest_Close_AzureDevOps_WithValidProject()
-    {
-        // TODO: Implement real Azure DevOps API + git integration test
-        // 1. Start work on work item using wi start command (creates feature branch)
-        // 2. Close work item using wi close command
-        // 3. Verify branch deleted locally
-        // 4. Verify checked out to main branch
-        Assert.IsTrue(true);
-    }
-
-    #endregion
 
     #endregion
 }

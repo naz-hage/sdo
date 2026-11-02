@@ -1,0 +1,30 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NbuildTasks;
+using System.Reflection;
+
+namespace NbuildTests
+{
+    [TestClass()]
+    public class ResourceHelperTests
+    {
+        private const string NbuildAssemblyName = "sdo.dll"; // "sdo.dll"
+        [TestMethod()]
+        public void ExtractEmbeddedResourceFromAssemblyTest()
+        {
+            // Arrange
+            string resourceLocation = "nb.resources.common.targets";
+            string? executingAssemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Assert.IsNotNull(executingAssemblyDirectory);
+
+            string targetFileName = Path.Combine(executingAssemblyDirectory, "common.targets");
+            var assembly = Path.Combine(executingAssemblyDirectory, NbuildAssemblyName);
+
+            // Act
+            ResourceHelper.ExtractEmbeddedResourceFromAssembly(assembly, resourceLocation, targetFileName);
+
+            // Assert
+            Console.WriteLine($"ResourcePath: {targetFileName}");
+            Assert.IsTrue(File.Exists(targetFileName));
+        }
+    }
+}

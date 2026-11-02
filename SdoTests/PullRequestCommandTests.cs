@@ -372,7 +372,7 @@ public class PullRequestCommandTests
             _command = new PullRequestCommand(_verboseOption);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("244-issue", 244)]
         [DataRow("123-feature-name", 123)]
         [DataRow("1-bugfix", 1)]
@@ -394,7 +394,7 @@ public class PullRequestCommandTests
             Assert.AreEqual(expectedId, result.Value);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("main")]
         [DataRow("feature")]
         [DataRow("develop")]
@@ -449,7 +449,7 @@ public class PullRequestCommandTests
             Assert.IsNull(result);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(244)]
         [DataRow(123)]
         [DataRow(1)]

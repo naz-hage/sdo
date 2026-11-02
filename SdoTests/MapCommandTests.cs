@@ -139,7 +139,7 @@ public class MapCommandTests
         Assert.AreEqual(0, result);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("gh")]
     [DataRow("azdo")]
     [DataRow("")]

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -31,20 +31,22 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	<EmbeddedResource Include="mapping.md" />
-	<EmbeddedResource Include="..\Nbackup\Resources\Nbackup.json" Link="Resources\Nbackup.json" />
+	  <EmbeddedResource Include="Resources\mapping.md" LogicalName="Sdo.mapping.md" />
+	  <EmbeddedResource Include="Resources\Nbackup.json" LogicalName="Sdo.Resources.Nbackup.json" />
+	  <EmbeddedResource Include="Resources\common.targets" LogicalName="nb.resources.common.targets" />
+	  <EmbeddedResource Include="Resources\ngit.targets" LogicalName="nb.resources.ngit.targets" />
+	  <EmbeddedResource Include="Resources\sdo.targets" LogicalName="nb.resources.sdo.targets" />
 	</ItemGroup>
 
 	<ItemGroup>
-	<PackageReference Include="sdo-launcher" Version="2.6.0" />
-	<PackageReference Include="System.CommandLine" Version="2.0.13" />
-	<PackageReference Include="YamlDotNet" Version="18.1.0" />
+	  <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.9.6" />
+	  <PackageReference Include="sdo-launcher" Version="2.6.0" />
+	  <PackageReference Include="System.CommandLine" Version="2.0.13" />
+	  <PackageReference Include="YamlDotNet" Version="18.1.0" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\GitHubRelease\GitHubRelease.csproj" />
-		<ProjectReference Include="..\nb\nb.csproj" />
-		<ProjectReference Include="..\NbuildTasks\NbuildTasks.csproj" />
-	</ItemGroup>
+	<PropertyGroup>
+	  <StartupObject>Sdo.Program</StartupObject>
+	</PropertyGroup>
 
 </Project>

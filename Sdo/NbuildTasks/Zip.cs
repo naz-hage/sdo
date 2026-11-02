@@ -1,0 +1,47 @@
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
+using Task = Microsoft.Build.Utilities.Task;
+using System;
+using System.IO;
+using System.IO.Compression;
+
+namespace NbuildTasks
+{
+    public class Zip : Task
+    {
+        [Required]
+        public string Path { get; set; } = string.Empty;
+
+
+        [Required]
+        public string FileName { get; set; } = string.Empty;
+
+        public override bool Execute()
+        {
+            try
+            {
+                if (File.Exists(Path))
+                {
+                    Log.LogError($"File {Path} does not exist");
+                    return false;
+                }
+
+                if (File.Exists(FileName))
+                {
+                    File.Delete(FileName);
+                }
+
+                ZipFile.CreateFromDirectory(Path, FileName);
+                Log.LogMessage($"Zipped {Path} to {FileName}");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.LogError($"Failed to zip file: {ex.Message}");
+                return false;
+            }
+
+        }
+    }
+}

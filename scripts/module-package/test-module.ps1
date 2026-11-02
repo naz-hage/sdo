@@ -18,7 +18,6 @@ if (Test-Path $modulePsm) {
 
 # Define expected functions from the module manifest
 $expectedFunctions = @(
-    'Publish-AllProjects',
     'Get-SdoScriptsVersion',
     'Get-VersionFromYaml',
     'Write-TestResult',

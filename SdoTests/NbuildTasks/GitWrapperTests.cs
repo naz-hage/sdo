@@ -1,0 +1,390 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Ntools;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using static NbuildTasks.Enums;
+
+namespace NbuildTasks.Tests
+{
+    [TestClass]
+    [DoNotParallelize]
+    public class GitWrapperTests
+    {
+        private const string InvalidUrl = "invalid-url";
+        private static readonly string ProjectName = "getting-started-" + Guid.NewGuid().ToString("N");
+        private static string FixtureRoot = string.Empty;
+        private static string BareRepository = string.Empty;
+        private static string RepositoryUrl = string.Empty;
+
+        private GitWrapper GitWrapper => new(ProjectName, verbose: true, testMode: true);
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext context)
+        {
+            FixtureRoot = Path.Combine(Path.GetTempPath(), "NbuildTasksTests", "git-fixture-" + Guid.NewGuid().ToString("N"));
+            var sourceRepository = Path.Combine(FixtureRoot, "source");
+            BareRepository = Path.Combine(FixtureRoot, ProjectName + ".git");
+            RepositoryUrl = new Uri(BareRepository).AbsoluteUri;
+
+            Directory.CreateDirectory(FixtureRoot);
+            RunGit(FixtureRoot, "init --bare " + Quote(BareRepository));
+            RunGit(FixtureRoot, "init -b main " + Quote(sourceRepository));
+            RunGit(sourceRepository, "config user.name nbuild-tests");
+            RunGit(sourceRepository, "config user.email nbuild-tests@example.invalid");
+            File.WriteAllText(Path.Combine(sourceRepository, "README.md"), "local GitWrapper fixture");
+            RunGit(sourceRepository, "add README.md");
+            RunGit(sourceRepository, "commit -m initial");
+            RunGit(sourceRepository, "tag 1.0.0");
+            RunGit(sourceRepository, "remote add origin " + Quote(BareRepository));
+            RunGit(sourceRepository, "push --set-upstream origin main");
+            RunGit(sourceRepository, "push origin 1.0.0");
+            RunGit(BareRepository, "-c safe.bareRepository=all symbolic-ref HEAD refs/heads/main");
+
+            var workingRepository = Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName);
+            DeleteDirectory(workingRepository);
+            RunGit(Path.GetDirectoryName(workingRepository)!, "clone --branch main " + Quote(BareRepository) + " " + Quote(workingRepository));
+            RunGit(workingRepository, "config user.name nbuild-tests");
+            RunGit(workingRepository, "config user.email nbuild-tests@example.invalid");
+        }
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            _ = new GitWrapper(project: null, testMode: true);
+            Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+            DeleteDirectory(FixtureRoot);
+            DeleteDirectory(Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName));
+        }
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            Directory.SetCurrentDirectory(Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName));
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+        }
+
+        [TestMethod]
+        public void CloneProject_ShouldSucceed_WithValidUrl()
+        {
+            var sourceDirectory = CreateTestDirectory();
+            var result = new GitWrapper(verbose: true).CloneProject(RepositoryUrl, sourceDirectory);
+
+            Assert.IsTrue(result.IsSuccess());
+            Assert.IsTrue(Directory.Exists(Path.Combine(sourceDirectory, ProjectName)));
+        }
+
+        [TestMethod]
+        public void CloneProject_ShouldFail_WithInvalidUrl()
+        {
+            var result = new GitWrapper(verbose: true).CloneProject(InvalidUrl, CreateTestDirectory());
+
+            Assert.IsFalse(result.IsSuccess());
+            Assert.AreEqual(ResultHelper.InvalidParameter, result.Code);
+        }
+
+        [TestMethod]
+        public void CloneProject_ShouldFail_WhenProjectAlreadyExists()
+        {
+            var sourceDirectory = CreateTestDirectory();
+            Directory.CreateDirectory(Path.Combine(sourceDirectory, ProjectName));
+
+            var result = new GitWrapper(verbose: true).CloneProject(RepositoryUrl, sourceDirectory);
+
+            Assert.IsFalse(result.IsSuccess());
+            Assert.AreEqual((int)RetCode.CloneProjectFailed, result.Code);
+        }
+
+        [TestMethod]
+        public void CloneProject_ShouldCreateSourceDir_IfNotExists()
+        {
+            var sourceDirectory = Path.Combine(CreateTestDirectory(), "nested");
+            var result = new GitWrapper(verbose: true).CloneProject(RepositoryUrl, sourceDirectory);
+
+            Assert.IsTrue(result.IsSuccess());
+            Assert.IsTrue(Directory.Exists(sourceDirectory));
+        }
+
+        [TestMethod]
+        public void GetCurrentBranchTest() => Assert.AreEqual("main", GitWrapper.Branch);
+
+        [TestMethod]
+        public void GetCurrentTagTest() => Assert.AreEqual("1.0.0", GitWrapper.Tag);
+
+        [TestMethod]
+        public void ProjectNameFromUrlTest()
+        {
+            Assert.AreEqual(ProjectName, GitWrapper.ProjectNameFromUrl(RepositoryUrl));
+            AssertArgumentException(() => GitWrapper.ProjectNameFromUrl(null));
+        }
+
+        [TestMethod]
+        public void WorkingDirectoryTest()
+        {
+            var wrapper = GitWrapper;
+            var originalDirectory = wrapper.WorkingDirectory;
+            var testDirectory = CreateTestDirectory();
+
+            wrapper.WorkingDirectory = testDirectory;
+
+            Assert.AreEqual(testDirectory, wrapper.WorkingDirectory);
+            wrapper.WorkingDirectory = originalDirectory;
+        }
+
+        [TestMethod]
+        public void SetAutoTagTest()
+        {
+            var tag = GitWrapper.SetAutoTag(BuildType.STAGE.ToString());
+
+            Assert.AreEqual(tag, GitWrapper.Tag);
+            Assert.IsTrue(GitWrapper.IsValidTag(tag));
+        }
+
+        [TestMethod]
+        public void IsValidTagTest()
+        {
+            foreach (var tag in new[] { "1.1.1", "9999.999.000", "11.1.1" })
+            {
+                Assert.IsTrue(GitWrapper.IsValidTag(tag));
+            }
+
+            foreach (var tag in new[] { "A.1.1.1", "9.b.1.1", "1.1.mk", "", null })
+            {
+                Assert.IsFalse(GitWrapper.IsValidTag(tag));
+            }
+        }
+
+        [TestMethod]
+        public void IsValid4TagTest()
+        {
+            Assert.IsTrue(GitWrapper.IsValid4Tag("1.2.3.4"));
+            Assert.IsFalse(GitWrapper.IsValid4Tag("1.2.3"));
+            Assert.IsFalse(GitWrapper.IsValid4Tag("1.2.3.x"));
+            Assert.IsFalse(GitWrapper.IsValid4Tag(null));
+        }
+
+        [TestMethod]
+        public void AutoTagTest()
+        {
+            Assert.AreEqual(string.Empty, GitWrapper.AutoTag(null));
+            AssertArgumentException(() => GitWrapper.AutoTag("unknown"));
+        }
+
+        [TestMethod]
+        public void StageTagTest()
+        {
+            var currentTag = GitWrapper.Tag;
+            var expectedTag = $"{currentTag.Split('.')[0]}.{currentTag.Split('.')[1]}.{int.Parse(currentTag.Split('.')[2]) + 1}";
+            var nextTag = GitWrapper.StageTag();
+
+            Assert.AreEqual(expectedTag, nextTag);
+            Assert.IsTrue(GitWrapper.IsValidTag(nextTag));
+        }
+
+        [TestMethod]
+        public void ProdTagTest()
+        {
+            var currentTag = GitWrapper.Tag;
+            var expectedTag = $"{currentTag.Split('.')[0]}.{int.Parse(currentTag.Split('.')[1]) + 1}.0";
+            var nextTag = GitWrapper.ProdTag();
+
+            Assert.AreEqual(expectedTag, nextTag);
+            Assert.IsTrue(GitWrapper.IsValidTag(nextTag));
+        }
+
+        [TestMethod]
+        public void PullWithRebaseTest() => Assert.IsTrue(GitWrapper.PullWithRebase());
+
+        [TestMethod]
+        public void DeleteTagTest()
+        {
+            var tag = "9.9." + (DateTime.UtcNow.Ticks % 1000000);
+            Assert.IsTrue(GitWrapper.SetTag(tag));
+
+            Assert.IsTrue(GitWrapper.DeleteTag(tag));
+            Assert.IsFalse(GitWrapper.DeleteTag(tag));
+        }
+
+        [TestMethod]
+        public void TagLookupTests()
+        {
+            var tag = "8.8." + (DateTime.UtcNow.Ticks % 1000000);
+            RunGit(Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName), "tag " + tag);
+            RunGit(Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName), "push origin " + tag);
+
+            Assert.IsTrue(GitWrapper.LocalTagExists(tag));
+            Assert.IsTrue(GitWrapper.RemoteTagExists(tag));
+            Assert.IsTrue(GitWrapper.ListLocalTags().Contains(tag));
+            Assert.IsTrue(GitWrapper.ListRemoteTags().Contains(tag));
+            Assert.IsTrue(GitWrapper.DeleteTag(tag));
+        }
+
+        [TestMethod]
+        public void ListBranchesTest() => Assert.IsTrue(GitWrapper.ListBranches().Contains("main"));
+
+        [TestMethod]
+        public void CallGitCommand_ShouldExecuteArguments()
+        {
+            Assert.AreEqual("main", GitWrapper.Branch);
+        }
+
+        [TestMethod]
+        public void DeleteBranch_ShouldProtectCurrentAndDefaultBranches()
+        {
+            Assert.IsFalse(GitWrapper.DeleteBranch(GitWrapper.Branch));
+            Assert.IsFalse(GitWrapper.DeleteBranch("main"));
+            Assert.IsFalse(GitWrapper.DeleteBranch("master"));
+            Assert.IsFalse(GitWrapper.DeleteRemoteBranch(GitWrapper.Branch));
+            Assert.IsFalse(GitWrapper.DeleteRemoteBranch("main"));
+            Assert.IsFalse(GitWrapper.DeleteRemoteBranch("master"));
+        }
+
+        [TestMethod]
+        public void SwitchBranchTest2() => Assert.IsTrue(GitWrapper.SwitchBranch("main"));
+
+        [TestMethod]
+        public void BranchOperationsTest()
+        {
+            var branch = "fixture-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+
+            Assert.IsFalse(GitWrapper.BranchExists(null));
+            Assert.IsTrue(GitWrapper.SwitchBranch(branch, create: true));
+            Assert.IsTrue(GitWrapper.BranchExists(branch));
+            Assert.IsTrue(GitWrapper.ListBranches().Contains(branch));
+            Assert.IsTrue(GitWrapper.Push(branch));
+            Assert.IsTrue(GitWrapper.BranchExistsOnRemote(branch));
+            Assert.IsTrue(GitWrapper.ListRemoteBranches().Contains(branch));
+            Assert.IsTrue(GitWrapper.SwitchBranch("main"));
+            Assert.IsTrue(GitWrapper.DeleteRemoteBranch(branch));
+            Assert.IsFalse(GitWrapper.BranchExistsOnRemote(branch));
+            Assert.IsTrue(GitWrapper.DeleteBranch(branch));
+        }
+
+        [TestMethod]
+        public void DeleteAllLocalBranchesTest()
+        {
+            var branch = "fixture-cleanup-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+
+            Assert.IsTrue(GitWrapper.SwitchBranch(branch, create: true));
+            Assert.IsTrue(GitWrapper.SwitchBranch("main"));
+            Assert.IsTrue(GitWrapper.DeleteAllLocalBranches().Contains(branch));
+            Assert.IsFalse(GitWrapper.BranchExists(branch));
+        }
+
+        [TestMethod]
+        public void GitRepositoryAndRemoteTests()
+        {
+            Assert.IsTrue(GitWrapper.IsGitRepository());
+            Assert.IsTrue(GitWrapper.GetRemoteUrl()!.Contains(ProjectName));
+        }
+
+        [TestMethod]
+        public void GitChangeOperationsTest()
+        {
+            var file = Path.Combine(Path.GetTempPath(), "NbuildTasksTests", ProjectName, "fixture-change.txt");
+            File.WriteAllText(file, "staged with StageFile");
+            Assert.IsTrue(GitWrapper.StageFile("fixture-change.txt").Code == 0);
+            Assert.IsTrue(GitWrapper.GetStatusPorcelain().Contains("fixture-change.txt"));
+            Assert.IsTrue(GitWrapper.Commit("Add fixture change"));
+
+            File.WriteAllText(file, "staged with StageAllChanges");
+            Assert.IsTrue(GitWrapper.StageAllChanges());
+            Assert.IsTrue(GitWrapper.Commit("Update fixture change"));
+            Assert.IsTrue(GitWrapper.Push());
+            Assert.AreEqual(string.Empty, GitWrapper.GetStatusPorcelain());
+        }
+
+        [TestMethod]
+        public void FetchAllAndPruneTest() => Assert.IsTrue(GitWrapper.FetchAllAndPrune());
+
+        [TestMethod]
+        public void PushTagTest()
+        {
+            var tag = GitWrapper.SetAutoTag(BuildType.STAGE.ToString());
+
+            Assert.IsTrue(GitWrapper.PushTag(tag));
+            Assert.IsTrue(GitWrapper.ListRemoteTags().Contains(tag));
+        }
+
+        [TestMethod]
+        public void ListRemoteTagsTest() => Assert.IsTrue(GitWrapper.ListRemoteTags().Contains("1.0.0"));
+
+        [TestMethod]
+        public void ListLocalTagsTest() => Assert.IsTrue(GitWrapper.ListLocalTags().Contains("1.0.0"));
+
+        [TestMethod]
+        public void SetWorkingDirTest()
+        {
+            var wrapper = new GitWrapper(project: null, verbose: true, testMode: true);
+
+            Assert.IsTrue(wrapper.SetWorkingDir(RepositoryUrl));
+            Assert.AreEqual(Path.Combine(wrapper.SourceDir, ProjectName), wrapper.WorkingDirectory);
+        }
+
+        [TestMethod]
+        public void GetGitUserNameConfigurationTest() => Assert.IsFalse(string.IsNullOrWhiteSpace(GitWrapper.GetGitUserNameConfiguration()));
+
+        [TestMethod]
+        public void GetGitUserEmailConfigurationTest() => Assert.IsFalse(string.IsNullOrWhiteSpace(GitWrapper.GetGitUserEmailConfiguration()));
+
+        [TestMethod]
+        public void IsGitConfiguredTest() => Assert.IsTrue(GitWrapper.IsGitConfigured());
+
+        private static string CreateTestDirectory()
+        {
+            var path = Path.Combine(FixtureRoot, Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(path);
+            return path;
+        }
+
+        private static void AssertArgumentException(Action action)
+        {
+            try
+            {
+                action();
+                Assert.Fail("Expected an ArgumentException.");
+            }
+            catch (ArgumentException)
+            {
+            }
+        }
+
+        private static void RunGit(string workingDirectory, string arguments)
+        {
+            using var process = Process.Start(new ProcessStartInfo("git", arguments)
+            {
+                WorkingDirectory = workingDirectory,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+
+            Assert.IsNotNull(process);
+            process.WaitForExit();
+            var error = process.StandardError.ReadToEnd();
+            Assert.AreEqual(0, process.ExitCode, $"git {arguments} failed: {error}");
+        }
+
+        private static string Quote(string value) => $"\"{value.Replace("\"", "\\\"")}\"";
+
+        private static void DeleteDirectory(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+                {
+                    File.SetAttributes(file, FileAttributes.Normal);
+                }
+
+                Directory.Delete(path, true);
+            }
+        }
+    }
+}

@@ -12,35 +12,6 @@
 * **Pipeline Management**: CI/CD pipeline creation, execution, and monitoring.
 * **Advanced Automation**: Auto-discovering YAML configuration system, Markdown parser for rich content generation, and dry-run mode.
 
-#### Go Executables
-- **Purpose**: Various utilities written in Go
-- **Location**: `go/` directory
-- **Examples**: build-apps.exe for building applications
-
-### Manifest File Processing (GetApps Method)
-
-The SDO tool-management command handles loading and parsing manifest JSON files for tool installation and management. This command implements strict file validation:
-
-#### File Validation
-- **Purpose**: Ensures clear, actionable error messages when JSON manifest files are missing or invalid
-- **Validation Steps**:
-  1. **File Existence Check**: Verifies the specified file path exists before attempting to parse
-  2. **File Reading**: Reads the file contents into memory
-  3. **JSON Parsing**: Deserializes the JSON content into `NbuildApps` object
-  4. **Version Verification**: Validates that the manifest's version matches the supported version
-
-#### Error Handling
-| Scenario | Error Message |
-|----------|---------------|
-| File not found | `YAML manifest not found: '<path>'. Please provide a valid path to the apps.yaml file.` |
-| Invalid YAML format | `Invalid YAML format: <error details>. Please check the YAML file for proper formatting.` |
-| Unsupported version | `Json Version <version> is not supported. Please use version <supported_version>` |
-
-#### Benefits
-- **Early validation**: Fails fast with clear error messages instead of confusing JSON parse errors
-- **User-friendly**: Distinguishes between file not found vs. invalid JSON content
-- **Consistent**: All commands (`sdo tool list`, `sdo tool install`, `sdo tool uninstall`, `sdo tool download`) use the same validation logic
-
 ### File Structure
 
 ```
@@ -60,71 +31,14 @@ sdo/
 ├── sdo.targets                # MSBuild targets
 ├── unit-tests.targets            # Unit test targets
 │
-├── Sdo/                          # Main SDO executable project
-│   ├── Sdo.csproj
-│   ├── Program.cs                # CLI setup and command registration
-│   ├── Command.cs                # Core command implementations with GetApps() method
-│   │                               # GetApps() - Loads and validates manifest JSON files
-│   │                               # Install, Uninstall, List, Download command logic
-│   └── resources/                # Embedded resources and templates
-│
-├── nbtests/                      # Unit tests for Nbuild
-│   ├── nbtests.csproj
-│   ├── CommandTests.cs           # Tests for Command class
-│   ├── AppsJsonTests.cs          # Tests for JSON manifest loading
-│   ├── CliTests.cs               # CLI tests
-│   └── other test files/
-│
-├── NbuildTasks/                  # Shared library
-│   ├── NbuildTasks.csproj
-│   ├── GitTasks.cs               # Git operations
-│   ├── FileTasks.cs              # File system utilities
-│   ├── BuildTasks.cs             # Build task implementations
-│   └── Common/                   # Shared utilities
-│
-├── NbuildTasksTests/             # Unit tests for NbuildTasks
-│   ├── NbuildTasksTests.csproj
-│   └── test files/
-│
-├── GitHubRelease/                # GitHub integration library
-│   ├── GitHubRelease.csproj
-│   ├── ReleaseManager.cs         # Release management
-│   ├── AssetUploader.cs          # Asset upload functionality
-│   └── RepositoryOps.cs          # Repository operations
-│
-├── GitHubReleaseTests/           # Unit tests for GitHubRelease
-│   ├── GitHubReleaseTests.csproj
-│   └── ReleaseTests.cs
-│
-├── ApiVersions/                  # API version management
-│   ├── ApiVersions.csproj
-│   ├── VersionManager.cs         # Version tracking
-│   └── ApiClient.cs              # API client utilities
-│
-├── Nbackup/                      # Reusable backup library (nBackup.dll)
-│   ├── Nbackup.csproj
-│   ├── NBackupOptions.cs         # Library operation options
-│   └── NBackup.cs                # Backup logic
-│
-├── nBackupTests/                 # Unit tests for Nbackup
-│   ├── nBackupTests.csproj
-│   └── NBackupTests.cs
-│
-├── lf/                           # Reusable file-listing library (lf.dll)
-│   ├── lf.csproj
-│   └── ListSearcher.cs            # File and folder listing implementation
-│
-├── lfTests/                      # Unit tests for lf
-│   ├── lfTests.csproj
-│   └── ListSearcherTests.cs
-│
-├── go/                           # Go-based utilities
-│   ├── build-apps/               # Application builder
-│   ├── other-tools/              # Additional Go tools
-│   └── build-scripts/            # Go build scripts
-│
 ├── Sdo/                          # sdo (C# executable) - Simple DevOps Operations Tool
-│   ├── Sdo.csproj
+│   ├── Sdo.csproj                # Consolidated production project
+│   ├── ApiVersions/              # API version management
+│   ├── GitHubRelease/            # GitHub integration
+│   ├── Nbuild/                   # Build orchestration
+│   ├── NbuildTasks/              # MSBuild tasks and utilities
+│   ├── Nbackup/                  # Backup functionality
+│   ├── Lf/                       # File-listing functionality
 │   ├── Program.cs                # Main entry point and CLI setup
 │   ├── Commands/                 # Command implementations
 │   │   ├── WorkItemCommand.cs
@@ -145,20 +59,13 @@ sdo/
 │   ├── Helpers/                  # Utility helpers
 │   └── bin/Debug/sdo.exe         # Compiled executable
 │
-├── SdoTests/                     # Unit tests for Sdo
+├── SdoTests/                     # Consolidated unit-test project
 │   ├── SdoTests.csproj
-│   ├── WorkItemCommandTests.cs
-│   ├── PullRequestCommandTests.cs
-│   └── other test files/
-│
-├── sdo-e2e-test/                 # E2E tests for Sdo
-│   ├── sdo-e2e-test.csproj
-│   ├── SmokeTests.cs
-│   └── integration tests/
-│
-├── test-framework/               # Shared test framework utilities
-│   ├── test-framework.csproj
-│   └── test helpers/
+│   ├── Nbuild/                   # Build and CLI tests
+│   ├── NbuildTasks/              # MSBuild task tests
+│   ├── GitHubRelease/            # Release service tests
+│   ├── Nbackup/                  # Backup tests
+│   └── Lf/                       # File-listing tests
 │
 ├── docs/                         # Documentation (MkDocs)
 │   ├── index.md
@@ -199,19 +106,16 @@ sdo/
 ├── scripts/                      # Utility scripts
 │   └── build and deployment scripts/
 │
-├── GitHubReleaseTests/           # (already listed above)
 └── (other support directories)/
 ```
 
 ### Build System
 
-All .NET executables are built using:
+The solution contains one production assembly and one test assembly. Both are built using:
 - .NET 10.0 SDK
 - MSBuild
 - Custom build targets (sdo.targets)
-- Shared build tasks (NbuildTasks)
-
-Go executables are built using the Go toolchain and custom build scripts.
+- Consolidated build tasks in `Sdo/sdo.dll`
 
 ---
 
@@ -320,7 +224,6 @@ All SDO components follow consistent design principles:
 - **Configuration**: YamlDotNet 15.1.1 for YAML parsing (Advanced Automation Features)
 - **API Clients**: Octokit.NET (GitHub API), Microsoft.TeamFoundationServer.Client (Azure DevOps API)
 - **HTTP**: System.Net.Http for REST calls
-- **JSON**: System.Text.Json for JSON processing
 - **Development & Testing**: xunit, Moq, Microsoft.NET.Test.Sdk
 - **Installation Scripts**: Python (for cross-platform installer compatibility only)
 

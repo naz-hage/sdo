@@ -88,7 +88,7 @@ jobs:
         # Install the latest stable SDO release and ensure the CI step fails on error
         Write-Host "Installing the latest stable SDO release..."
         try {
-          Install-Sdo 2.4.22
+          Install-Sdo
         }
         catch {
           Write-Host "Install-Sdo failed: $($_.Exception.Message)"
@@ -104,6 +104,8 @@ jobs:
 
         "SDO_PATH=$sdoPath" | Out-File -FilePath $env:GITHUB_ENV -Append
         & $sdoPath --version
+      env:
+        API_GITHUB_KEY: ${{ secrets.API_GITHUB_KEY || github.token }}
       shell: pwsh
       working-directory: ${{ github.workspace }}
 
@@ -147,9 +149,19 @@ jobs:
 
         Write-Host "Running sdo.exe CORE (capturing output to build-core.log)"
         & $env:SDO_PATH CORE 2>&1 | Tee-Object -FilePath build-core.log
+        $coreExitCode = $LASTEXITCODE
+        if ($coreExitCode -ne 0) {
+          Write-Error "sdo.exe CORE failed with exit code $coreExitCode."
+          exit $coreExitCode
+        }
 
         Write-Host "Running sdo.exe ${{ env.build_type }} (capturing output to build-stage.log)"
         & $env:SDO_PATH ${{ env.build_type }} 2>&1 | Tee-Object -FilePath build-stage.log
+        $stageExitCode = $LASTEXITCODE
+        if ($stageExitCode -ne 0) {
+          Write-Error "sdo.exe ${{ env.build_type }} failed with exit code $stageExitCode."
+          exit $stageExitCode
+        }
 
         # Fail the step if any MSBuild 'Build FAILED' lines are present in the captured logs
         $failed = Select-String -Path build-*.log -Pattern 'Build FAILED' -SimpleMatch -Quiet
