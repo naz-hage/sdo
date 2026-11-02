@@ -27,8 +27,6 @@ namespace Nbuild.Tests
                 "INSTALL_DEP",
                 "TELEMETRY_OPT_OUT",
                 "DEV",
-                "STAGE",
-                "PROD",
                 "GITHUB_RELEASE",
                 "GITHUB_PRE_RELEASE",
                 "STAGE_DEPLOY",
@@ -44,6 +42,8 @@ namespace Nbuild.Tests
                 "PUBLISH",
                 "COVERAGE",
                 "COVERAGE_SUMMARY",
+                "STAGE",
+                "PROD",
                 "IS_ADMIN",
                 "SingleProject",
                 "HandleError"
@@ -60,8 +60,24 @@ namespace Nbuild.Tests
             Console.WriteLine($"Actual Targets:");
             Console.WriteLine($"{string.Join(",\n", actual.Select(a => $"\"{a}\""))}");
 
-            // assert that arrays actual and expected are equal
-            CollectionAssert.AreEqual(expectedCommonTargets, actual, StringComparer.OrdinalIgnoreCase);
+            var expectedCounts = expectedCommonTargets
+                .GroupBy(target => target, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
+            var actualCounts = actual
+                .GroupBy(target => target, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
+            var discrepancies = expectedCounts.Keys
+                .Union(actualCounts.Keys, StringComparer.OrdinalIgnoreCase)
+                .Where(target => expectedCounts.GetValueOrDefault(target) != actualCounts.GetValueOrDefault(target))
+                .OrderBy(target => target, StringComparer.OrdinalIgnoreCase)
+                .Select(target =>
+                    $"  {target}: expected {expectedCounts.GetValueOrDefault(target)}, actual {actualCounts.GetValueOrDefault(target)}")
+                .ToArray();
+
+            Assert.AreEqual(
+                0,
+                discrepancies.Length,
+                $"Target discrepancies:{Environment.NewLine}{string.Join(Environment.NewLine, discrepancies)}");
         }
 
         private static string ExtractCommonTargetsFile()
