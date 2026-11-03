@@ -12,6 +12,7 @@ Unified CLI for managing work items, pull requests, pipelines, and repositories 
   - [auth: Verify authentication](#auth-verify-authentication)
   - [wi: Work item management](#wi-work-item-management)
   - [pr: Pull request operations](#pr-pull-request-operations)
+  - [git: Local Git operations](#git-local-git-operations)
   - [repo: Repository management](#repo-repository-management)
   - [tool: Tool management](#tool)
   - [run: YAML workflow execution](#run)
@@ -661,37 +662,92 @@ sdo pr update --pr-id 12 --title "New title" --status merged
 
 ---
 
-### repo: Repository management
+### git: Local Git operations
 
-Create, delete, list, inspect, clone, and tag repositories, and manage Git branches.
+Use `sdo git` for local working-copy operations: branch management, cloning, and tags.
 
 **Subcommands:**
-- `branch` — Delete selected local and remote Git branches
-- `list` — List repositories
-- `info` — Display current Git branch, tag, and remote repository information
+- `branch` — List or delete selected local and remote branches
 - `clone` — Clone a Git repository
 - `tag` — Set, auto-create, push, or delete Git tags
-- `create` — Create new repository
-- `delete` — Delete repository
 
 **Help:**
 ```
-$ sdo repo --help
+$ sdo git --help
 
 Description:
-  Repository management commands
+  Local Git operations
 
 Usage:
-  sdo repo [command] [options]
-
-Commands:
-  create <name>  Create a new repository
-  delete         Delete a repository
-  list           List repositories
-  info           Display local Git and remote repository information
-  clone          Clone a Git repository
-  tag            Git tag operations
+  sdo git [command] [options]
 ```
+
+#### git branch
+
+Manage local and remote Git branches. The current branch, `main`, and `master` are always protected.
+
+```bash
+sdo git branch --list
+sdo git branch --list --local
+sdo git branch --list --remote
+sdo git branch --delete --name feature-123
+sdo git branch --delete --contains 123
+```
+
+**Options:**
+- `--list` — List branches; defaults to both local and remote branches
+- `--local` — With `--list`, show local branches only
+- `--remote` — With `--list`, show remote branches only
+- `--delete` — Delete matching local and remote branches
+- `--name <name>` — Select one branch by exact name
+- `--contains <text>` — Select branches whose names contain the supplied text
+- `--verbose` — Show detailed Git command output
+
+When `--contains` is used, SDO prompts for an explicit `yes` confirmation before deleting matching branches. Declining the prompt leaves all branches unchanged.
+
+#### git clone
+
+```bash
+sdo git clone --url https://github.com/owner/repository
+sdo git clone --url https://github.com/owner/repository --path C:\work\repository
+sdo git clone --url https://github.com/owner/repository --dry-run
+```
+
+#### git tag
+
+```bash
+sdo git tag set --tag 1.2.3 --dry-run
+sdo git tag auto --buildtype stage --dry-run
+sdo git tag auto -b stage --dry-run
+sdo git tag set --tag 1.2.3 --push
+sdo git tag auto --buildtype stage --push
+sdo git tag delete --tag 1.2.3 --dry-run
+sdo git tag delete --tag 1.2.3 --remote
+```
+
+Tag operations affect the local repository by default:
+
+- `set` creates or replaces an annotated tag at the current `HEAD`.
+- `auto` calculates and creates the next `STAGE` or `PROD` tag locally and writes it to `.temp\.tag`.
+- `--push` on `set` or `auto` also pushes only that tag to `origin`; it does not pull or push the current branch.
+- `delete` removes the local tag. Add `--remote` to also delete it from `origin`.
+- `--buildtype` is used by `auto` and accepts `STAGE` or `PROD`; `-b` is its short form.
+- `--dry-run` reports the requested local and remote operations without changing either repository.
+
+If publishing or remote deletion fails, the command returns a failure. A tag created locally remains local if its optional push fails.
+
+### repo: Repository management
+
+Use `sdo repo` for hosted repository management and repository information.
+
+**Subcommands:**
+- `create` — Create a repository
+- `delete` — Delete a repository
+- `info` — Display local Git and remote repository information
+- `list` — List repositories
+- `branch`, `clone`, and `tag` — Deprecated aliases for the corresponding `sdo git` commands
+
+The legacy `sdo repo branch`, `sdo repo clone`, and `sdo repo tag` forms remain available for compatibility. Prefer the equivalent `sdo git` commands for new usage.
 
 An unmatched single token is treated as an MSBuild target, preserving the legacy target-invocation behavior:
 
@@ -710,60 +766,6 @@ sdo repo info --verbose
 ```
 
 `repo info` combines the local Git branch, project/tag details, and repository metadata from the current Git remote. Use `--dry-run` to display the local information without contacting the hosting service.
-
-#### repo branch
-
-Manage local and remote Git branches. The current branch, `main`, and `master` are always protected.
-
-```bash
-sdo repo branch --list
-sdo repo branch --list --local
-sdo repo branch --list --remote
-sdo repo branch --delete --name feature-123
-sdo repo branch --delete --contains 123
-```
-
-**Options:**
-- `--list` — List branches; defaults to both local and remote branches
-- `--local` — With `--list`, show local branches only
-- `--remote` — With `--list`, show remote branches only
-- `--delete` — Delete matching local and remote branches
-- `--name <name>` — Select one branch by exact name
-- `--contains <text>` — Select branches whose names contain the supplied text
-- `--verbose` — Show detailed Git command output
-
-When `--contains` is used, SDO always prompts for an explicit `yes` confirmation before deleting any matching branches. Declining the prompt leaves all branches unchanged.
-
-#### repo clone
-
-```bash
-sdo repo clone --url https://github.com/owner/repository
-sdo repo clone --url https://github.com/owner/repository --path C:\work\repository
-sdo repo clone --url https://github.com/owner/repository --dry-run
-```
-
-#### repo tag
-
-```bash
-sdo repo tag set --tag 1.2.3 --dry-run
-sdo repo tag auto --buildtype stage --dry-run
-sdo repo tag auto -b stage --dry-run
-sdo repo tag set --tag 1.2.3 --push
-sdo repo tag auto --buildtype stage --push
-sdo repo tag delete --tag 1.2.3 --dry-run
-sdo repo tag delete --tag 1.2.3 --remote
-```
-
-Tag operations affect the local repository by default:
-
-- `set` creates or replaces an annotated tag at the current `HEAD`.
-- `auto` calculates and creates the next `STAGE` or `PROD` tag locally and writes it to `.temp\.tag`.
-- `--push` on `set` or `auto` also pushes only that tag to `origin`; it does not pull or push the current branch.
-- `delete` removes the local tag. Add `--remote` to also delete it from `origin`.
-- `--buildtype` is used by `auto` and accepts `STAGE` or `PROD`; `-b` is its short form.
-- `--dry-run` reports the requested local and remote operations without changing either repository.
-
-If publishing or remote deletion fails, the command returns a failure. A tag created locally remains local if its optional push fails.
 
 #### repo list
 

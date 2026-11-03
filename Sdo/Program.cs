@@ -52,6 +52,7 @@ namespace Sdo
             rootCommand.Subcommands.Add(new Commands.PipelineCommand(verboseOption));
             rootCommand.Subcommands.Add(new Commands.PullRequestCommand(verboseOption));
             rootCommand.Subcommands.Add(new Commands.RepositoryCommand(verboseOption, dryRunOption: dryRunOption));
+            rootCommand.Subcommands.Add(new Commands.GitCommand(verboseOption, dryRunOption));
             rootCommand.Subcommands.Add(new Commands.WorkItemCommand(verboseOption));
             rootCommand.Subcommands.Add(new Commands.UserCommand(verboseOption));
 

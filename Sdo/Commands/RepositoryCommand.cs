@@ -31,7 +31,21 @@ namespace Sdo.Commands
         /// Initializes a new instance of the RepositoryCommand class.
         /// </summary>
         /// <param name="verboseOption">Option for verbose output.</param>
-        public RepositoryCommand(Option<bool> verboseOption, Sdo.Mapping.IMappingGenerator? mappingGenerator = null, Sdo.Mapping.IMappingPresenter? mappingPresenter = null, Option<bool>? dryRunOption = null) : base("repo", "Repository management commands")
+        public RepositoryCommand(Option<bool> verboseOption, Sdo.Mapping.IMappingGenerator? mappingGenerator = null, Sdo.Mapping.IMappingPresenter? mappingPresenter = null, Option<bool>? dryRunOption = null)
+            : this(verboseOption, mappingGenerator, mappingPresenter, dryRunOption, "repo", "Repository management commands", true, false)
+        {
+        }
+
+        protected RepositoryCommand(
+            Option<bool> verboseOption,
+            Sdo.Mapping.IMappingGenerator? mappingGenerator,
+            Sdo.Mapping.IMappingPresenter? mappingPresenter,
+            Option<bool>? dryRunOption,
+            string commandName,
+            string description,
+            bool includeRepositoryManagementCommands,
+            bool canonicalGitNamespace)
+            : base(commandName, description)
         {
             _platformDetector = new PlatformService();
             _mappingGenerator = mappingGenerator ?? new Sdo.Mapping.MappingGenerator();
@@ -39,18 +53,24 @@ namespace Sdo.Commands
             _dryRunOption = dryRunOption;
 
             // Add subcommands (in alphabetical order)
-            AddBranchCommand(verboseOption);
-            AddCloneCommand(verboseOption);
-            AddCreateCommand(verboseOption);
-            AddDeleteCommand(verboseOption);
-            AddInfoCommand(verboseOption);
-            AddListCommand(verboseOption);
-            AddTagCommand(verboseOption);
+            AddBranchCommand(verboseOption, canonicalGitNamespace);
+            AddCloneCommand(verboseOption, canonicalGitNamespace);
+            if (includeRepositoryManagementCommands)
+            {
+                AddCreateCommand(verboseOption);
+                AddDeleteCommand(verboseOption);
+                AddInfoCommand(verboseOption);
+                AddListCommand(verboseOption);
+            }
+            AddTagCommand(verboseOption, canonicalGitNamespace);
         }
 
-        private void AddBranchCommand(Option<bool> verboseOption)
+        private void AddBranchCommand(Option<bool> verboseOption, bool canonicalGitNamespace)
         {
-            var branchCommand = new Command("branch", "Manage Git branches");
+            var description = canonicalGitNamespace
+                ? "Manage Git branches"
+                : "Deprecated alias for `sdo git branch`; use the `git` command group instead.";
+            var branchCommand = new Command("branch", description);
             var listOption = new Option<bool>("--list")
             {
                 Description = "List local and remote branches"
@@ -221,11 +241,14 @@ namespace Sdo.Commands
             Subcommands.Add(branchCommand);
         }
 
-        private void AddCloneCommand(Option<bool> verboseOption)
+        private void AddCloneCommand(Option<bool> verboseOption, bool canonicalGitNamespace)
         {
+            var description = canonicalGitNamespace
+                ? "Clone a Git repository to a specified path"
+                : "Deprecated alias for `sdo git clone`; use the `git` command group instead.";
             var cloneCommand = new System.CommandLine.Command(
                 "clone",
-                "Clone a Git repository to a specified path");
+                description);
             var urlOption = new Option<string>("--url")
             {
                 Description = "Git repository URL",
@@ -256,11 +279,14 @@ namespace Sdo.Commands
             Subcommands.Add(cloneCommand);
         }
 
-        private void AddTagCommand(Option<bool> verboseOption)
+        private void AddTagCommand(Option<bool> verboseOption, bool canonicalGitNamespace)
         {
+            var description = canonicalGitNamespace
+                ? "Manage Git tags. Commands change local tags by default; --push publishes tags to origin and delete --remote also removes them from origin."
+                : "Deprecated alias for `sdo git tag`; use the `git` command group instead.";
             var tagCommand = new System.CommandLine.Command(
                 "tag",
-                "Manage Git tags. Commands change local tags by default; --push publishes tags to origin and delete --remote also removes them from origin.");
+                description);
 
             AddAutoTagCommand(tagCommand, verboseOption);
             AddDeleteTagCommand(tagCommand, verboseOption);

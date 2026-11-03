@@ -22,6 +22,29 @@ public class RepositoryCommandTests
     }
 
     [TestMethod]
+    public void GitCommand_ContainsOnlyBranchCloneAndTagSubcommands()
+    {
+        var command = new GitCommand(_verboseOption, new Option<bool>("--dry-run"));
+
+        Assert.AreEqual("git", command.Name);
+        CollectionAssert.AreEqual(
+            new[] { "branch", "clone", "tag" },
+            command.Subcommands.Select(subcommand => subcommand.Name).ToArray());
+    }
+
+    [TestMethod]
+    public void RepositoryGitCommands_AreMarkedAsDeprecatedAliases()
+    {
+        var command = new RepositoryCommand(_verboseOption);
+
+        foreach (var name in new[] { "branch", "clone", "tag" })
+        {
+            var subcommand = command.Subcommands.Single(item => item.Name == name);
+            StringAssert.Contains(subcommand.Description, "Deprecated alias for `sdo git");
+        }
+    }
+
+    [TestMethod]
     public void Constructor_AddsCreateSubcommand()
     {
         var command = new RepositoryCommand(_verboseOption);

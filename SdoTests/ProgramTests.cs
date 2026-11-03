@@ -94,6 +94,21 @@ public class ProgramTests
     }
 
     [TestMethod]
+    public void Main_WithGitCloneDryRun_ReturnsZero()
+    {
+        var result = Program.Main(
+            "git",
+            "clone",
+            "--url",
+            "https://github.com/user/repo",
+            "--path",
+            "C:\\temp\\repo",
+            "--dry-run");
+
+        Assert.AreEqual(0, result);
+    }
+
+    [TestMethod]
     public void Main_WithRepositoryTagDryRunCommands_ReturnZero()
     {
         var setResult = Program.Main("repo", "tag", "set", "--tag", "1.2.3", "--dry-run");
@@ -109,6 +124,16 @@ public class ProgramTests
         Assert.AreEqual(0, deleteRemoteResult);
         Assert.AreEqual(0, autoResult);
         Assert.AreEqual(0, autoPushResult);
+    }
+
+    [TestMethod]
+    public void Main_WithGitTagDryRunCommands_ReturnZero()
+    {
+        var setResult = Program.Main("git", "tag", "set", "--tag", "1.2.3", "--dry-run");
+        var deleteResult = Program.Main("git", "tag", "delete", "--tag", "1.2.3", "--remote", "--dry-run");
+
+        Assert.AreEqual(0, setResult);
+        Assert.AreEqual(0, deleteResult);
     }
 
     [TestMethod]
