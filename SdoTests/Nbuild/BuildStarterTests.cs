@@ -23,6 +23,7 @@ namespace Nbuild.Tests
             List<string> expectedCommonTargets =
             [
                 "PROPERTIES",
+                "UPDATE_VERSIONED_PATHS",
                 "CLEAN",
                 "INSTALL_DEP",
                 "TELEMETRY_OPT_OUT",

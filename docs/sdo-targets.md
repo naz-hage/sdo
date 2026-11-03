@@ -90,6 +90,11 @@ Test projects are excluded from the project list. Debug symbols are disabled,
 and any `.pdb` files remaining in the output folder are removed before the
 target completes.
 
+After stage or production auto-tagging, the default artifacts, test-results, and
+coverage properties are updated to use the generated `ProductVersion`.
+Test-results and coverage paths remain under the solution directory in GitHub
+Actions and under the artifacts solution folder otherwise.
+
 - **C:\Program Files\nbuild\ngit.targets Targets**
 
 | **Target Name** | **Description** |

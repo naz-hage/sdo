@@ -87,6 +87,17 @@
 		<OnError ExecuteTargets="HandleError"/>
 	</Target>
 
+	<Target Name="UPDATE_VERSIONED_PATHS" AfterTargets="SET_TAG">
+		<PropertyGroup>
+			<ArtifactsFolder>$(ArtifactsSolutionFolder)\$(TargetRelease)\$(ProductVersion)</ArtifactsFolder>
+			<ArtifactsTestResultsFolder Condition="'$(GITHUB_ACTIONS)' == 'true'">$(SolutionDir)\TestResults\$(ProductVersion)</ArtifactsTestResultsFolder>
+			<ArtifactsTestResultsFolder Condition="'$(GITHUB_ACTIONS)' != 'true'">$(ArtifactsSolutionFolder)\TestResults\$(ProductVersion)</ArtifactsTestResultsFolder>
+			<CoverageFolder Condition="'$(GITHUB_ACTIONS)' == 'true'">$(SolutionDir)\CoverageReport\$(ProductVersion)</CoverageFolder>
+			<CoverageFolder Condition="'$(GITHUB_ACTIONS)' != 'true'">$(ArtifactsSolutionFolder)\CoverageReport\$(ProductVersion)</CoverageFolder>
+		</PropertyGroup>
+		<Message Text="Versioned paths for $(ProductVersion): ArtifactsFolder=$(ArtifactsFolder); TestResults=$(ArtifactsTestResultsFolder); Coverage=$(CoverageFolder)" Importance="high"/>
+	</Target>
+
 	<!-- Clean up the project and artifacts folder -->
 	<Target Name="CLEAN" >
 		<MSBuild Projects="$(SolutionDir)\$(SolutionName).sln" Targets="Clean" Properties="Configuration=$(TargetRelease);Platform=Any CPU" />
