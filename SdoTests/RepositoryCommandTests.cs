@@ -30,6 +30,10 @@ public class RepositoryCommandTests
         CollectionAssert.AreEqual(
             new[] { "branch", "clone", "tag" },
             command.Subcommands.Select(subcommand => subcommand.Name).ToArray());
+
+        var tagCommand = command.Subcommands.Single(subcommand => subcommand.Name == "tag");
+        var listCommand = tagCommand.Subcommands.Single(subcommand => subcommand.Name == "list");
+        Assert.IsNotNull(listCommand.Options.FirstOrDefault(option => option.Name == "--all"));
     }
 
     [TestMethod]
@@ -83,7 +87,7 @@ public class RepositoryCommandTests
         var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
         var nestedNames = tagCmd.Subcommands.Select(s => s.Name).ToList();
 
-        Assert.IsTrue(new[] { "auto", "delete", "set" }.SequenceEqual(nestedNames));
+        Assert.IsTrue(new[] { "auto", "delete", "list", "set" }.SequenceEqual(nestedNames));
     }
 
     [TestMethod]
@@ -104,11 +108,13 @@ public class RepositoryCommandTests
         var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
         var autoCmd = tagCmd.Subcommands.Single(s => s.Name == "auto");
         var deleteCmd = tagCmd.Subcommands.Single(s => s.Name == "delete");
+        var listCmd = tagCmd.Subcommands.Single(s => s.Name == "list");
         var setCmd = tagCmd.Subcommands.Single(s => s.Name == "set");
 
         Assert.IsNotNull(autoCmd.Options.FirstOrDefault(o => o.Name == "--push"));
         Assert.IsNotNull(setCmd.Options.FirstOrDefault(o => o.Name == "--push"));
         Assert.IsNotNull(deleteCmd.Options.FirstOrDefault(o => o.Name == "--remote"));
+        Assert.IsNotNull(listCmd.Options.FirstOrDefault(o => o.Name == "--all"));
         Assert.IsFalse(tagCmd.Subcommands.Any(s => s.Name == "push-auto"));
     }
 

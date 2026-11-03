@@ -282,7 +282,7 @@ namespace Sdo.Commands
         private void AddTagCommand(Option<bool> verboseOption, bool canonicalGitNamespace)
         {
             var description = canonicalGitNamespace
-                ? "Manage Git tags. Commands change local tags by default; --push publishes tags to origin and delete --remote also removes them from origin."
+                ? "Manage Git tags. Commands change local tags by default; list shows the latest 10 by version (--all lists every local tag), --push publishes tags to origin, and delete --remote also removes them from origin."
                 : "Deprecated alias for `sdo git tag`; use the `git` command group instead.";
             var tagCommand = new System.CommandLine.Command(
                 "tag",
@@ -290,9 +290,32 @@ namespace Sdo.Commands
 
             AddAutoTagCommand(tagCommand, verboseOption);
             AddDeleteTagCommand(tagCommand, verboseOption);
+            AddListTagCommand(tagCommand, verboseOption);
             AddSetTagCommand(tagCommand, verboseOption);
 
             Subcommands.Add(tagCommand);
+        }
+
+        private void AddListTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
+        {
+            var listCommand = new System.CommandLine.Command(
+                "list",
+                "List the latest 10 local tags by version; use --all to list every local tag.");
+            var allOption = new Option<bool>("--all")
+            {
+                Description = "List all local tags instead of only the latest 10"
+            };
+
+            listCommand.Add(allOption);
+            listCommand.Add(verboseOption);
+            listCommand.SetAction(parseResult =>
+            {
+                var all = parseResult.GetValue(allOption);
+                var verbose = parseResult.GetValue(verboseOption);
+                return Nbuild.Command.ListTags(all, verbose).Code;
+            });
+
+            tagCommand.Subcommands.Add(listCommand);
         }
 
         private void AddAutoTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)

@@ -669,7 +669,7 @@ Use `sdo git` for local working-copy operations: branch management, cloning, and
 **Subcommands:**
 - `branch` — List or delete selected local and remote branches
 - `clone` — Clone a Git repository
-- `tag` — Set, auto-create, push, or delete Git tags
+- `tag` — List, set, auto-create, push, or delete Git tags
 
 **Help:**
 ```
@@ -716,6 +716,8 @@ sdo git clone --url https://github.com/owner/repository --dry-run
 #### git tag
 
 ```bash
+sdo git tag list
+sdo git tag list --all
 sdo git tag set --tag 1.2.3 --dry-run
 sdo git tag auto --buildtype stage --dry-run
 sdo git tag auto -b stage --dry-run
@@ -727,6 +729,7 @@ sdo git tag delete --tag 1.2.3 --remote
 
 Tag operations affect the local repository by default:
 
+- `list` shows the 10 highest tags by version, in descending order. Add `--all` to list every local tag.
 - `set` creates or replaces an annotated tag at the current `HEAD`.
 - `auto` calculates and creates the next `STAGE` or `PROD` tag locally and writes it to `.temp\.tag`.
 - `--push` on `set` or `auto` also pushes only that tag to `origin`; it does not pull or push the current branch.

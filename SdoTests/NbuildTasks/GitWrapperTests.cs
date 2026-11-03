@@ -247,6 +247,40 @@ namespace NbuildTasks.Tests
         public void ListBranchesTest() => Assert.IsTrue(GitWrapper.ListBranches().Contains("main"));
 
         [TestMethod]
+        public void TryListLocalTags_ReturnsLatestTenByVersionOrAllTags()
+        {
+            var expectedLatestTags = Enumerable.Range(1, 10)
+                .Reverse()
+                .Select(version => $"9999.0.{version}")
+                .ToList();
+            var tagsToAdd = Enumerable.Range(0, 11)
+                .Select(version => $"9999.0.{version}")
+                .ToList();
+
+            try
+            {
+                foreach (var tag in tagsToAdd)
+                {
+                    Assert.IsTrue(GitWrapper.SetTag(tag), $"Could not create fixture tag {tag}.");
+                }
+
+                Assert.IsTrue(GitWrapper.TryListLocalTags(all: false, out var latestTags));
+                CollectionAssert.AreEqual(expectedLatestTags, latestTags);
+
+                Assert.IsTrue(GitWrapper.TryListLocalTags(all: true, out var allTags));
+                Assert.IsTrue(tagsToAdd.All(allTags.Contains));
+                Assert.IsTrue(allTags.Contains("1.0.0"));
+            }
+            finally
+            {
+                foreach (var tag in tagsToAdd)
+                {
+                    GitWrapper.DeleteTag(tag);
+                }
+            }
+        }
+
+        [TestMethod]
         public void CallGitCommand_ShouldExecuteArguments()
         {
             Assert.AreEqual("main", GitWrapper.Branch);

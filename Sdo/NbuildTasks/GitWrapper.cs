@@ -311,6 +311,21 @@ namespace NbuildTasks
             return result.Code == 0 && result.Output.Count >= 1 ? result.Output.ToList() : new List<string>();
         }
 
+        public bool TryListLocalTags(bool all, out List<string> tags)
+        {
+            var result = ExecuteGitCommand("tag --list --sort=-version:refname");
+            if (result.Code != 0)
+            {
+                DisplayGitCommandFailure("Failed to list local tags.", result);
+                tags = new List<string>();
+                return false;
+            }
+
+            var orderedTags = result.Output.ToList();
+            tags = all ? orderedTags : orderedTags.Take(10).ToList();
+            return true;
+        }
+
         public List<string> ListRemoteTags()
         {
             var tags = new List<string>();

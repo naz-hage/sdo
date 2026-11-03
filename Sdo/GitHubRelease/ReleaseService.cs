@@ -52,6 +52,7 @@ namespace GitHubRelease
         /// </summary>
         /// <param name="release">The release object to create.</param>
         /// <param name="assetPath">The path to the asset file to upload.</param>
+        /// <param name="verbose">Whether to include verbose release details in the output.</param>
         /// <returns>The HTTP response message from the release creation or asset upload operation.</returns>
         /// <exception cref="InvalidOperationException">
         /// Thrown if the tag name or target commitish is missing or invalid, or if the branch name cannot be determined in a detached HEAD state.
@@ -61,7 +62,7 @@ namespace GitHubRelease
             ValidateAssetPath(assetPath);
             await DeleteExistingRelease(release);
             await DeleteStagingReleasesIfProduction(release);
-            await UpdateReleaseNotes(release);
+            await UpdateReleaseNotes(release, verbose);
 
             // Log the release object for debugging
             ConsoleHelper.WriteInfo($"Creating release with tag: {release.TagName}, target commitish: {release.TargetCommitish}");
@@ -234,12 +235,13 @@ namespace GitHubRelease
         /// Updates the release notes of the provided release.
         /// </summary>
         /// <param name="release">The release whose notes are to be updated.</param>
+        /// <param name="verbose">Whether to include verbose release details in the output.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <exception cref="InvalidOperationException">Thrown when no commits are found since the last release.</exception>
-        public async Task UpdateReleaseNotes(Release release)
+        public async Task UpdateReleaseNotes(Release release, bool verbose = false)
         {
             ConsoleHelper.WriteInfo("Updating release notes...");
-            var (sinceLastPublished, sinceTag) = await GetLatestReleasePublishedAtAndTagAsync(release.TargetCommitish!);
+            var (sinceLastPublished, sinceTag) = await GetLatestReleasePublishedAtAndTagAsync(release.TargetCommitish!, verbose);
             ConsoleHelper.WriteInfo($"sinceLastPublished: {sinceLastPublished}");
             ConsoleHelper.WriteInfo($"sinceTag: {sinceTag}");
 
@@ -331,11 +333,12 @@ namespace GitHubRelease
         /// Retrieves release information from the GitHub API for the specified branch.
         /// </summary>
         /// <param name="branch">The branch name to filter releases by. If <c>null</c>, returns all releases.</param>
+        /// <param name="verbose">Whether to log the retrieved release JSON.</param>
         /// <returns>
         /// A <see cref="Task{JsonDocument}"/> representing the asynchronous operation, containing the release information as a <see cref="JsonDocument"/> object.
         /// Returns <c>null</c> if no releases are found.
         /// </returns>
-        public async Task<JsonDocument?> GetReleasesAsync(string branch)
+        public async Task<JsonDocument?> GetReleasesAsync(string branch, bool verbose = false)
         {
             if (AuthService != null)
             {
@@ -353,9 +356,9 @@ namespace GitHubRelease
                 releases = await GetLatestReleaseRawAsync("main");
             }
 
-            if (releases != null)
+            if (verbose && releases is { } releaseDocument)
             {
-                ConsoleHelper.WriteInfo($"Releases JSON: {releases.RootElement}");
+                ConsoleHelper.WriteInfo($"Releases JSON: {releaseDocument.RootElement}");
             }
 
             return releases;
@@ -520,9 +523,10 @@ namespace GitHubRelease
         /// </list>
         /// </returns>
         /// <exception cref="InvalidOperationException">Thrown if the latest release cannot be retrieved or parsed.</exception>
-        public async Task<(string, string)> GetLatestReleasePublishedAtAndTagAsync(string branch)
+        /// <param name="verbose">Whether to log the retrieved release JSON.</param>
+        public async Task<(string, string)> GetLatestReleasePublishedAtAndTagAsync(string branch, bool verbose = false)
         {
-            var releases = await GetReleasesAsync(branch);
+            var releases = await GetReleasesAsync(branch, verbose);
             if (releases == null)
             {
                 return (FirstDate, NoneFound);

@@ -2453,6 +2453,34 @@ namespace Nbuild
             return ResultHelper.Success();
         }
 
+        public static ResultHelper ListTags(bool all = false, bool verbose = false)
+        {
+            var gitWrapper = new GitWrapper(verbose: verbose);
+            if (!gitWrapper.IsGitRepository())
+            {
+                ConsoleHelper.WriteError("Error: Not a git repository");
+                return ResultHelper.Fail(-1, "Not a git repository");
+            }
+
+            if (!gitWrapper.TryListLocalTags(all, out var tags))
+            {
+                return ResultHelper.Fail(-1, "Failed to list local tags");
+            }
+
+            if (tags.Count == 0)
+            {
+                Console.WriteLine("No local tags found.");
+                return ResultHelper.Success();
+            }
+
+            foreach (var tag in tags)
+            {
+                Console.WriteLine(tag);
+            }
+
+            return ResultHelper.Success();
+        }
+
         /// <summary>
         /// Creates a new release in the specified repository.
         /// </summary>
