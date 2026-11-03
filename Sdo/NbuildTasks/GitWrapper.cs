@@ -175,102 +175,49 @@ namespace NbuildTasks
             return nextTag;
         }
 
-        /// <summary>
-        /// Pushes a new tag to the remote repository.
-        /// </summary>
+        /// <summary>Pushes only the specified tag to origin.</summary>
         /// <param name="newTag">The tag to push.</param>
         /// <returns><c>true</c> if the tag is successfully pushed; otherwise, <c>false</c>.</returns>
-        /// <exception cref="ArgumentException">Thrown if the tag is null or empty.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if the branch is null or empty.</exception>
-        /// <remarks>
-        /// This method first pulls the latest changes from the remote branch before pushing the tag.
-        /// </remarks>
         public bool PushTag(string newTag)
         {
-            if (string.IsNullOrEmpty(newTag))
+            if (!IsValidTag(newTag) && !IsValid4Tag(newTag))
             {
-                throw new ArgumentException("Tag cannot be null or empty", nameof(newTag));
-            }
-
-            if (string.IsNullOrEmpty(Branch))
-            {
-                throw new InvalidOperationException("Branch cannot be null or empty");
-            }
-
-            // Pull the latest changes from the remote branch
-            var pullResult = ExecuteGitCommand($"pull origin {Branch}");
-            if (pullResult.Code != 0)
-            {
-                Console.WriteLine("Failed to pull the latest changes from the remote branch.");
-                foreach (var line in pullResult.Output)
-                {
-                    if (Verbose) Console.WriteLine(line);
-                }
+                ErrorHelper.WriteError($"Invalid tag '{newTag}'.");
                 return false;
             }
 
-            // Push the new tag to the remote repository
-            var pushResult = ExecuteGitCommand($"push origin {Branch} {newTag}");
-            if (pushResult.Code == 0 && pushResult.Output.Count > 0)
+            var result = ExecuteGitCommand($"push origin refs/tags/{newTag}");
+            if (result.Code == 0)
             {
-                foreach (var line in pushResult.Output)
-                {
-                    if (Verbose) Console.WriteLine(line);
-                    if (line.Contains("fatal") || line.Contains("error"))
-                    {
-                        Console.WriteLine($"Error pushing tag: {line}");
-                        return false;
-                    }
-                }
                 return true;
             }
-            else
-            {
-                foreach (var line in pushResult.Output)
-                {
-                    if (Verbose) Console.WriteLine(line);
-                    if (line.Contains("fatal") || line.Contains("error"))
-                    {
-                        Console.WriteLine($"Error pushing tag: {line}");
-                    }
-                }
-                return false;
-            }
+
+            DisplayGitCommandFailure($"Failed to push tag '{newTag}' to origin.", result);
+            return false;
         }
 
+        /// <summary>Creates or replaces an annotated tag at HEAD in the local repository.</summary>
         public bool SetTag(string newTag)
         {
-            if (string.IsNullOrEmpty(newTag)) return false;
-
-            if (!IsValidTag(newTag)) return false;
-
-            if (LocalTagExists(newTag)) DeleteLocalTag(newTag);
-
-            bool resultSetTag = true;
-            for (int i = 0; i < 2; i++)
+            if (!IsValidTag(newTag))
             {
-                var result = ExecuteGitCommand($"tag -a {newTag} HEAD -m \"Automated tag\"");
-                if ((result.Code == 0) && (result.Output.Count >= 0))
-                {
-                    foreach (var line in result.Output)
-                    {
-                        if (Verbose) Console.WriteLine(line);
-                        if (line.Contains("fatal"))
-                        {
-                            resultSetTag = false;
-                            break;
-                        }
-                        else
-                        {
-                            resultSetTag = PushTag(newTag);
-                        }
-                    }
-                }
-                if (Verbose) Console.WriteLine($"SetTag try: {++i}");
-                if (resultSetTag) break;
+                ErrorHelper.WriteError($"Invalid tag '{newTag}'.");
+                return false;
             }
 
-            return resultSetTag;
+            if (LocalTagExists(newTag) && !DeleteLocalTag(newTag))
+            {
+                return false;
+            }
+
+            var result = ExecuteGitCommand($"tag -a {newTag} HEAD -m \"Automated tag\"");
+            if (result.Code == 0)
+            {
+                return true;
+            }
+
+            DisplayGitCommandFailure($"Failed to create local tag '{newTag}'.", result);
+            return false;
         }
 
         /// <summary>
@@ -301,24 +248,61 @@ namespace NbuildTasks
 
         public bool LocalTagExists(string tag)
         {
-            return ListLocalTags().Any(x => x.Contains(tag));
+            return ListLocalTags().Contains(tag, StringComparer.Ordinal);
         }
 
         public bool RemoteTagExists(string tag)
         {
-            return ListRemoteTags().Any(x => x.Contains(tag));
+            return ListRemoteTags().Contains(tag, StringComparer.Ordinal);
         }
 
-        public bool DeleteTag(string tag)
+        /// <summary>
+        /// Deletes a tag locally and optionally deletes it from origin.
+        /// </summary>
+        /// <param name="tag">The tag name.</param>
+        /// <param name="deleteRemote">Whether to also delete the tag from origin.</param>
+        /// <returns><c>true</c> if the requested deletion succeeds; otherwise, <c>false</c>.</returns>
+        public bool DeleteTag(string tag, bool deleteRemote = false)
         {
-            // Check if the tag exists locally and attempt to delete it
-            bool localTagDeleted = ListLocalTags().Contains(tag) && DeleteLocalTag(tag);
+            if (!IsValidTag(tag) && !IsValid4Tag(tag))
+            {
+                ErrorHelper.WriteError($"Invalid tag '{tag}'.");
+                return false;
+            }
 
-            // Check if the tag exists remotely and attempt to delete it
-            bool remoteTagDeleted = ListRemoteTags().Contains(tag) && DeleteRemoteTag(tag);
+            var localTagExists = LocalTagExists(tag);
+            var remoteTagExists = false;
+            if (deleteRemote)
+            {
+                var remoteCheck = ExecuteGitCommand($"ls-remote --exit-code --tags --refs origin refs/tags/{tag}");
+                if (remoteCheck.Code == 0)
+                {
+                    remoteTagExists = true;
+                }
+                else if (remoteCheck.Code != 2)
+                {
+                    DisplayGitCommandFailure($"Failed to check tag '{tag}' on origin.", remoteCheck);
+                    return false;
+                }
+            }
 
-            // Return true only if the tag was deleted from at least one location
-            return localTagDeleted || remoteTagDeleted;
+            if (!localTagExists && !remoteTagExists)
+            {
+                ErrorHelper.WriteError($"Tag '{tag}' was not found locally or on origin.");
+                return false;
+            }
+
+            if (localTagExists && !DeleteLocalTag(tag))
+            {
+                return false;
+            }
+
+            if (remoteTagExists && !DeleteRemoteTag(tag))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public List<string> ListLocalTags()
@@ -330,7 +314,7 @@ namespace NbuildTasks
         public List<string> ListRemoteTags()
         {
             var tags = new List<string>();
-            var result = ExecuteGitCommand("ls-remote --tags");
+            var result = ExecuteGitCommand("ls-remote --tags origin");
             if (result.Code == 0 && result.Output.Count >= 1)
             {
                 foreach (var line in result.Output)
@@ -350,29 +334,34 @@ namespace NbuildTasks
         {
             if (!LocalTagExists(tag)) return true;
 
-            var result = ExecuteGitCommand($"tag -d {tag}");
-            return result.Code == 0
-                    && result.Output.Count >= 1
-                    && result.Output.Exists(line => line.StartsWith($"Deleted tag '{tag}'"));
+            var result = ExecuteGitCommand($"tag -d -- {tag}");
+            if (result.Code == 0)
+            {
+                return true;
+            }
+
+            DisplayGitCommandFailure($"Failed to delete local tag '{tag}'.", result);
+            return false;
         }
 
         private bool DeleteRemoteTag(string tag)
         {
-            if (!RemoteTagExists(tag)) return true;
-
-            var result = ExecuteGitCommand($"push origin :refs/tags/{tag}");
-            if (result.Code == 0 && result.Output.Count >= 1)
+            var result = ExecuteGitCommand($"push --delete origin refs/tags/{tag}");
+            if (result.Code == 0)
             {
-                foreach (var line in result.Output)
-                {
-                    if (line.Contains($"[deleted]") && line.Contains(tag))
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
 
+            DisplayGitCommandFailure($"Failed to delete tag '{tag}' from origin.", result);
             return false;
+        }
+
+        private void DisplayGitCommandFailure(string message, ResultHelper result)
+        {
+            var details = result.Output.Count > 0
+                ? string.Join(Environment.NewLine, result.Output)
+                : null;
+            ErrorHelper.WriteError(message, details);
         }
 
         /// <remarks>

@@ -144,6 +144,18 @@ namespace NbuildTasks.Tests
 
             Assert.AreEqual(tag, GitWrapper.Tag);
             Assert.IsTrue(GitWrapper.IsValidTag(tag));
+            Assert.IsTrue(GitWrapper.LocalTagExists(tag));
+            Assert.IsFalse(GitWrapper.RemoteTagExists(tag));
+        }
+
+        [TestMethod]
+        public void SetTag_CreatesOnlyLocalTag()
+        {
+            var tag = "7.7." + (DateTime.UtcNow.Ticks % 1000000);
+
+            Assert.IsTrue(GitWrapper.SetTag(tag));
+            Assert.IsTrue(GitWrapper.LocalTagExists(tag));
+            Assert.IsFalse(GitWrapper.RemoteTagExists(tag));
         }
 
         [TestMethod]
@@ -222,7 +234,13 @@ namespace NbuildTasks.Tests
             Assert.IsTrue(GitWrapper.RemoteTagExists(tag));
             Assert.IsTrue(GitWrapper.ListLocalTags().Contains(tag));
             Assert.IsTrue(GitWrapper.ListRemoteTags().Contains(tag));
+
             Assert.IsTrue(GitWrapper.DeleteTag(tag));
+            Assert.IsFalse(GitWrapper.LocalTagExists(tag));
+            Assert.IsTrue(GitWrapper.RemoteTagExists(tag));
+
+            Assert.IsTrue(GitWrapper.DeleteTag(tag, deleteRemote: true));
+            Assert.IsFalse(GitWrapper.RemoteTagExists(tag));
         }
 
         [TestMethod]
@@ -308,8 +326,48 @@ namespace NbuildTasks.Tests
         {
             var tag = GitWrapper.SetAutoTag(BuildType.STAGE.ToString());
 
+            Assert.IsFalse(GitWrapper.RemoteTagExists(tag));
             Assert.IsTrue(GitWrapper.PushTag(tag));
             Assert.IsTrue(GitWrapper.ListRemoteTags().Contains(tag));
+        }
+
+        [TestMethod]
+        public void PushTag_ReturnsFalseWhenOriginIsUnavailable()
+        {
+            var wrapper = GitWrapper;
+            var tag = "6.6." + (DateTime.UtcNow.Ticks % 1000000);
+            Assert.IsTrue(wrapper.SetTag(tag));
+
+            var repository = wrapper.WorkingDirectory;
+            RunGit(repository, "remote remove origin");
+            try
+            {
+                Assert.IsFalse(wrapper.PushTag(tag));
+            }
+            finally
+            {
+                RunGit(repository, "remote add origin " + Quote(BareRepository));
+            }
+        }
+
+        [TestMethod]
+        public void DeleteTag_ReturnsFalseWhenOriginCannotBeChecked()
+        {
+            var wrapper = GitWrapper;
+            var tag = "5.5." + (DateTime.UtcNow.Ticks % 1000000);
+            Assert.IsTrue(wrapper.SetTag(tag));
+
+            var repository = wrapper.WorkingDirectory;
+            RunGit(repository, "remote remove origin");
+            try
+            {
+                Assert.IsFalse(wrapper.DeleteTag(tag, deleteRemote: true));
+                Assert.IsTrue(wrapper.LocalTagExists(tag));
+            }
+            finally
+            {
+                RunGit(repository, "remote add origin " + Quote(BareRepository));
+            }
         }
 
         [TestMethod]

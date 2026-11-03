@@ -60,7 +60,7 @@ public class RepositoryCommandTests
         var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
         var nestedNames = tagCmd.Subcommands.Select(s => s.Name).ToList();
 
-        Assert.IsTrue(new[] { "auto", "delete", "push-auto", "set" }.SequenceEqual(nestedNames));
+        Assert.IsTrue(new[] { "auto", "delete", "set" }.SequenceEqual(nestedNames));
     }
 
     [TestMethod]
@@ -72,6 +72,21 @@ public class RepositoryCommandTests
         var buildTypeOption = autoCmd.Options.First(o => o.Name == "--buildtype");
 
         Assert.IsTrue(buildTypeOption.Aliases.Contains("-b"));
+    }
+
+    [TestMethod]
+    public void TagCommandsExposeExplicitRemoteOptions()
+    {
+        var command = new RepositoryCommand(_verboseOption, dryRunOption: new Option<bool>("--dry-run"));
+        var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
+        var autoCmd = tagCmd.Subcommands.Single(s => s.Name == "auto");
+        var deleteCmd = tagCmd.Subcommands.Single(s => s.Name == "delete");
+        var setCmd = tagCmd.Subcommands.Single(s => s.Name == "set");
+
+        Assert.IsNotNull(autoCmd.Options.FirstOrDefault(o => o.Name == "--push"));
+        Assert.IsNotNull(setCmd.Options.FirstOrDefault(o => o.Name == "--push"));
+        Assert.IsNotNull(deleteCmd.Options.FirstOrDefault(o => o.Name == "--remote"));
+        Assert.IsFalse(tagCmd.Subcommands.Any(s => s.Name == "push-auto"));
     }
 
     [TestMethod]

@@ -260,11 +260,10 @@ namespace Sdo.Commands
         {
             var tagCommand = new System.CommandLine.Command(
                 "tag",
-                "Manage Git tags");
+                "Manage Git tags. Commands change local tags by default; --push publishes tags to origin and delete --remote also removes them from origin.");
 
             AddAutoTagCommand(tagCommand, verboseOption);
             AddDeleteTagCommand(tagCommand, verboseOption);
-            AddPushAutoTagCommand(tagCommand, verboseOption);
             AddSetTagCommand(tagCommand, verboseOption);
 
             Subcommands.Add(tagCommand);
@@ -274,22 +273,28 @@ namespace Sdo.Commands
         {
             var autoCommand = new System.CommandLine.Command(
                 "auto",
-                "Automatically set the next Git tag based on build type");
+                "Calculate and create the next STAGE or PROD tag locally; use --push to publish it to origin.");
             var buildTypeOption = new Option<string>("--buildtype", ["-b"])
             {
-                Description = "Build type: STAGE or PROD",
+                Description = "Build type used to calculate the next tag: STAGE or PROD",
                 Required = true
+            };
+            var pushOption = new Option<bool>("--push")
+            {
+                Description = "Push the created tag to origin"
             };
 
             autoCommand.Add(buildTypeOption);
+            autoCommand.Add(pushOption);
             autoCommand.Add(verboseOption);
             AddDryRunOption(autoCommand);
             autoCommand.SetAction(parseResult =>
             {
                 var buildType = parseResult.GetValue(buildTypeOption);
+                var push = parseResult.GetValue(pushOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.SetAutoTag(buildType, false, verbose, dryRun).Code;
+                return Nbuild.Command.SetAutoTag(buildType, push, verbose, dryRun).Code;
             });
 
             tagCommand.Subcommands.Add(autoCommand);
@@ -299,64 +304,50 @@ namespace Sdo.Commands
         {
             var deleteCommand = new System.CommandLine.Command(
                 "delete",
-                "Delete a Git tag");
+                "Delete a local tag; use --remote to also delete it from origin.");
             var tagOption = new Option<string>("--tag", ["-t"])
             {
-                Description = "Tag to delete",
+                Description = "Tag to delete from the local repository",
                 Required = true
+            };
+            var remoteOption = new Option<bool>("--remote")
+            {
+                Description = "Also delete the tag from origin"
             };
 
             deleteCommand.Add(tagOption);
+            deleteCommand.Add(remoteOption);
             deleteCommand.Add(verboseOption);
             AddDryRunOption(deleteCommand);
             deleteCommand.SetAction(parseResult =>
             {
                 var tag = parseResult.GetValue(tagOption);
+                var deleteRemote = parseResult.GetValue(remoteOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.DeleteTag(tag, verbose, dryRun).Code;
+                return Nbuild.Command.DeleteTag(tag, verbose, dryRun, deleteRemote).Code;
             });
 
             tagCommand.Subcommands.Add(deleteCommand);
-        }
-
-        private void AddPushAutoTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
-        {
-            var pushAutoCommand = new System.CommandLine.Command(
-                "push-auto",
-                "Automatically set and push the next Git tag based on build type");
-            var buildTypeOption = new Option<string>("--buildtype", ["-b"])
-            {
-                Description = "Build type: STAGE or PROD",
-                Required = true
-            };
-
-            pushAutoCommand.Add(buildTypeOption);
-            pushAutoCommand.Add(verboseOption);
-            AddDryRunOption(pushAutoCommand);
-            pushAutoCommand.SetAction(parseResult =>
-            {
-                var buildType = parseResult.GetValue(buildTypeOption);
-                var verbose = parseResult.GetValue(verboseOption);
-                var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.SetAutoTag(buildType, true, verbose, dryRun).Code;
-            });
-
-            tagCommand.Subcommands.Add(pushAutoCommand);
         }
 
         private void AddSetTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
         {
             var setCommand = new System.CommandLine.Command(
                 "set",
-                "Set a Git tag");
+                "Create or replace a local annotated tag at HEAD; use --push to publish it to origin.");
             var tagOption = new Option<string>("--tag", ["-t"])
             {
-                Description = "Tag to set",
+                Description = "Tag name to create or replace locally",
                 Required = true
+            };
+            var pushOption = new Option<bool>("--push")
+            {
+                Description = "Push the created tag to origin"
             };
 
             setCommand.Add(tagOption);
+            setCommand.Add(pushOption);
             setCommand.Add(verboseOption);
             AddDryRunOption(setCommand);
             setCommand.TreatUnmatchedTokensAsErrors = true;
@@ -369,9 +360,10 @@ namespace Sdo.Commands
                 }
 
                 var tag = parseResult.GetValue(tagOption);
+                var push = parseResult.GetValue(pushOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.SetTag(tag, verbose, dryRun).Code;
+                return Nbuild.Command.SetTag(tag, verbose, dryRun, push).Code;
             });
 
             tagCommand.Subcommands.Add(setCommand);

@@ -748,11 +748,22 @@ sdo repo clone --url https://github.com/owner/repository --dry-run
 sdo repo tag set --tag 1.2.3 --dry-run
 sdo repo tag auto --buildtype stage --dry-run
 sdo repo tag auto -b stage --dry-run
-sdo repo tag push-auto --buildtype stage --dry-run
+sdo repo tag set --tag 1.2.3 --push
+sdo repo tag auto --buildtype stage --push
 sdo repo tag delete --tag 1.2.3 --dry-run
+sdo repo tag delete --tag 1.2.3 --remote
 ```
 
-`--buildtype` belongs to `auto` and `push-auto`; `repo tag auto` also accepts `-b` as its short form. It is invalid for `tag set` and `tag delete`.
+Tag operations affect the local repository by default:
+
+- `set` creates or replaces an annotated tag at the current `HEAD`.
+- `auto` calculates and creates the next `STAGE` or `PROD` tag locally and writes it to `.temp\.tag`.
+- `--push` on `set` or `auto` also pushes only that tag to `origin`; it does not pull or push the current branch.
+- `delete` removes the local tag. Add `--remote` to also delete it from `origin`.
+- `--buildtype` is used by `auto` and accepts `STAGE` or `PROD`; `-b` is its short form.
+- `--dry-run` reports the requested local and remote operations without changing either repository.
+
+If publishing or remote deletion fails, the command returns a failure. A tag created locally remains local if its optional push fails.
 
 #### repo list
 

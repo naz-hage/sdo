@@ -97,12 +97,26 @@ public class ProgramTests
     public void Main_WithRepositoryTagDryRunCommands_ReturnZero()
     {
         var setResult = Program.Main("repo", "tag", "set", "--tag", "1.2.3", "--dry-run");
+        var setPushResult = Program.Main("repo", "tag", "set", "--tag", "1.2.3", "--push", "--dry-run");
         var deleteResult = Program.Main("repo", "tag", "delete", "--tag", "1.2.3", "--dry-run");
-        var pushAutoResult = Program.Main("repo", "tag", "push-auto", "--buildtype", "stage", "--dry-run");
+        var deleteRemoteResult = Program.Main("repo", "tag", "delete", "--tag", "1.2.3", "--remote", "--dry-run");
+        var autoResult = Program.Main("repo", "tag", "auto", "--buildtype", "stage", "--dry-run");
+        var autoPushResult = Program.Main("repo", "tag", "auto", "--buildtype", "stage", "--push", "--dry-run");
 
         Assert.AreEqual(0, setResult);
+        Assert.AreEqual(0, setPushResult);
         Assert.AreEqual(0, deleteResult);
-        Assert.AreEqual(0, pushAutoResult);
+        Assert.AreEqual(0, deleteRemoteResult);
+        Assert.AreEqual(0, autoResult);
+        Assert.AreEqual(0, autoPushResult);
+    }
+
+    [TestMethod]
+    public void Main_WithRemovedPushAutoCommand_ReturnsNonZero()
+    {
+        var result = Program.Main("repo", "tag", "push-auto", "--buildtype", "stage");
+
+        Assert.AreNotEqual(0, result);
     }
 
     [TestMethod]
