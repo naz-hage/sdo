@@ -507,6 +507,7 @@ namespace GitHubRelease
         /// Retrieves the published date and tag name of the latest release from the GitHub API.
         /// </summary>
         /// <param name="branch">The branch name to filter releases by. If <c>null</c>, retrieves the latest release on any branch.</param>
+        /// <param name="verbose">Whether to log the retrieved release JSON.</param>
         /// <returns>
         /// A <see cref="Task{TResult}"/> representing the asynchronous operation, containing a tuple with:
         /// <list type="bullet">
@@ -523,7 +524,6 @@ namespace GitHubRelease
         /// </list>
         /// </returns>
         /// <exception cref="InvalidOperationException">Thrown if the latest release cannot be retrieved or parsed.</exception>
-        /// <param name="verbose">Whether to log the retrieved release JSON.</param>
         public async Task<(string, string)> GetLatestReleasePublishedAtAndTagAsync(string branch, bool verbose = false)
         {
             var releases = await GetReleasesAsync(branch, verbose);
