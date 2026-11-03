@@ -1213,7 +1213,7 @@
 <tbody>
 <tr>
 <td>ARTIFACTS</td>
-<td>Setup the ARTIFACTS folders for binaries and test results - override</td>
+<td>Deprecated for <code>PUBLISH</code>; retained for legacy artifact copy and package/deploy workflows</td>
 </tr>
 <tr>
 <td>FILE_VERSIONS</td>
@@ -1377,7 +1377,7 @@
 </tr>
 <tr>
 <td>PROD</td>
-<td>Create a PROD package for release (delegates to PROD_NEW in common.targets)</td>
+<td>Create a PROD package for release</td>
 </tr>
 <tr>
 <td>SMOKE_TEST</td>
@@ -1387,12 +1387,11 @@
 <td>TEST</td>
 <td>This prevents double test execution that causes conflicts</td>
 </tr>
-<tr>
-<td>PUBLISH</td>
-<td>Publish all non-test projects to one versioned artifacts folder without PDB files</td>
-</tr>
 </tbody>
 </table>
+<p><code>PUBLISH</code> is provided by <code>common.targets</code> and prepares its output folder directly.
+It does not depend on the legacy <code>ARTIFACTS</code> target, which remains for existing
+artifact copy and package/deploy workflows.</p>
 <ul>
 <li><strong>C:\Program Files\Nbuild\common.targets Targets</strong></li>
 </ul>
@@ -1487,14 +1486,6 @@
 <tr>
 <td>COVERAGE_SUMMARY</td>
 <td>Display high-level code coverage summary</td>
-</tr>
-<tr>
-<td>STAGE_NEW</td>
-<td>Enhanced stage package for testing with coverage and smoke tests</td>
-</tr>
-<tr>
-<td>PROD_NEW</td>
-<td>Enhanced prod package for release with coverage and smoke tests</td>
 </tr>
 <tr>
 <td>IS_ADMIN</td>
