@@ -2462,20 +2462,42 @@ namespace Nbuild
                 return ResultHelper.Fail(-1, "Not a git repository");
             }
 
-            if (!gitWrapper.TryListLocalTags(all, out var tags))
+            if (!gitWrapper.TryListLocalTags(out var localTags))
             {
                 return ResultHelper.Fail(-1, "Failed to list local tags");
             }
 
-            if (tags.Count == 0)
+            var listedTags = all ? localTags : localTags.Take(10).ToList();
+            if (listedTags.Count == 0)
             {
                 Console.WriteLine("No local tags found.");
-                return ResultHelper.Success();
+            }
+            else
+            {
+                foreach (var tag in listedTags)
+                {
+                    Console.WriteLine(tag);
+                }
             }
 
-            foreach (var tag in tags)
+            if (!gitWrapper.TryListRemoteTags(out var remoteTags))
             {
-                Console.WriteLine(tag);
+                return ResultHelper.Fail(-1, "Failed to list remote tags");
+            }
+
+            var remoteTagSet = new HashSet<string>(remoteTags, StringComparer.Ordinal);
+            var localTagSet = new HashSet<string>(localTags, StringComparer.Ordinal);
+            var localOnlyTags = localTags.Where(tag => !remoteTagSet.Contains(tag)).ToList();
+            var remoteOnlyTags = remoteTags.Where(tag => !localTagSet.Contains(tag)).ToList();
+            if (localOnlyTags.Count == 0 && remoteOnlyTags.Count == 0)
+            {
+                Console.WriteLine("No local/remote tag discrepancies.");
+            }
+            else
+            {
+                Console.WriteLine();
+                Console.WriteLine($"local: {(localOnlyTags.Count == 0 ? "none" : string.Join(", ", localOnlyTags))}");
+                Console.WriteLine($"remote: {(remoteOnlyTags.Count == 0 ? "none" : string.Join(", ", remoteOnlyTags))}");
             }
 
             return ResultHelper.Success();

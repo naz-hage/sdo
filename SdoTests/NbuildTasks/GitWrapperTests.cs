@@ -247,9 +247,9 @@ namespace NbuildTasks.Tests
         public void ListBranchesTest() => Assert.IsTrue(GitWrapper.ListBranches().Contains("main"));
 
         [TestMethod]
-        public void TryListLocalTags_ReturnsLatestTenByVersionOrAllTags()
+        public void TryListLocalTags_ReturnsAllTagsInDescendingVersionOrder()
         {
-            var expectedLatestTags = Enumerable.Range(1, 10)
+            var expectedAddedTags = Enumerable.Range(0, 11)
                 .Reverse()
                 .Select(version => $"9999.0.{version}")
                 .ToList();
@@ -264,11 +264,8 @@ namespace NbuildTasks.Tests
                     Assert.IsTrue(GitWrapper.SetTag(tag), $"Could not create fixture tag {tag}.");
                 }
 
-                Assert.IsTrue(GitWrapper.TryListLocalTags(all: false, out var latestTags));
-                CollectionAssert.AreEqual(expectedLatestTags, latestTags);
-
-                Assert.IsTrue(GitWrapper.TryListLocalTags(all: true, out var allTags));
-                Assert.IsTrue(tagsToAdd.All(allTags.Contains));
+                Assert.IsTrue(GitWrapper.TryListLocalTags(out var allTags));
+                CollectionAssert.AreEqual(expectedAddedTags, allTags.Take(expectedAddedTags.Count).ToList());
                 Assert.IsTrue(allTags.Contains("1.0.0"));
             }
             finally
@@ -276,6 +273,61 @@ namespace NbuildTasks.Tests
                 foreach (var tag in tagsToAdd)
                 {
                     GitWrapper.DeleteTag(tag);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ListTags_ListsLatestTagsAndShowsLocalRemoteDiscrepancies()
+        {
+            var minorVersion = 1000 + (int)(DateTime.UtcNow.Ticks % 8000);
+            var localOnlyTags = Enumerable.Range(0, 11)
+                .Select(version => $"9999.{minorVersion}.{version}")
+                .ToList();
+            var expectedLatestTags = Enumerable.Range(1, 10)
+                .Reverse()
+                .Select(version => $"9999.{minorVersion}.{version}")
+                .ToList();
+            var remoteOnlyTag = $"9998.{minorVersion}.0";
+            var originalOutput = Console.Out;
+            using var output = new StringWriter();
+
+            try
+            {
+                foreach (var tag in localOnlyTags)
+                {
+                    Assert.IsTrue(GitWrapper.SetTag(tag), $"Could not create fixture tag {tag}.");
+                }
+
+                Assert.IsTrue(GitWrapper.SetTag(remoteOnlyTag));
+                Assert.IsTrue(GitWrapper.PushTag(remoteOnlyTag));
+                Assert.IsTrue(GitWrapper.DeleteTag(remoteOnlyTag));
+
+                Console.SetOut(output);
+                var result = Nbuild.Command.ListTags();
+
+                Assert.IsTrue(result.IsSuccess());
+                var outputLines = output.ToString()
+                    .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                var listedTags = outputLines.Where(GitWrapper.IsValidTag).Take(10).ToList();
+                CollectionAssert.AreEqual(
+                    expectedLatestTags,
+                    listedTags,
+                    $"Unexpected tag listing output: {output}");
+                var localDiscrepancyLine = Array.FindIndex(outputLines, line => line.StartsWith("local: ", StringComparison.Ordinal));
+                var remoteDiscrepancyLine = Array.FindIndex(outputLines, line => line.StartsWith("remote: ", StringComparison.Ordinal));
+                var lastListedTagLine = Array.LastIndexOf(outputLines, expectedLatestTags[^1]);
+                Assert.IsTrue(localDiscrepancyLine > lastListedTagLine);
+                Assert.IsTrue(remoteDiscrepancyLine > localDiscrepancyLine);
+                StringAssert.Contains(outputLines[localDiscrepancyLine], string.Join(", ", localOnlyTags.AsEnumerable().Reverse()));
+                StringAssert.Contains(outputLines[remoteDiscrepancyLine], remoteOnlyTag);
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                foreach (var tag in localOnlyTags.Append(remoteOnlyTag))
+                {
+                    GitWrapper.DeleteTag(tag, deleteRemote: true);
                 }
             }
         }

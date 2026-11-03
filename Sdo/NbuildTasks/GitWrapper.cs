@@ -311,7 +311,7 @@ namespace NbuildTasks
             return result.Code == 0 && result.Output.Count >= 1 ? result.Output.ToList() : new List<string>();
         }
 
-        public bool TryListLocalTags(bool all, out List<string> tags)
+        public bool TryListLocalTags(out List<string> tags)
         {
             var result = ExecuteGitCommand("tag --list --sort=-version:refname");
             if (result.Code != 0)
@@ -321,28 +321,44 @@ namespace NbuildTasks
                 return false;
             }
 
-            var orderedTags = result.Output.ToList();
-            tags = all ? orderedTags : orderedTags.Take(10).ToList();
+            tags = result.Output.ToList();
             return true;
         }
 
         public List<string> ListRemoteTags()
         {
-            var tags = new List<string>();
-            var result = ExecuteGitCommand("ls-remote --tags origin");
-            if (result.Code == 0 && result.Output.Count >= 1)
+            return TryListRemoteTags(out var tags) ? tags : new List<string>();
+        }
+
+        public bool TryListRemoteTags(out List<string> tags)
+        {
+            var result = ExecuteGitCommand("ls-remote --tags --refs origin");
+            if (result.Code != 0)
             {
-                foreach (var line in result.Output)
+                DisplayGitCommandFailure("Failed to list tags from origin.", result);
+                tags = new List<string>();
+                return false;
+            }
+
+            const string tagReferencePrefix = "refs/tags/";
+            tags = new List<string>();
+            foreach (var line in result.Output)
+            {
+                var separatorIndex = line.IndexOf('\t');
+                if (separatorIndex < 0)
                 {
-                    // extract tag from line
-                    var items = line.Split('/');
-                    var tag = items.Last();
-                    if (IsValid4Tag(tag) || IsValidTag(tag))
-                        tags.Add(tag);
+                    continue;
+                }
+
+                var reference = line[(separatorIndex + 1)..];
+                if (reference.StartsWith(tagReferencePrefix, StringComparison.Ordinal))
+                {
+                    tags.Add(reference[tagReferencePrefix.Length..]);
                 }
             }
 
-            return tags;
+            tags = tags.Distinct(StringComparer.Ordinal).ToList();
+            return true;
         }
 
         private bool DeleteLocalTag(string tag)

@@ -727,9 +727,18 @@ sdo git tag delete --tag 1.2.3 --dry-run
 sdo git tag delete --tag 1.2.3 --remote
 ```
 
+When tags differ, `list` appends discrepancy lines after the local tag listing:
+
+```text
+local: 2.6.4
+remote: 2.6.1
+```
+
 Tag operations affect the local repository by default:
 
-- `list` shows the 10 highest tags by version, in descending order. Add `--all` to list every local tag.
+- `list` shows the 10 highest local tags by version, in descending order. Add `--all` to list every local tag.
+- When tags differ, `local:` shows tags found only locally and `remote:` shows tags found only on `origin`; a side with no differences is shown as `none`. If the sets match, the command prints `No local/remote tag discrepancies.` The comparison uses all tags, even when the displayed list is limited to 10.
+- If `origin` cannot be queried, the command returns a failure instead of reporting an inaccurate comparison.
 - `set` creates or replaces an annotated tag at the current `HEAD`.
 - `auto` calculates and creates the next `STAGE` or `PROD` tag locally and writes it to `.temp\.tag`.
 - `--push` on `set` or `auto` also pushes only that tag to `origin`; it does not pull or push the current branch.
