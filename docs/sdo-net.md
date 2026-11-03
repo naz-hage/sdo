@@ -737,7 +737,8 @@ remote: 2.6.1
 Tag operations affect the local repository by default:
 
 - `list` shows the 10 highest local tags by version, in descending order. Add `--all` to list every local tag.
-- When tags differ, `local:` shows tags found only locally and `remote:` shows tags found only on `origin`; a side with no differences is shown as `none`. If the sets match, the command prints `No local/remote tag discrepancies.` The comparison uses all tags, even when the displayed list is limited to 10.
+- By default, discrepancies compare the 10 highest tags from each side by version. `local:` shows tags from the local top 10 that are absent from `origin`; `remote:` shows tags from the remote top 10 that are absent locally. Lines are omitted when that side has no discrepancies.
+- Add `--all` to list and compare every local and remote tag.
 - If `origin` cannot be queried, the command returns a failure instead of reporting an inaccurate comparison.
 - `set` creates or replaces an annotated tag at the current `HEAD`.
 - `auto` calculates and creates the next `STAGE` or `PROD` tag locally and writes it to `.temp\.tag`.

@@ -282,7 +282,7 @@ namespace Sdo.Commands
         private void AddTagCommand(Option<bool> verboseOption, bool canonicalGitNamespace)
         {
             var description = canonicalGitNamespace
-                ? "Manage Git tags. Commands change local tags by default; list shows the latest 10 by version and compares with origin (--all lists every local tag), --push publishes tags, and delete --remote also removes them from origin."
+                ? "Manage Git tags. Commands change local tags by default; list shows the latest 10 by version and compares with origin (--all lists and compares every tag), --push publishes tags, and delete --remote also removes them from origin."
                 : "Deprecated alias for `sdo git tag`; use the `git` command group instead.";
             var tagCommand = new System.CommandLine.Command(
                 "tag",
@@ -300,7 +300,7 @@ namespace Sdo.Commands
         {
             var listCommand = new System.CommandLine.Command(
                 "list",
-                "List the latest 10 local tags by version and show local/origin discrepancies; use --all to list every local tag.");
+                "List the latest 10 local tags by version and show local/origin discrepancies; use --all to list and compare every tag.");
             var allOption = new Option<bool>("--all")
             {
                 Description = "List all local tags instead of only the latest 10"

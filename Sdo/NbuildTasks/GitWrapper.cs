@@ -332,7 +332,7 @@ namespace NbuildTasks
 
         public bool TryListRemoteTags(out List<string> tags)
         {
-            var result = ExecuteGitCommand("ls-remote --tags --refs origin");
+            var result = ExecuteGitCommand("ls-remote --sort=-version:refname --tags --refs origin");
             if (result.Code != 0)
             {
                 DisplayGitCommandFailure("Failed to list tags from origin.", result);

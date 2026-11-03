@@ -319,8 +319,21 @@ namespace NbuildTasks.Tests
                 var lastListedTagLine = Array.LastIndexOf(outputLines, expectedLatestTags[^1]);
                 Assert.IsTrue(localDiscrepancyLine > lastListedTagLine);
                 Assert.IsTrue(remoteDiscrepancyLine > localDiscrepancyLine);
-                StringAssert.Contains(outputLines[localDiscrepancyLine], string.Join(", ", localOnlyTags.AsEnumerable().Reverse()));
+                Assert.AreEqual($"local: {string.Join(", ", expectedLatestTags)}", outputLines[localDiscrepancyLine]);
                 StringAssert.Contains(outputLines[remoteDiscrepancyLine], remoteOnlyTag);
+
+                foreach (var tag in localOnlyTags)
+                {
+                    Assert.IsTrue(GitWrapper.PushTag(tag), $"Could not publish fixture tag {tag}.");
+                }
+
+                output.GetStringBuilder().Clear();
+                Assert.IsTrue(Nbuild.Command.ListTags().IsSuccess());
+                var matchingOutputLines = output.ToString()
+                    .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                Assert.IsFalse(matchingOutputLines.Any(line => line.StartsWith("local: ", StringComparison.Ordinal)));
+                Assert.IsFalse(matchingOutputLines.Any(line => line.StartsWith("remote: ", StringComparison.Ordinal)));
+                Assert.IsFalse(matchingOutputLines.Any(line => line.Contains("none", StringComparison.OrdinalIgnoreCase)));
             }
             finally
             {

@@ -2487,17 +2487,20 @@ namespace Nbuild
 
             var remoteTagSet = new HashSet<string>(remoteTags, StringComparer.Ordinal);
             var localTagSet = new HashSet<string>(localTags, StringComparer.Ordinal);
-            var localOnlyTags = localTags.Where(tag => !remoteTagSet.Contains(tag)).ToList();
-            var remoteOnlyTags = remoteTags.Where(tag => !localTagSet.Contains(tag)).ToList();
-            if (localOnlyTags.Count == 0 && remoteOnlyTags.Count == 0)
-            {
-                Console.WriteLine("No local/remote tag discrepancies.");
-            }
-            else
+            var remoteTagsToCompare = all ? remoteTags : remoteTags.Take(10).ToList();
+            var localOnlyTags = listedTags.Where(tag => !remoteTagSet.Contains(tag)).ToList();
+            var remoteOnlyTags = remoteTagsToCompare.Where(tag => !localTagSet.Contains(tag)).ToList();
+            if (localOnlyTags.Count > 0 || remoteOnlyTags.Count > 0)
             {
                 Console.WriteLine();
-                Console.WriteLine($"local: {(localOnlyTags.Count == 0 ? "none" : string.Join(", ", localOnlyTags))}");
-                Console.WriteLine($"remote: {(remoteOnlyTags.Count == 0 ? "none" : string.Join(", ", remoteOnlyTags))}");
+                if (localOnlyTags.Count > 0)
+                {
+                    Console.WriteLine($"local: {string.Join(", ", localOnlyTags)}");
+                }
+                if (remoteOnlyTags.Count > 0)
+                {
+                    Console.WriteLine($"remote: {string.Join(", ", remoteOnlyTags)}");
+                }
             }
 
             return ResultHelper.Success();
