@@ -18,53 +18,8 @@
 		<MkDocsExe>$(USERPROFILE)\AppData\Roaming\Python\Python313\Scripts\mkdocs.exe</MkDocsExe>
 	</PropertyGroup>
 
-	<!-- Legacy setup for COPY_ARTIFACTS and package/deploy flows. -->
-	<Target Name="ARTIFACTS" DependsOnTargets="TAG">
-	  <PropertyGroup>
-		 <ArtifactsSolutionFolder>$(ArtifactsDir)\$(SolutionName)</ArtifactsSolutionFolder>
-		 <SetupFolder>$(ArtifactsSolutionFolder)\release</SetupFolder>
-		<ArtifactsFolder>$(ArtifactsSolutionFolder)\$(TargetRelease)\$(ProductVersion)</ArtifactsFolder>
-		<ArtifactsTestResultsFolder>$(ArtifactsSolutionFolder)\TestResults\$(ProductVersion)</ArtifactsTestResultsFolder>
-
-          <!-- Default paths for local builds -->
-		<CoverageFolder>$(ArtifactsSolutionFolder)\CoverageReport\$(ProductVersion)</CoverageFolder>
-		
-		<!-- Override paths for GitHub Actions -->
-		<ArtifactsTestResultsFolder Condition="'$(GITHUB_ACTIONS)' == 'true'">$(SolutionDir)\TestResults\$(ProductVersion)</ArtifactsTestResultsFolder>
-		<CoverageFolder Condition="'$(GITHUB_ACTIONS)' == 'true'">$(SolutionDir)\CoverageReport\$(ProductVersion)</CoverageFolder>
-
-	  </PropertyGroup>  
-	  <ItemGroup>
-			<BinaryFiles 
-					Include="
-					$(SolutionDir)\$(TargetRelease)\*.json;
-					$(SolutionDir)\scripts\build\*.ps1;
-					$(SolutionDir)\scripts\module-package\*.ps1;
-					$(SolutionDir)\scripts\module-package\*.psd1;
-					$(SolutionDir)\scripts\module-package\*.psm1;
-					$(SolutionDir)\Sdo\Resources\*.json"
-					/>
-
-			<BuildToolTargetFiles Include="
-				$(SolutionDir)\Sdo\Resources\common.targets;
-				$(SolutionDir)\Sdo\Resources\ngit.targets;
-				$(SolutionDir)\dev-setup\apps.yaml;
-				$(SolutionDir)\Sdo\Resources\sdo.targets" />
-			<BinaryFiles Include="@(BuildToolTargetFiles)" />
-
-			<RunTimesNetStandard20 Include = "
-							   $(SolutionDir)\$(TargetRelease)\netstandard2.0\*.*"
-								Exclude="
-								$(SolutionDir)\$(TargetRelease)\**\*.pdb"
-								/>
-
-		</ItemGroup>
-		
-		<Message Text="==> DONE"/>
-	</Target>
-
 	<!-- Test for FileVersion task and powershell file-version.ps1-->
-	<Target Name="FILE_VERSIONS"  DependsOnTargets="ARTIFACTS">
+	<Target Name="FILE_VERSIONS">
 		<PropertyGroup>
 			<FileName>$(SolutionDir)\$(TargetRelease)\sdo.exe</FileName>
 		</PropertyGroup>
@@ -200,7 +155,7 @@
 	</Target>
 
 	<!-- Display core properties-->
-	<Target Name="CORE" DependsOnTargets="ARTIFACTS" >
+	<Target Name="CORE" >
 		<Message Text="DevDrive: $(DevDrive)"/>
 		<Message Text="MainDir: $(MainDir)"/>
 		<Message Text="Product Version: $(ProductVersion)"/>
@@ -397,7 +352,7 @@
 	</Target>
 	
 	<!-- Creates a prod release -->
-	<Target Name="GITHUB_RELEASE" DependsOnTargets="ARTIFACTS;PACKAGE_FILE;GIT_BRANCH" AfterTargets="PROD" >
+	<Target Name="GITHUB_RELEASE" DependsOnTargets="PACKAGE_FILE;GIT_BRANCH" AfterTargets="PROD" >
 		<Git Command="PushTag" TaskParameter="$(ProductVersion)">
 			<Output TaskParameter="Output" PropertyName="PushResult"/>
 		</Git>
@@ -408,7 +363,7 @@
 	</Target>
 
 	<!-- Creates a pre-release -->
-	<Target Name="GITHUB_PRE_RELEASE" DependsOnTargets="ARTIFACTS;PACKAGE_FILE;GIT_BRANCH" AfterTargets="STAGE" >
+	<Target Name="GITHUB_PRE_RELEASE" DependsOnTargets="PACKAGE_FILE;GIT_BRANCH" AfterTargets="STAGE" >
 		<Git Command="PushTag" TaskParameter="$(ProductVersion)">
 			<Output TaskParameter="Output" PropertyName="PushResult"/>
 		</Git>
@@ -457,7 +412,7 @@
 	</Target>
 
     <!-- Comprehensive smoke test to verify published artifacts and build system integrity -->
-    <Target Name="SMOKE_TEST" DependsOnTargets="ARTIFACTS">
+    <Target Name="SMOKE_TEST">
         <Message Text="Running comprehensive smoke test for artifacts and build system..." />
         
         <!-- 1. ARTIFACTS VALIDATION -->
@@ -556,21 +511,10 @@
         <Message Text="==> DONE" />
     </Target>
 
-	<Target Name="TEST" DependsOnTargets="ARTIFACTS;TAG">
+	<Target Name="TEST" DependsOnTargets="PROPERTIES">
 		<RemoveDir Directories="$(ArtifactsTestResultsFolder)"></RemoveDir>
 		<Exec Command='dotnet test "$(SolutionDir)\SdoTests\SdoTests.csproj" --configuration $(TargetRelease) --filter "Category!=Integration" --logger trx --results-directory:$(ArtifactsTestResultsFolder) --collect:"XPlat Code Coverage"'/>
 		<Message Text="TEST target completed - consolidated SdoTests project executed with code coverage" />
 		<Message Text="==> COMMON_DONE"/>
-	</Target>
-
-	<Target Name="VALIDATE_BUILD_TOOL_RESOURCES" AfterTargets="COPY_ARTIFACTS">
-		<ItemGroup>
-			<MissingBuildToolTargets
-				Include="@(BuildToolTargetFiles)"
-				Condition="!Exists('$(ArtifactsFolder)\%(Filename)%(Extension)')" />
-		</ItemGroup>
-		<Error
-			Condition="'@(MissingBuildToolTargets)' != ''"
-			Text="Build tool target resources were not packaged: @(MissingBuildToolTargets)" />
 	</Target>
 </Project>

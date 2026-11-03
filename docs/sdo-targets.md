@@ -2,7 +2,6 @@
 
 | **Target Name** | **Description** |
 | --- | --- |
-| ARTIFACTS           | Deprecated for `PUBLISH`; retained for legacy artifact copy and package/deploy workflows |
 | FILE_VERSIONS       | Test for FileVersion task and powershell file-version.ps1 |
 | SETUP_ENVIRONMENT   | Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment |
 | TEST_NTOOLS_SCRIPTS | Test that sdo-scripts module is installed and can report a version |
@@ -47,9 +46,9 @@
 | SMOKE_TEST          | Comprehensive smoke test to verify published artifacts and build system integrity |
 | TEST                | This prevents double test execution that causes conflicts |
 
-`PUBLISH` is provided by `common.targets` and prepares its output folder directly.
-It does not depend on the legacy `ARTIFACTS` target, which remains for existing
-artifact copy and package/deploy workflows.
+`PROPERTIES` initializes the artifact, test-results, and coverage output folders.
+`PUBLISH`, tests, coverage, and packaging use these paths directly; the deprecated
+`ARTIFACTS` and `COPY_ARTIFACTS` targets are no longer required.
 
 
 - **C:\Program Files\Nbuild\common.targets Targets**
@@ -70,7 +69,6 @@ artifact copy and package/deploy workflows.
 | SOLUTION            | Build the solution Release configuration  using dotnet build |
 | SOLUTION_MSBUILD    | Build the solution Release configuration  using MSBuild |
 | PACKAGE             | Create a package for the solution default is a zip file of all artifacts |
-| COPY_ARTIFACTS      | Save the artifacts to the artifacts folder |
 | DEPLOY              | Deploy the package. default is to extract artifacts into DeploymentProperty folder |
 | TEST                | Run all tests using dotnet test in Release mode |
 | TEST_DEBUG          | Run all tests using dotnet test in Debug mode |

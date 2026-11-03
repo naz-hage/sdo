@@ -121,11 +121,6 @@ steps:
     arguments: "PUBLISH"
     workingDirectory: .
     expectedReturnCode: 0
-  - name: copy-artifacts
-    path: sdo
-    arguments: "COPY_ARTIFACTS"
-    workingDirectory: .
-    expectedReturnCode: 0
   - name: smoke-test
     path: pwsh.exe
     arguments: >-
