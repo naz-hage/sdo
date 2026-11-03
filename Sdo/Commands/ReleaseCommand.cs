@@ -18,6 +18,7 @@ namespace Sdo.Commands
             : base("release", "GitHub and Azure DevOps release management")
         {
             AddCreateCommand(verboseOption, dryRunOption);
+            AddDeleteCommand(verboseOption, dryRunOption);
             AddDownloadCommand(verboseOption, dryRunOption);
             AddListCommand(verboseOption, dryRunOption);
         }
@@ -75,6 +76,53 @@ namespace Sdo.Commands
             });
 
             Subcommands.Add(createCommand);
+        }
+
+        private void AddDeleteCommand(Option<bool> verboseOption, Option<bool> dryRunOption)
+        {
+            var deleteCommand = new System.CommandLine.Command(
+                "delete",
+                "Deletes a GitHub release and its assets by tag; leaves the Git tag.");
+            var repositoryOption = new Option<string>("--repo", ["-r"])
+            {
+                Description = "GitHub repository in owner/name or URL format",
+                Required = true
+            };
+            var tagOption = new Option<string>("--tag", ["-t"])
+            {
+                Description = "Tag identifying the release to delete",
+                Required = true
+            };
+
+            deleteCommand.Add(repositoryOption);
+            deleteCommand.Add(tagOption);
+            deleteCommand.Add(verboseOption);
+            deleteCommand.Add(dryRunOption);
+            deleteCommand.SetAction(async (parseResult, cancellationToken) =>
+            {
+                var repository = parseResult.GetValue(repositoryOption)!;
+                var tag = parseResult.GetValue(tagOption)!;
+                var verbose = parseResult.GetValue(verboseOption);
+                var dryRun = parseResult.GetValue(dryRunOption);
+
+                if (dryRun)
+                {
+                    ConsoleHelper.WriteWarning("DRY-RUN: running in dry-run mode; no destructive actions will be performed.");
+                }
+
+                try
+                {
+                    var result = await NbuildCommand.DeleteRelease(repository, tag, dryRun, verbose);
+                    return result.Code;
+                }
+                catch (Exception exception)
+                {
+                    ConsoleHelper.WriteError($"Error: {exception.Message}");
+                    return -1;
+                }
+            });
+
+            Subcommands.Add(deleteCommand);
         }
 
         private void AddDownloadCommand(Option<bool> verboseOption, Option<bool> dryRunOption)

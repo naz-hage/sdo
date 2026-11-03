@@ -600,6 +600,33 @@ namespace GitHubRelease
         }
 
         /// <summary>
+        /// Deletes the GitHub release associated with a tag. The Git tag itself is not deleted.
+        /// </summary>
+        /// <param name="tagName">The tag associated with the release.</param>
+        /// <returns>The response from deleting the release, or a not-found response if no release uses the tag.</returns>
+        public async Task<HttpResponseMessage> DeleteReleaseByTagAsync(string tagName)
+        {
+            if (string.IsNullOrWhiteSpace(tagName))
+            {
+                return new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent("A release tag is required.")
+                };
+            }
+
+            var releaseId = await GetReleaseByTagNameAsync(tagName);
+            if (!releaseId.HasValue)
+            {
+                return new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent($"No GitHub release was found for tag '{tagName}'.")
+                };
+            }
+
+            return await DeleteReleaseAsync(releaseId.Value);
+        }
+
+        /// <summary>
         /// Retrieves the release ID for a given tag name from the GitHub API.
         /// </summary>
         /// <param name="tagName">The tag name of the release.</param>
@@ -610,7 +637,7 @@ namespace GitHubRelease
         {
             ApiService.SetupHeaders();
 
-            var uri = $"{Constants.GitHubApiPrefix}/{Repo}/releases/tags/{tagName}";
+            var uri = $"{Constants.GitHubApiPrefix}/{Repo}/releases/tags/{Uri.EscapeDataString(tagName)}";
             var response = await ApiService.GetAsync(uri);
 
             if (response.IsSuccessStatusCode)
@@ -621,11 +648,16 @@ namespace GitHubRelease
                 var release = JsonDocument.Parse(content);
                 return (release?.RootElement.GetProperty("id").GetInt32() ?? 0);
             }
-            else
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 ConsoleHelper.WriteError($"release by tag name {tagName} not found. Status code: {response.StatusCode}");
                 return null;
             }
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"Failed to retrieve release for tag '{tagName}'. Status code: {response.StatusCode}. {errorContent}");
         }
 
         /// <summary>

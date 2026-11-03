@@ -2503,6 +2503,50 @@ namespace Nbuild
         }
 
         /// <summary>
+        /// Deletes a GitHub release identified by its repository and tag.
+        /// The Git tag itself is not deleted.
+        /// </summary>
+        public static async Task<ResultHelper> DeleteRelease(string repo, string tag, bool dryRun = false, bool verbose = false)
+        {
+            if (string.IsNullOrWhiteSpace(repo))
+            {
+                ConsoleHelper.WriteError("Error: valid repository is required");
+                return ResultHelper.Fail(-1, "Repository is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                ConsoleHelper.WriteError("Error: valid release tag is required");
+                return ResultHelper.Fail(-1, "Release tag is required");
+            }
+
+            if (dryRun)
+            {
+                var msg = $"DRY-RUN: would delete GitHub release for {repo} with tag {tag}; the Git tag would remain";
+                ConsoleHelper.WriteVerbose(msg);
+                return ResultHelper.Success(msg);
+            }
+
+            if (verbose)
+            {
+                ConsoleHelper.WriteVerbose($"Deleting GitHub release for repo: {repo}, tag: {tag}");
+            }
+
+            var factory = ReleaseServiceFactory ?? (r => new ReleaseServiceAdapter(r));
+            var releaseService = factory(repo);
+            var response = await releaseService.DeleteReleaseByTagAsync(tag);
+            if (response.IsSuccessStatusCode)
+            {
+                return ResultHelper.Success();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var message = $"Failed to delete GitHub release for tag '{tag}' from {repo}. Status code: {response.StatusCode}. {content}";
+            ConsoleHelper.WriteError(message);
+            return ResultHelper.Fail(-1, message);
+        }
+
+        /// <summary>
         /// Downloads an asset from the specified release.
         /// </summary>
         /// <param name="repo">The repository name.</param>

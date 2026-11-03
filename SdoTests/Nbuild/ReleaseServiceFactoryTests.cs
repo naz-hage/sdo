@@ -10,6 +10,69 @@ namespace NbuildTests
     public class ReleaseServiceFactoryTests
     {
         [TestMethod]
+        public async Task DeleteRelease_UsesFactoryAndReturnsSuccess()
+        {
+            var previousFactory = Command.ReleaseServiceFactory;
+            FakeReleaseService? fakeService = null;
+            Command.ReleaseServiceFactory = repo =>
+            {
+                Assert.AreEqual("owner/repository", repo);
+                var service = new FakeReleaseService(HttpStatusCode.NoContent);
+                fakeService = service;
+                return service;
+            };
+
+            try
+            {
+                var result = await Command.DeleteRelease("owner/repository", "v1.2.3");
+
+                Assert.IsTrue(result.IsSuccess());
+                Assert.AreEqual("v1.2.3", fakeService?.DeletedTag);
+            }
+            finally
+            {
+                Command.ReleaseServiceFactory = previousFactory;
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteRelease_ReturnsFailureWhenServiceFails()
+        {
+            var previousFactory = Command.ReleaseServiceFactory;
+            Command.ReleaseServiceFactory = _ => new FakeReleaseService(HttpStatusCode.NotFound);
+
+            try
+            {
+                var result = await Command.DeleteRelease("owner/repository", "v1.2.3");
+
+                Assert.IsFalse(result.IsSuccess());
+                Assert.IsTrue(result.GetFirstOutput().Contains("NotFound", StringComparison.Ordinal));
+            }
+            finally
+            {
+                Command.ReleaseServiceFactory = previousFactory;
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteRelease_DryRunDoesNotCallServiceFactory()
+        {
+            var previousFactory = Command.ReleaseServiceFactory;
+            Command.ReleaseServiceFactory = _ => throw new AssertFailedException("Dry run must not contact the release service.");
+
+            try
+            {
+                var result = await Command.DeleteRelease("owner/repository", "v1.2.3", dryRun: true);
+
+                Assert.IsTrue(result.IsSuccess());
+            }
+            finally
+            {
+                Command.ReleaseServiceFactory = previousFactory;
+            }
+        }
+
+        [TestMethod]
         public void DownloadApp_AllowsUnsignedDownload_WhenDownloadSucceeds()
         {
             var previousDownloader = Command.DownloadFileAsync;
@@ -156,6 +219,8 @@ namespace NbuildTests
         private class FakeReleaseService : Nbuild.IReleaseService
         {
             private readonly HttpStatusCode _status;
+            public string? DeletedTag { get; private set; }
+
             public FakeReleaseService(HttpStatusCode status)
             {
                 _status = status;
@@ -167,6 +232,15 @@ namespace NbuildTests
                 return Task.FromResult(resp);
             }
 
+            public Task<HttpResponseMessage> DeleteReleaseByTagAsync(string tagName)
+            {
+                DeletedTag = tagName;
+                var response = new HttpResponseMessage(_status)
+                {
+                    Content = new StringContent("release service response")
+                };
+                return Task.FromResult(response);
+            }
         }
 
         private static string CreateManifest(string name)

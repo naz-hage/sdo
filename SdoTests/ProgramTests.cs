@@ -120,6 +120,21 @@ public class ProgramTests
     }
 
     [TestMethod]
+    public void Main_WithReleaseDeleteDryRun_ReturnsZero()
+    {
+        var result = Program.Main(
+            "release",
+            "delete",
+            "--repo",
+            "owner/repository",
+            "--tag",
+            "v1.2.3",
+            "--dry-run");
+
+        Assert.AreEqual(0, result);
+    }
+
+    [TestMethod]
     public void Main_WithBuildTypeOnRepositoryTagSet_ReturnsNonZero()
     {
         var result = Program.Main(

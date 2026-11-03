@@ -1032,14 +1032,20 @@ Manage GitHub and Azure DevOps releases.
 
 Subcommands:
 - `create` — Create a GitHub release
+- `delete` — Delete a GitHub release by tag without deleting the Git tag
 - `download` — Download a release asset
 - `list` — List releases for a repository
 
 ```bash
 sdo release list --dry-run
 sdo release create --repo owner/repository --tag v1.0.0 --branch main --file release.zip --dry-run
+sdo release delete --repo owner/repository --tag v1.0.0 --dry-run
 sdo release download --repo owner/repository --tag v1.0.0 --dry-run
 ```
+
+`release delete` deletes the GitHub release and its assets. The Git tag remains
+in the repository. Use `--dry-run` to inspect the requested deletion without
+calling the release API.
 
 #### backup
 
