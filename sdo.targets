@@ -18,25 +18,6 @@
 		<MkDocsExe>$(USERPROFILE)\AppData\Roaming\Python\Python313\Scripts\mkdocs.exe</MkDocsExe>
 	</PropertyGroup>
 
-	<!-- Test for FileVersion task and powershell file-version.ps1-->
-	<Target Name="FILE_VERSIONS">
-		<PropertyGroup>
-			<FileName>$(SolutionDir)\$(TargetRelease)\sdo.exe</FileName>
-		</PropertyGroup>
-		<Exec Command='powershell -File "$(SolutionDir)\dev-setup\list-file-version.ps1" "$(FileName)"' ConsoleToMSBuild="true">
-			<Output TaskParameter="ConsoleOutput" PropertyName="Version" />
-		</Exec>
-		<Message Text="Powershell File version: $(Version)" />
-
-		<FileVersion Name="%(BinaryFiles.Identity)" Condition="'%(Extension)'=='.exe' Or '%(Extension)'=='.dll'" >
-			<Output TaskParameter="Output" PropertyName="Version"/>
-		</FileVersion>
-		<Message Text="File version: $(Version)" />
-		
-		<Message Text="==> DONE"/>
-
-	</Target>
-	
 	<!-- Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment -->
 	<Target Name="SETUP_ENVIRONMENT" DependsOnTargets="IS_ADMIN">
 		<Message Text="Setting up development environment (Set-DevelopmentEnvironment)" Importance="high" />

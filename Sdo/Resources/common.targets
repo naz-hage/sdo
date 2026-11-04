@@ -190,12 +190,6 @@
 		<Message Text="==> COMMON_DONE"/>
 	</Target>
 
-	<!-- Run all tests using dotnet test in Debug mode -->
-	<Target Name="TEST_DEBUG" DependsOnTargets="PROPERTIES">
-		<Exec Command='dotnet.exe test --configuration $(TargetDebug) --logger "console;verbosity=normal" %(DotNetTestFiles.Identity) --collect:"XPlat Code Coverage" --logger trx --results-directory:$(ArtifactsTestResultsFolder) --verbosity normal'/>
-		<Message Text="==> COMMON_DONE"/>
-	</Target>
-
 	<!-- Publish all non-test projects to one versioned artifacts folder -->
 	<Target Name="PUBLISH" DependsOnTargets="PROPERTIES">
 		<ItemGroup>
@@ -354,6 +348,4 @@
 	<Target Name="HandleError" >
 		<Message Text="An error occurred while reading the version file." Importance="high"/>
 	</Target>
-
-
 </Project>

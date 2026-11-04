@@ -2,7 +2,6 @@
 
 | **Target Name** | **Description** |
 | --- | --- |
-| FILE_VERSIONS       | Test for FileVersion task and powershell file-version.ps1 |
 | SETUP_ENVIRONMENT   | Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment |
 | TEST_NTOOLS_SCRIPTS | Test that sdo-scripts module is installed and can report a version |
 | MKDOCS              | Build docs locally for testing |
@@ -67,7 +66,6 @@
 | PACKAGE             | Create a package for the solution default is a zip file of all artifacts |
 | DEPLOY              | Deploy the package. default is to extract artifacts into DeploymentProperty folder |
 | TEST                | Run all tests using dotnet test in Release mode |
-| TEST_DEBUG          | Run all tests using dotnet test in Debug mode |
 | PUBLISH             | Publish all non-test projects to one versioned artifacts folder without PDB files |
 | COVERAGE            | Generate code coverage reports |
 | COVERAGE_SUMMARY    | Display high-level code coverage summary |
