@@ -121,12 +121,6 @@
 		<Message Text="==> COMMON_DONE"/>
 	</Target>
 
-	<!-- Install dependencies -->
-	<Target Name="INSTALL_DEP" >
-		<Exec Command="dotnet restore"/>
-		<Message Text="==> COMMON_DONE"/>
-	</Target>
-
 	<!-- Opt out of the DOTNET_CLI_TELEMETRY_OPTOUT - move to common -->
 	<Target Name="TELEMETRY_OPT_OUT" AfterTargets="AUTOTAG_PROD">
 		<Exec Command='setx DOTNET_CLI_TELEMETRY_OPTOUT 1'/>
@@ -161,31 +155,11 @@
 		<Message Text="==> DONE"/>
 	</Target>
 
-	<!-- Create a STAGE package and deploy for testing -->
-	<Target Name="STAGE_DEPLOY" DependsOnTargets="
-                            STAGE;
-                            DEPLOY">
-		<Message Text="==> COMMON_DONE"/>
-	</Target>
-
-	<!-- Create a PROD package and deploy for release -->	
-	<Target Name="PROD_DEPLOY" DependsOnTargets="
-                            PROD;
-                            DEPLOY">
-		<Message Text="==> COMMON_DONE"/>
-	</Target>
-
 	<!-- Build the solution Release configuration  using dotnet build-->
-	<Target Name="SOLUTION" DependsOnTargets="TAG;INSTALL_DEP">
+	<Target Name="SOLUTION" DependsOnTargets="TAG">
 		<Message Text="Git tag: $(ProductVersion)"/>
+		<Exec Command="dotnet restore"/>
 		<Exec Command='dotnet build --no-restore $(SolutionDir)\$(SolutionName).sln --configuration $(TargetRelease) /p:FileVersion=$(ProductVersion) /p:AssemblyVersion=$(ProductVersion) /p:UICulture="en-US" /p:Culture="en-US"' />
-		<Message Text="==> COMMON_DONE"/>
-	</Target>
-
-	<!-- Build the solution Release configuration  using MSBuild-->
-	<Target Name="SOLUTION_MSBUILD" DependsOnTargets="TAG">
-		<Exec Command="dotnet restore"></Exec>
-		<MSBuild Projects="$(SolutionDir)\$(SolutionName).sln" Properties="Configuration=$(TargetRelease);Platform=Any CPU;Version=$(ProductVersion);AssemblyVersion=$(ProductVersion);UICulture=en-US;Culture=en-US"/>
 		<Message Text="==> COMMON_DONE"/>
 	</Target>
 

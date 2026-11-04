@@ -57,17 +57,13 @@
 | --- | --- |
 | PROPERTIES          | Common properties that will be used by all targets |
 | CLEAN               | Clean up the project and artifacts folder |
-| INSTALL_DEP         | Install dependencies |
 | TELEMETRY_OPT_OUT   | Opt out of the DOTNET_CLI_TELEMETRY_OPTOUT - move to common |
 | DEV                 | Create a development package for testing without incrementing the version |
 | STAGE               | Create a stage package for testing |
 | PROD                | Create a PROD package for release |
 | GITHUB_RELEASE      | Creates a prod release |
 | GITHUB_PRE_RELEASE  | Creates a pre-release |
-| STAGE_DEPLOY        | Create a STAGE package and deploy for testing |
-| PROD_DEPLOY         | Create a PROD package and deploy for release |
 | SOLUTION            | Build the solution Release configuration  using dotnet build |
-| SOLUTION_MSBUILD    | Build the solution Release configuration  using MSBuild |
 | PACKAGE             | Create a package for the solution default is a zip file of all artifacts |
 | DEPLOY              | Deploy the package. default is to extract artifacts into DeploymentProperty folder |
 | TEST                | Run all tests using dotnet test in Release mode |
