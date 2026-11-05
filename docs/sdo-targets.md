@@ -42,7 +42,7 @@
 | NB_TEST_DIAG_ALL    | Aggregate target: run all per-project diagnostics sequentially |
 | STAGE               | Create a stage package for testing |
 | PROD                | Create a PROD package for release |
-| SMOKE_TEST          | Comprehensive smoke test to verify published artifacts and build system integrity |
+| SMOKE_TEST          | Run the published `sdo.exe --version` check |
 | TEST                | This prevents double test execution that causes conflicts |
 
 `PROPERTIES` initializes the artifact, test-results, and coverage output folders.
