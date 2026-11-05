@@ -911,6 +911,56 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#git-local-git-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        git: Local Git operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="git: Local Git operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#git-branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        git branch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git-clone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        git clone
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git-tag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        git tag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#repo-repository-management" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -927,39 +977,6 @@
     <span class="md-ellipsis">
       
         repo info
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#repo-branch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        repo branch
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#repo-clone" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        repo clone
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#repo-tag" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        repo tag
       
     </span>
   </a>
@@ -2172,6 +2189,7 @@
 <li><a href="#auth-verify-authentication">auth: Verify authentication</a></li>
 <li><a href="#wi-work-item-management">wi: Work item management</a></li>
 <li><a href="#pr-pull-request-operations">pr: Pull request operations</a></li>
+<li><a href="#git-local-git-operations">git: Local Git operations</a></li>
 <li><a href="#repo-repository-management">repo: Repository management</a></li>
 <li><a href="#tool">tool: Tool management</a></li>
 <li><a href="#run">run: YAML workflow execution</a></li>
@@ -2679,33 +2697,81 @@ sdo<span class="w"> </span>pr<span class="w"> </span>update<span class="w"> </sp
 - <code>--status &lt;status&gt;</code> — New status
 - <code>--verbose</code> — Show mapping</p>
 <hr />
-<h3 id="repo-repository-management">repo: Repository management<a class="headerlink" href="#repo-repository-management" title="Anchor link to this section for reference">&para;</a></h3>
-<p>Create, delete, list, inspect, clone, and tag repositories, and manage Git branches.</p>
+<h3 id="git-local-git-operations">git: Local Git operations<a class="headerlink" href="#git-local-git-operations" title="Anchor link to this section for reference">&para;</a></h3>
+<p>Use <code>sdo git</code> for local working-copy operations: branch management, cloning, and tags.</p>
 <p><strong>Subcommands:</strong>
-- <code>branch</code> — Delete selected local and remote Git branches
-- <code>list</code> — List repositories
-- <code>info</code> — Display current Git branch, tag, and remote repository information
+- <code>branch</code> — List or delete selected local and remote branches
 - <code>clone</code> — Clone a Git repository
-- <code>tag</code> — Set, auto-create, push, or delete Git tags
-- <code>create</code> — Create new repository
-- <code>delete</code> — Delete repository</p>
+- <code>tag</code> — List, set, auto-create, push, or delete Git tags</p>
 <p><strong>Help:</strong>
-<div class="highlight"><pre><span></span><code>$ sdo repo --help
+<div class="highlight"><pre><span></span><code>$ sdo git --help
 
 Description:
-  Repository management commands
+  Local Git operations
 
 Usage:
-  sdo repo [command] [options]
-
-Commands:
-  create &lt;name&gt;  Create a new repository
-  delete         Delete a repository
-  list           List repositories
-  info           Display local Git and remote repository information
-  clone          Clone a Git repository
-  tag            Git tag operations
+  sdo git [command] [options]
 </code></pre></div></p>
+<h4 id="git-branch">git branch<a class="headerlink" href="#git-branch" title="Anchor link to this section for reference">&para;</a></h4>
+<p>Manage local and remote Git branches. The current branch, <code>main</code>, and <code>master</code> are always protected.</p>
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--list
+sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--list<span class="w"> </span>--local
+sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--list<span class="w"> </span>--remote
+sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--delete<span class="w"> </span>--name<span class="w"> </span>feature-123
+sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--delete<span class="w"> </span>--contains<span class="w"> </span><span class="m">123</span>
+</code></pre></div>
+<p><strong>Options:</strong>
+- <code>--list</code> — List branches; defaults to both local and remote branches
+- <code>--local</code> — With <code>--list</code>, show local branches only
+- <code>--remote</code> — With <code>--list</code>, show remote branches only
+- <code>--delete</code> — Delete matching local and remote branches
+- <code>--name &lt;name&gt;</code> — Select one branch by exact name
+- <code>--contains &lt;text&gt;</code> — Select branches whose names contain the supplied text
+- <code>--verbose</code> — Show detailed Git command output</p>
+<p>When <code>--contains</code> is used, SDO prompts for an explicit <code>yes</code> confirmation before deleting matching branches. Declining the prompt leaves all branches unchanged.</p>
+<h4 id="git-clone">git clone<a class="headerlink" href="#git-clone" title="Anchor link to this section for reference">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repository
+sdo<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repository<span class="w"> </span>--path<span class="w"> </span>C:<span class="se">\w</span>ork<span class="se">\r</span>epository
+sdo<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repository<span class="w"> </span>--dry-run
+</code></pre></div>
+<h4 id="git-tag">git tag<a class="headerlink" href="#git-tag" title="Anchor link to this section for reference">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>list
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>list<span class="w"> </span>--all
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>--buildtype<span class="w"> </span>stage<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>-b<span class="w"> </span>stage<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--push
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>--buildtype<span class="w"> </span>stage<span class="w"> </span>--push
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>delete<span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>delete<span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--remote
+</code></pre></div>
+<p>When tags differ, <code>list</code> appends discrepancy lines after the local tag listing:</p>
+<div class="highlight"><pre><span></span><code>local: 2.6.4
+remote: 2.6.1
+</code></pre></div>
+<p>Tag operations affect the local repository by default:</p>
+<ul>
+<li><code>list</code> shows the 10 highest local tags by version, in descending order. Add <code>--all</code> to list every local tag.</li>
+<li>By default, discrepancies compare the 10 highest tags from each side by version. <code>local:</code> shows tags from the local top 10 that are absent from <code>origin</code>; <code>remote:</code> shows tags from the remote top 10 that are absent locally. Lines are omitted when that side has no discrepancies.</li>
+<li>Add <code>--all</code> to list and compare every local and remote tag.</li>
+<li>If <code>origin</code> cannot be queried, the command returns a failure instead of reporting an inaccurate comparison.</li>
+<li><code>set</code> creates or replaces an annotated tag at the current <code>HEAD</code>.</li>
+<li><code>auto</code> calculates and creates the next <code>STAGE</code> or <code>PROD</code> tag locally and writes it to <code>.temp\.tag</code>.</li>
+<li><code>--push</code> on <code>set</code> or <code>auto</code> also pushes only that tag to <code>origin</code>; it does not pull or push the current branch.</li>
+<li><code>delete</code> removes the local tag. Add <code>--remote</code> to also delete it from <code>origin</code>.</li>
+<li><code>--buildtype</code> is used by <code>auto</code> and accepts <code>STAGE</code> or <code>PROD</code>; <code>-b</code> is its short form.</li>
+<li><code>--dry-run</code> reports the requested local and remote operations without changing either repository.</li>
+</ul>
+<p>If publishing or remote deletion fails, the command returns a failure. A tag created locally remains local if its optional push fails.</p>
+<h3 id="repo-repository-management">repo: Repository management<a class="headerlink" href="#repo-repository-management" title="Anchor link to this section for reference">&para;</a></h3>
+<p>Use <code>sdo repo</code> for hosted repository management and repository information.</p>
+<p><strong>Subcommands:</strong>
+- <code>create</code> — Create a repository
+- <code>delete</code> — Delete a repository
+- <code>info</code> — Display local Git and remote repository information
+- <code>list</code> — List repositories
+- <code>branch</code>, <code>clone</code>, and <code>tag</code> — Deprecated aliases for the corresponding <code>sdo git</code> commands</p>
+<p>The legacy <code>sdo repo branch</code>, <code>sdo repo clone</code>, and <code>sdo repo tag</code> forms remain available for compatibility. Prefer the equivalent <code>sdo git</code> commands for new usage.</p>
 <p>An unmatched single token is treated as an MSBuild target, preserving the legacy target-invocation behavior:</p>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>build<span class="w">                         </span><span class="c1"># Display available targets</span>
 sdo<span class="w"> </span>TEST<span class="w"> </span>--verbose<span class="w">                </span><span class="c1"># Build the `TEST` target through MSBuild</span>
@@ -2716,36 +2782,6 @@ sdo<span class="w"> </span>TEST<span class="w"> </span>--verbose<span class="w">
 sdo<span class="w"> </span>repo<span class="w"> </span>info<span class="w"> </span>--verbose
 </code></pre></div>
 <p><code>repo info</code> combines the local Git branch, project/tag details, and repository metadata from the current Git remote. Use <code>--dry-run</code> to display the local information without contacting the hosting service.</p>
-<h4 id="repo-branch">repo branch<a class="headerlink" href="#repo-branch" title="Anchor link to this section for reference">&para;</a></h4>
-<p>Manage local and remote Git branches. The current branch, <code>main</code>, and <code>master</code> are always protected.</p>
-<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--list
-sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--list<span class="w"> </span>--local
-sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--list<span class="w"> </span>--remote
-sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--delete<span class="w"> </span>--name<span class="w"> </span>feature-123
-sdo<span class="w"> </span>repo<span class="w"> </span>branch<span class="w"> </span>--delete<span class="w"> </span>--contains<span class="w"> </span><span class="m">123</span>
-</code></pre></div>
-<p><strong>Options:</strong>
-- <code>--list</code> — List branches; defaults to both local and remote branches
-- <code>--local</code> — With <code>--list</code>, show local branches only
-- <code>--remote</code> — With <code>--list</code>, show remote branches only
-- <code>--delete</code> — Delete matching local and remote branches
-- <code>--name &lt;name&gt;</code> — Select one branch by exact name
-- <code>--contains &lt;text&gt;</code> — Select branches whose names contain the supplied text
-- <code>--verbose</code> — Show detailed Git command output</p>
-<p>When <code>--contains</code> is used, SDO always prompts for an explicit <code>yes</code> confirmation before deleting any matching branches. Declining the prompt leaves all branches unchanged.</p>
-<h4 id="repo-clone">repo clone<a class="headerlink" href="#repo-clone" title="Anchor link to this section for reference">&para;</a></h4>
-<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>repo<span class="w"> </span>clone<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repository
-sdo<span class="w"> </span>repo<span class="w"> </span>clone<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repository<span class="w"> </span>--path<span class="w"> </span>C:<span class="se">\w</span>ork<span class="se">\r</span>epository
-sdo<span class="w"> </span>repo<span class="w"> </span>clone<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repository<span class="w"> </span>--dry-run
-</code></pre></div>
-<h4 id="repo-tag">repo tag<a class="headerlink" href="#repo-tag" title="Anchor link to this section for reference">&para;</a></h4>
-<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>repo<span class="w"> </span>tag<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--dry-run
-sdo<span class="w"> </span>repo<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>--buildtype<span class="w"> </span>stage<span class="w"> </span>--dry-run
-sdo<span class="w"> </span>repo<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>-b<span class="w"> </span>stage<span class="w"> </span>--dry-run
-sdo<span class="w"> </span>repo<span class="w"> </span>tag<span class="w"> </span>push-auto<span class="w"> </span>--buildtype<span class="w"> </span>stage<span class="w"> </span>--dry-run
-sdo<span class="w"> </span>repo<span class="w"> </span>tag<span class="w"> </span>delete<span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--dry-run
-</code></pre></div>
-<p><code>--buildtype</code> belongs to <code>auto</code> and <code>push-auto</code>; <code>repo tag auto</code> also accepts <code>-b</code> as its short form. It is invalid for <code>tag set</code> and <code>tag delete</code>.</p>
 <h4 id="repo-list">repo list<a class="headerlink" href="#repo-list" title="Anchor link to this section for reference">&para;</a></h4>
 <p>List repositories for your organization.</p>
 <p><strong>Usage:</strong>
@@ -2963,12 +2999,17 @@ build-target discovery behavior.</p>
 <p>Manage GitHub and Azure DevOps releases.</p>
 <p>Subcommands:
 - <code>create</code> — Create a GitHub release
+- <code>delete</code> — Delete a GitHub release by tag without deleting the Git tag
 - <code>download</code> — Download a release asset
 - <code>list</code> — List releases for a repository</p>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>release<span class="w"> </span>list<span class="w"> </span>--dry-run
 sdo<span class="w"> </span>release<span class="w"> </span>create<span class="w"> </span>--repo<span class="w"> </span>owner/repository<span class="w"> </span>--tag<span class="w"> </span>v1.0.0<span class="w"> </span>--branch<span class="w"> </span>main<span class="w"> </span>--file<span class="w"> </span>release.zip<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>release<span class="w"> </span>delete<span class="w"> </span>--repo<span class="w"> </span>owner/repository<span class="w"> </span>--tag<span class="w"> </span>v1.0.0<span class="w"> </span>--dry-run
 sdo<span class="w"> </span>release<span class="w"> </span>download<span class="w"> </span>--repo<span class="w"> </span>owner/repository<span class="w"> </span>--tag<span class="w"> </span>v1.0.0<span class="w"> </span>--dry-run
 </code></pre></div>
+<p><code>release delete</code> deletes the GitHub release and its assets. The Git tag remains
+in the repository. Use <code>--dry-run</code> to inspect the requested deletion without
+calling the release API.</p>
 <h4 id="backup">backup<a class="headerlink" href="#backup" title="Anchor link to this section for reference">&para;</a></h4>
 <p>Create, validate, or run a configured workspace backup. The direct form and
 <code>backup run</code> perform the same operation.</p>

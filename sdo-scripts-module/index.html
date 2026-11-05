@@ -1365,7 +1365,7 @@ workflow passes its repository token to <code>API_GITHUB_KEY</code> automaticall
 </code></pre></div>
 The <code>PUBLISH</code> target invokes <code>dotnet publish</code> once per non-test project and
 writes every project to the same versioned output folder. The <code>SMOKE_TEST</code>
-target uses <code>Test-TargetDelegation</code>.</p>
+target runs the published <code>sdo.exe --version</code> command.</p>
 <p>Example GitHub Actions setup:</p>
 <div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install SDO</span>
 <span class="w">  </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pwsh</span>

@@ -1212,14 +1212,6 @@
 </thead>
 <tbody>
 <tr>
-<td>ARTIFACTS</td>
-<td>Deprecated for <code>PUBLISH</code>; retained for legacy artifact copy and package/deploy workflows</td>
-</tr>
-<tr>
-<td>FILE_VERSIONS</td>
-<td>Test for FileVersion task and powershell file-version.ps1</td>
-</tr>
-<tr>
 <td>SETUP_ENVIRONMENT</td>
 <td>Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment</td>
 </tr>
@@ -1381,7 +1373,7 @@
 </tr>
 <tr>
 <td>SMOKE_TEST</td>
-<td>Comprehensive smoke test to verify published artifacts and build system integrity</td>
+<td>Run the published <code>sdo.exe --version</code> check</td>
 </tr>
 <tr>
 <td>TEST</td>
@@ -1389,9 +1381,9 @@
 </tr>
 </tbody>
 </table>
-<p><code>PUBLISH</code> is provided by <code>common.targets</code> and prepares its output folder directly.
-It does not depend on the legacy <code>ARTIFACTS</code> target, which remains for existing
-artifact copy and package/deploy workflows.</p>
+<p><code>PROPERTIES</code> initializes the artifact, test-results, and coverage output folders.
+<code>PUBLISH</code>, tests, coverage, and packaging use these paths directly; the deprecated
+<code>ARTIFACTS</code> and <code>COPY_ARTIFACTS</code> targets are no longer required.</p>
 <ul>
 <li><strong>C:\Program Files\Nbuild\common.targets Targets</strong></li>
 </ul>
@@ -1410,10 +1402,6 @@ artifact copy and package/deploy workflows.</p>
 <tr>
 <td>CLEAN</td>
 <td>Clean up the project and artifacts folder</td>
-</tr>
-<tr>
-<td>INSTALL_DEP</td>
-<td>Install dependencies</td>
 </tr>
 <tr>
 <td>TELEMETRY_OPT_OUT</td>
@@ -1440,28 +1428,12 @@ artifact copy and package/deploy workflows.</p>
 <td>Creates a pre-release</td>
 </tr>
 <tr>
-<td>STAGE_DEPLOY</td>
-<td>Create a STAGE package and deploy for testing</td>
-</tr>
-<tr>
-<td>PROD_DEPLOY</td>
-<td>Create a PROD package and deploy for release</td>
-</tr>
-<tr>
 <td>SOLUTION</td>
 <td>Build the solution Release configuration  using dotnet build</td>
 </tr>
 <tr>
-<td>SOLUTION_MSBUILD</td>
-<td>Build the solution Release configuration  using MSBuild</td>
-</tr>
-<tr>
 <td>PACKAGE</td>
 <td>Create a package for the solution default is a zip file of all artifacts</td>
-</tr>
-<tr>
-<td>COPY_ARTIFACTS</td>
-<td>Save the artifacts to the artifacts folder</td>
 </tr>
 <tr>
 <td>DEPLOY</td>
@@ -1470,10 +1442,6 @@ artifact copy and package/deploy workflows.</p>
 <tr>
 <td>TEST</td>
 <td>Run all tests using dotnet test in Release mode</td>
-</tr>
-<tr>
-<td>TEST_DEBUG</td>
-<td>Run all tests using dotnet test in Debug mode</td>
 </tr>
 <tr>
 <td>PUBLISH</td>
@@ -1508,6 +1476,10 @@ Release configuration, <code>$(ProductVersion)</code>, and the same output folde
 <p>Test projects are excluded from the project list. Debug symbols are disabled,
 and any <code>.pdb</code> files remaining in the output folder are removed before the
 target completes.</p>
+<p>After stage or production auto-tagging, the default artifacts, test-results, and
+coverage properties are updated to use the generated <code>ProductVersion</code>.
+Test-results and coverage paths remain under the solution directory in GitHub
+Actions and under the artifacts solution folder otherwise.</p>
 <ul>
 <li><strong>C:\Program Files\nbuild\ngit.targets Targets</strong></li>
 </ul>
