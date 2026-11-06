@@ -1230,10 +1230,6 @@ included in the consolidated <code>sdo.dll</code> assembly.</p>
 <td>Write an error message in red.</td>
 </tr>
 <tr>
-<td><code>Git</code></td>
-<td>Read or update Git tags.</td>
-</tr>
-<tr>
 <td><code>ColorMessage</code></td>
 <td>Write a colored message.</td>
 </tr>
@@ -1261,17 +1257,24 @@ included in the consolidated <code>sdo.dll</code> assembly.</p>
 </table>
 <p>The tasks are registered by
 <a href="../Sdo/Resources/common.targets"><code>common.targets</code></a>.</p>
+<p>Git operations are provided by the <code>sdo git</code> CLI; the legacy MSBuild <code>Git</code>
+task has been removed. Built-in Git targets capture quiet CLI output into
+MSBuild properties.</p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Anchor link to this section for reference">&para;</a></h2>
 <p>Display a colored message:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&lt;Target</span><span class="w"> </span><span class="na">Name=</span><span class="s">"BUILD_MESSAGE"</span><span class="nt">&gt;</span>
 <span class="w">  </span><span class="nt">&lt;ColorMessage</span><span class="w"> </span><span class="na">Message=</span><span class="s">"Build complete"</span><span class="w"> </span><span class="na">Color=</span><span class="s">"Green"</span><span class="w"> </span><span class="nt">/&gt;</span>
 <span class="nt">&lt;/Target&gt;</span>
 </code></pre></div>
-<p>Read a Git tag:</p>
+<p>Read a Git tag through the SDO CLI:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&lt;Target</span><span class="w"> </span><span class="na">Name=</span><span class="s">"TAG"</span><span class="nt">&gt;</span>
-<span class="w">  </span><span class="nt">&lt;Git</span><span class="w"> </span><span class="na">Command=</span><span class="s">"GetTag"</span><span class="w"> </span><span class="na">Branch=</span><span class="s">"$(Branch)"</span><span class="w"> </span><span class="na">BuildType=</span><span class="s">"$(BuildType)"</span><span class="nt">&gt;</span>
-<span class="w">    </span><span class="nt">&lt;Output</span><span class="w"> </span><span class="na">TaskParameter=</span><span class="s">"Tag"</span><span class="w"> </span><span class="na">PropertyName=</span><span class="s">"Tag"</span><span class="w"> </span><span class="nt">/&gt;</span>
-<span class="w">  </span><span class="nt">&lt;/Git&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Exec</span>
+<span class="w">    </span><span class="na">Command=</span><span class="s">'"$(BuildTools)\sdo.exe" git tag get -q'</span>
+<span class="w">    </span><span class="na">ConsoleToMSBuild=</span><span class="s">"true"</span>
+<span class="w">    </span><span class="na">IgnoreExitCode=</span><span class="s">"true"</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Output</span><span class="w"> </span><span class="na">TaskParameter=</span><span class="s">"ConsoleOutput"</span><span class="w"> </span><span class="na">PropertyName=</span><span class="s">"Tag"</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Output</span><span class="w"> </span><span class="na">TaskParameter=</span><span class="s">"ExitCode"</span><span class="w"> </span><span class="na">PropertyName=</span><span class="s">"TagExitCode"</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/Exec&gt;</span>
 <span class="w">  </span><span class="nt">&lt;Message</span><span class="w"> </span><span class="na">Text=</span><span class="s">"Tag: $(Tag)"</span><span class="w"> </span><span class="na">Importance=</span><span class="s">"high"</span><span class="w"> </span><span class="nt">/&gt;</span>
 <span class="nt">&lt;/Target&gt;</span>
 </code></pre></div>

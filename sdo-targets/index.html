@@ -1492,20 +1492,12 @@ Actions and under the artifacts solution folder otherwise.</p>
 </thead>
 <tbody>
 <tr>
-<td>GIT_STATUS</td>
-<td>Display the current git status</td>
-</tr>
-<tr>
 <td>AUTOTAG_STAGE</td>
 <td>Increment version for a stage build</td>
 </tr>
 <tr>
 <td>SET_TAG</td>
 <td>Set version for a stage build</td>
-</tr>
-<tr>
-<td>GIT_PULL</td>
-<td>Get the latest tag from git</td>
 </tr>
 <tr>
 <td>AUTOTAG_PROD</td>
@@ -1525,6 +1517,13 @@ Actions and under the artifacts solution folder otherwise.</p>
 </tr>
 </tbody>
 </table>
+<p>The built-in Git targets invoke <code>sdo git</code> commands with <code>-q</code> and capture their
+single-line output into MSBuild properties. Stage and production auto-tagging
+uses <code>sdo git tag auto --dry-run -q</code> to calculate <code>ProductVersion</code>, then
+<code>SET_TAG</code> runs <code>sdo git tag set</code> to create the tag locally. <code>PUSH_TAG</code> and the
+GitHub release targets in <code>common.targets</code> and <code>sdo.targets</code> run
+<code>sdo git tag push</code> to publish an existing tag without replacing it. The legacy
+MSBuild <code>Git</code> task has been removed.</p>
 <ul>
 <li><strong>unit-tests.targets Targets</strong></li>
 </ul>

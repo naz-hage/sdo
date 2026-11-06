@@ -2243,6 +2243,7 @@ Usage:
   sdo [command] [options] [[--] &lt;additional arguments&gt;...]
 
 Options:
+  -q, --quiet     Suppress the SDO banner; quiet tag mutations print only their result
   -v, --verbose   Enable verbose output
   -dr, --dry-run  Perform a dry run without side effects
   -?, -h, --help  Show help and usage information
@@ -2714,7 +2715,8 @@ Usage:
 </code></pre></div></p>
 <h4 id="git-branch">git branch<a class="headerlink" href="#git-branch" title="Anchor link to this section for reference">&para;</a></h4>
 <p>Manage local and remote Git branches. The current branch, <code>main</code>, and <code>master</code> are always protected.</p>
-<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--list
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>get<span class="w"> </span>--quiet
+sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--list
 sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--list<span class="w"> </span>--local
 sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--list<span class="w"> </span>--remote
 sdo<span class="w"> </span>git<span class="w"> </span>branch<span class="w"> </span>--delete<span class="w"> </span>--name<span class="w"> </span>feature-123
@@ -2735,29 +2737,44 @@ sdo<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </sp
 sdo<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repository<span class="w"> </span>--dry-run
 </code></pre></div>
 <h4 id="git-tag">git tag<a class="headerlink" href="#git-tag" title="Anchor link to this section for reference">&para;</a></h4>
-<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>list
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>get
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>get<span class="w"> </span>--quiet
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>get<span class="w"> </span>-q
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>list
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>list<span class="w"> </span>-q
 sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>list<span class="w"> </span>--all
 sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>-q
 sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>--buildtype<span class="w"> </span>stage<span class="w"> </span>--dry-run
 sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>-b<span class="w"> </span>stage<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>--buildtype<span class="w"> </span>stage<span class="w"> </span>--dry-run<span class="w"> </span>-q
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>--buildtype<span class="w"> </span>prod<span class="w"> </span>-q
 sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--push
 sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>auto<span class="w"> </span>--buildtype<span class="w"> </span>stage<span class="w"> </span>--push
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>push<span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>-q
 sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>delete<span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--dry-run
+sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>delete<span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>-q
 sdo<span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>delete<span class="w"> </span>--tag<span class="w"> </span><span class="m">1</span>.2.3<span class="w"> </span>--remote
 </code></pre></div>
+<p>Use <code>--quiet</code> (<code>-q</code>) to suppress the SDO version banner. For <code>branch get</code> and <code>tag get</code>, it also suppresses error messages while preserving the nonzero exit code; successful commands leave only the branch or tag name on standard output, with no surrounding blank lines.</p>
 <p>When tags differ, <code>list</code> appends discrepancy lines after the local tag listing:</p>
 <div class="highlight"><pre><span></span><code>local: 2.6.4
 remote: 2.6.1
 </code></pre></div>
 <p>Tag operations affect the local repository by default:</p>
 <ul>
+<li><code>get</code> prints the nearest local tag on one line, without additional Git command output.</li>
 <li><code>list</code> shows the 10 highest local tags by version, in descending order. Add <code>--all</code> to list every local tag.</li>
 <li>By default, discrepancies compare the 10 highest tags from each side by version. <code>local:</code> shows tags from the local top 10 that are absent from <code>origin</code>; <code>remote:</code> shows tags from the remote top 10 that are absent locally. Lines are omitted when that side has no discrepancies.</li>
 <li>Add <code>--all</code> to list and compare every local and remote tag.</li>
 <li>If <code>origin</code> cannot be queried, the command returns a failure instead of reporting an inaccurate comparison.</li>
 <li><code>set</code> creates or replaces an annotated tag at the current <code>HEAD</code>.</li>
 <li><code>auto</code> calculates and creates the next <code>STAGE</code> or <code>PROD</code> tag locally and writes it to <code>.temp\.tag</code>.</li>
+<li><code>auto --dry-run -q</code> prints only the calculated tag without creating it or writing <code>.temp\.tag</code>.</li>
+<li><code>push --tag &lt;tag&gt;</code> publishes an existing local tag to <code>origin</code> without changing the local tag or pushing the current branch. With <code>-q</code>, it prints only the tag on success.</li>
 <li><code>--push</code> on <code>set</code> or <code>auto</code> also pushes only that tag to <code>origin</code>; it does not pull or push the current branch.</li>
+<li>With <code>-q</code>, successful <code>set</code> and <code>auto</code> commands print only the tag they created. <code>delete -q</code> prints nothing; its exit code is <code>0</code> only when deletion succeeds and nonzero when the tag is missing or deletion fails. Quiet tag mutations suppress error text while retaining their failure exit code.</li>
+<li><code>list -q</code> suppresses only the SDO version banner; the full tag listing and any discrepancy lines remain visible.</li>
 <li><code>delete</code> removes the local tag. Add <code>--remote</code> to also delete it from <code>origin</code>.</li>
 <li><code>--buildtype</code> is used by <code>auto</code> and accepts <code>STAGE</code> or <code>PROD</code>; <code>-b</code> is its short form.</li>
 <li><code>--dry-run</code> reports the requested local and remote operations without changing either repository.</li>
@@ -2769,9 +2786,8 @@ remote: 2.6.1
 - <code>create</code> — Create a repository
 - <code>delete</code> — Delete a repository
 - <code>info</code> — Display local Git and remote repository information
-- <code>list</code> — List repositories
-- <code>branch</code>, <code>clone</code>, and <code>tag</code> — Deprecated aliases for the corresponding <code>sdo git</code> commands</p>
-<p>The legacy <code>sdo repo branch</code>, <code>sdo repo clone</code>, and <code>sdo repo tag</code> forms remain available for compatibility. Prefer the equivalent <code>sdo git</code> commands for new usage.</p>
+- <code>list</code> — List repositories</p>
+<p>Use <code>sdo git</code> for local branch, clone, and tag operations.</p>
 <p>An unmatched single token is treated as an MSBuild target, preserving the legacy target-invocation behavior:</p>
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>build<span class="w">                         </span><span class="c1"># Display available targets</span>
 sdo<span class="w"> </span>TEST<span class="w"> </span>--verbose<span class="w">                </span><span class="c1"># Build the `TEST` target through MSBuild</span>
@@ -2781,7 +2797,7 @@ sdo<span class="w"> </span>TEST<span class="w"> </span>--verbose<span class="w">
 <div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>repo<span class="w"> </span>info
 sdo<span class="w"> </span>repo<span class="w"> </span>info<span class="w"> </span>--verbose
 </code></pre></div>
-<p><code>repo info</code> combines the local Git branch, project/tag details, and repository metadata from the current Git remote. Use <code>--dry-run</code> to display the local information without contacting the hosting service.</p>
+<p><code>repo info</code> displays hosting-platform metadata for the repository identified by the current Git remote. It does not display the local branch, project, or tag. Use <code>--dry-run</code> to skip the hosting-service lookup.</p>
 <h4 id="repo-list">repo list<a class="headerlink" href="#repo-list" title="Anchor link to this section for reference">&para;</a></h4>
 <p>List repositories for your organization.</p>
 <p><strong>Usage:</strong>
