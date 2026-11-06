@@ -64,6 +64,28 @@ public class PlatformServiceTests : IDisposable
     }
 
     [TestMethod]
+    public void DetectPlatform_DoesNotDisplayGitCommand()
+    {
+        SetupWorkingDirectory();
+        var originalOutput = Console.Out;
+        using var output = new StringWriter();
+
+        try
+        {
+            Console.SetOut(output);
+
+            var platform = new PlatformService().DetectPlatform();
+
+            Assert.AreEqual(Platform.GitHub, platform);
+            Assert.AreEqual(string.Empty, output.ToString());
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
+    }
+
+    [TestMethod]
     public void GetOrganization_InGitHubRepo_ReturnsOrganization()
     {
         // Arrange

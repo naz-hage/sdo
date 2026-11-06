@@ -484,7 +484,7 @@ namespace Sdo.Commands
         {
             var infoCommand = new System.CommandLine.Command(
                 "info",
-                "Display local Git and remote repository information");
+                "Display hosted repository information for the current Git remote");
 
             infoCommand.Add(verboseOption);
             if (_dryRunOption != null)
@@ -497,18 +497,16 @@ namespace Sdo.Commands
                 var dryRun = _dryRunOption != null && parseResult.GetValue(_dryRunOption);
                 if (verbose)
                 {
-                    ConsoleHelper.WriteVerbose("[VERBOSE] Displaying Git repository information.");
+                    ConsoleHelper.WriteVerbose("[VERBOSE] Displaying hosted repository information.");
                 }
 
-                var localResult = dryRun
-                    ? Nbuild.Command.DisplayGitInfo(verbose, dryRun)
-                    : Nbuild.Command.DisplayGitBranch();
-                if (!localResult.IsSuccess())
+                if (dryRun)
                 {
-                    return localResult.Code;
+                    ConsoleHelper.WriteVerbose("DRY-RUN: Repository information lookup skipped.");
+                    return 0;
                 }
 
-                return dryRun ? 0 : await ShowRepository(verbose);
+                return await ShowRepository(verbose);
             });
 
             Subcommands.Add(infoCommand);
@@ -747,7 +745,7 @@ namespace Sdo.Commands
         {
             try
             {
-                if (verbose) Console.WriteLine("Retrieving repository information from current Git remote...");
+                if (verbose) Console.WriteLine("Retrieving hosted repository information...");
 
                 var platform = _platformDetector.DetectPlatform();
                 var repoInfo = _platformDetector.GetRepositoryInfo();

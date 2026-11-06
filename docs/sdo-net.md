@@ -795,7 +795,7 @@ sdo repo info
 sdo repo info --verbose
 ```
 
-`repo info` combines the local Git branch, project/tag details, and repository metadata from the current Git remote. Use `--dry-run` to display the local information without contacting the hosting service.
+`repo info` displays hosting-platform metadata for the repository identified by the current Git remote. It does not display the local branch, project, or tag. Use `--dry-run` to skip the hosting-service lookup.
 
 #### repo list
 

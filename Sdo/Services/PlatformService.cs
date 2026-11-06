@@ -128,7 +128,7 @@ namespace Sdo.Services
         {
             try
             {
-                return new NbuildTasks.GitWrapper().GetRemoteUrl();
+                return new NbuildTasks.GitWrapper(quiet: true).GetRemoteUrl();
             }
             catch
             {

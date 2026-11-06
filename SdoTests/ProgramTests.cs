@@ -64,19 +64,25 @@ public class ProgramTests
     }
 
     [TestMethod]
-    public void Main_WithRepositoryInfoCommand_ReturnsZero()
+    public void Main_WithRepositoryInfoDryRun_DoesNotDisplayGitInformation()
     {
-        var result = Program.Main("repo", "info", "--dry-run");
+        var originalOutput = Console.Out;
+        using var output = new StringWriter();
+        Console.SetOut(output);
 
-        Assert.AreEqual(0, result);
-    }
+        try
+        {
+            var result = Program.Main("repo", "info", "--dry-run", "--verbose");
 
-    [TestMethod]
-    public void Main_WithRepositoryInfoDryRun_ReturnsZero()
-    {
-        var result = Program.Main("repo", "info", "--dry-run");
-
-        Assert.AreEqual(0, result);
+            Assert.AreEqual(0, result);
+            Assert.IsFalse(output.ToString().Contains("Current branch:", StringComparison.Ordinal));
+            Assert.IsFalse(output.ToString().Contains("Project [", StringComparison.Ordinal));
+            StringAssert.Contains(output.ToString(), "Repository information lookup skipped.");
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
     }
 
     [TestMethod]
