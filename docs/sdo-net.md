@@ -78,7 +78,7 @@ Usage:
   sdo [command] [options] [[--] <additional arguments>...]
 
 Options:
-  -q, --quiet     Suppress the SDO version banner and branch/tag get error messages
+  -q, --quiet     Suppress the SDO banner; quiet tag mutations print only their result
   -v, --verbose   Enable verbose output
   -dr, --dry-run  Perform a dry run without side effects
   -?, -h, --help  Show help and usage information
@@ -724,13 +724,17 @@ sdo repo tag get
 sdo git tag get --quiet
 sdo git tag get -q
 sdo git tag list
+sdo git tag list -q
 sdo git tag list --all
 sdo git tag set --tag 1.2.3 --dry-run
+sdo git tag set --tag 1.2.3 -q
 sdo git tag auto --buildtype stage --dry-run
 sdo git tag auto -b stage --dry-run
+sdo git tag auto --buildtype prod -q
 sdo git tag set --tag 1.2.3 --push
 sdo git tag auto --buildtype stage --push
 sdo git tag delete --tag 1.2.3 --dry-run
+sdo git tag delete --tag 1.2.3 -q
 sdo git tag delete --tag 1.2.3 --remote
 ```
 
@@ -753,6 +757,8 @@ Tag operations affect the local repository by default:
 - `set` creates or replaces an annotated tag at the current `HEAD`.
 - `auto` calculates and creates the next `STAGE` or `PROD` tag locally and writes it to `.temp\.tag`.
 - `--push` on `set` or `auto` also pushes only that tag to `origin`; it does not pull or push the current branch.
+- With `-q`, successful `set` and `auto` commands print only the tag they created. `delete -q` prints nothing; its exit code is `0` only when deletion succeeds and nonzero when the tag is missing or deletion fails. Quiet tag mutations suppress error text while retaining their failure exit code.
+- `list -q` suppresses only the SDO version banner; the full tag listing and any discrepancy lines remain visible.
 - `delete` removes the local tag. Add `--remote` to also delete it from `origin`.
 - `--buildtype` is used by `auto` and accepts `STAGE` or `PROD`; `-b` is its short form.
 - `--dry-run` reports the requested local and remote operations without changing either repository.

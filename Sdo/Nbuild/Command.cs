@@ -2269,23 +2269,26 @@ namespace Nbuild
         /// <param name="tag">The string representing the tag to set.</param>    
         /// <param name="verbose">Whether to display verbose output.</param>
         /// <param name="dryRun">Whether to perform a dry run without making actual changes.</param>
-        public static ResultHelper SetTag(string? tag, bool verbose = false, bool dryRun = false, bool push = false)
+        public static ResultHelper SetTag(string? tag, bool verbose = false, bool dryRun = false, bool push = false, bool quiet = false)
         {
-            var gitWrapper = new GitWrapper(verbose: verbose);
+            var gitWrapper = new GitWrapper(verbose: verbose, quiet: quiet);
             if (string.IsNullOrEmpty(tag))
             {
-                ConsoleHelper.WriteError($"Error: valid tag is required");
+                if (!quiet) ConsoleHelper.WriteError("Error: valid tag is required");
                 return ResultHelper.Fail(-1, "Tag is required");
             }
 
             if (dryRun)
             {
-                ConsoleHelper.WriteVerbose($"DRY-RUN: Would create or replace local git tag: {tag}");
-                if (push)
+                if (!quiet)
                 {
-                    ConsoleHelper.WriteVerbose($"DRY-RUN: Would push tag {tag} to origin");
+                    ConsoleHelper.WriteVerbose($"DRY-RUN: Would create or replace local git tag: {tag}");
+                    if (push)
+                    {
+                        ConsoleHelper.WriteVerbose($"DRY-RUN: Would push tag {tag} to origin");
+                    }
+                    ConsoleHelper.WriteVerbose("DRY-RUN: No actual changes will be made to the repository or remote.");
                 }
-                ConsoleHelper.WriteVerbose("DRY-RUN: No actual changes will be made to the repository or remote.");
                 return ResultHelper.Success();
             }
 
@@ -2299,7 +2302,15 @@ namespace Nbuild
                 return ResultHelper.Fail(-1, $"Tag '{tag}' was created locally but failed to push to origin");
             }
 
-            DisplayGitInfo();
+            if (quiet)
+            {
+                Console.WriteLine(tag);
+            }
+            else
+            {
+                DisplayGitInfo();
+            }
+
             return ResultHelper.Success();
         }
 
@@ -2346,15 +2357,22 @@ namespace Nbuild
         /// <param name="push">A boolean flag indicating whether to push the tag after setting it. Default is false.</param>
         /// <param name="verbose">Whether to display verbose output.</param>
         /// <param name="dryRun">Whether to perform a dry run without making actual changes.</param>
-        public static ResultHelper SetAutoTag(string? buildType, bool push = false, bool verbose = false, bool dryRun = false)
+        public static ResultHelper SetAutoTag(string? buildType, bool push = false, bool verbose = false, bool dryRun = false, bool quiet = false)
         {
             if (string.IsNullOrEmpty(buildType))
             {
-                ConsoleHelper.WriteError($"Error: valid build type is required");
+                if (!quiet) ConsoleHelper.WriteError("Error: valid build type is required");
                 return ResultHelper.Fail(-1, "Build type is required");
             }
 
-            var gitWrapper = new GitWrapper(verbose: verbose);
+            if (!buildType.Equals(nameof(Enums.BuildType.STAGE), StringComparison.OrdinalIgnoreCase) &&
+                !buildType.Equals(nameof(Enums.BuildType.PROD), StringComparison.OrdinalIgnoreCase))
+            {
+                if (!quiet) ConsoleHelper.WriteError("Error: valid build type is required (STAGE or PROD)");
+                return ResultHelper.Fail(-1, "Invalid build type");
+            }
+
+            var gitWrapper = new GitWrapper(verbose: verbose, quiet: quiet);
             string? currentTag = gitWrapper.Tag;
             string? nextTag = gitWrapper.AutoTag(buildType);
             if (string.IsNullOrEmpty(nextTag))
@@ -2364,14 +2382,17 @@ namespace Nbuild
 
             if (dryRun)
             {
-                ConsoleHelper.WriteVerbose($"DRY-RUN: Current git tag: {currentTag}");
-                ConsoleHelper.WriteVerbose($"DRY-RUN: Would compute and set a {buildType} git tag: {nextTag}.");
-                ConsoleHelper.WriteVerbose("DRY-RUN: Would create tag file: .temp\\.tag");
-                if (push)
+                if (!quiet)
                 {
-                    ConsoleHelper.WriteVerbose($"DRY-RUN: Would push the computed tag {nextTag} to origin");
+                    ConsoleHelper.WriteVerbose($"DRY-RUN: Current git tag: {currentTag}");
+                    ConsoleHelper.WriteVerbose($"DRY-RUN: Would compute and set a {buildType} git tag: {nextTag}.");
+                    ConsoleHelper.WriteVerbose("DRY-RUN: Would create tag file: .temp\\.tag");
+                    if (push)
+                    {
+                        ConsoleHelper.WriteVerbose($"DRY-RUN: Would push the computed tag {nextTag} to origin");
+                    }
+                    ConsoleHelper.WriteVerbose("DRY-RUN: No actual changes will be made to the repository or remote.");
                 }
-                ConsoleHelper.WriteVerbose("DRY-RUN: No actual changes will be made to the repository or remote.");
                 return ResultHelper.Success();
             }
 
@@ -2383,14 +2404,25 @@ namespace Nbuild
             var tempDirectory = Path.Combine(Environment.CurrentDirectory, ".temp");
             Directory.CreateDirectory(tempDirectory);
             File.WriteAllText(Path.Combine(tempDirectory, ".tag"), nextTag + Environment.NewLine);
-            ConsoleHelper.WriteSuccess("Created tag file: .temp\\.tag");
+            if (!quiet)
+            {
+                ConsoleHelper.WriteSuccess("Created tag file: .temp\\.tag");
+            }
 
             if (push && !gitWrapper.PushTag(nextTag))
             {
                 return ResultHelper.Fail(-1, $"Tag '{nextTag}' was created locally but failed to push to origin");
             }
 
-            DisplayGitInfo();
+            if (quiet)
+            {
+                Console.WriteLine(nextTag);
+            }
+            else
+            {
+                DisplayGitInfo();
+            }
+
             return ResultHelper.Success();
         }
 
@@ -2460,32 +2492,39 @@ namespace Nbuild
         /// <param name="tag">The string representing the tag to delete.</param>
         /// <param name="verbose">Whether to display verbose output.</param>
         /// <param name="dryRun">Whether to perform a dry run without making actual changes.</param>
-        public static ResultHelper DeleteTag(string? tag, bool verbose = false, bool dryRun = false, bool deleteRemote = false)
+        public static ResultHelper DeleteTag(string? tag, bool verbose = false, bool dryRun = false, bool deleteRemote = false, bool quiet = false)
         {
             if (string.IsNullOrEmpty(tag))
             {
-                ConsoleHelper.WriteError($"Error: valid tag is required");
+                if (!quiet) ConsoleHelper.WriteError("Error: valid tag is required");
                 return ResultHelper.Fail(-1, "Tag is required");
             }
 
             if (dryRun)
             {
-                ConsoleHelper.WriteVerbose($"DRY-RUN: Would delete local tag '{tag}'");
-                if (deleteRemote)
+                if (!quiet)
                 {
-                    ConsoleHelper.WriteVerbose($"DRY-RUN: Would also delete tag '{tag}' from origin");
+                    ConsoleHelper.WriteVerbose($"DRY-RUN: Would delete local tag '{tag}'");
+                    if (deleteRemote)
+                    {
+                        ConsoleHelper.WriteVerbose($"DRY-RUN: Would also delete tag '{tag}' from origin");
+                    }
+                    ConsoleHelper.WriteVerbose("DRY-RUN: No actual changes will be made to the repository or remote.");
                 }
-                ConsoleHelper.WriteVerbose("DRY-RUN: No actual changes will be made to the repository or remote.");
                 return ResultHelper.Success();
             }
 
-            var gitWrapper = new GitWrapper(verbose: verbose);
+            var gitWrapper = new GitWrapper(verbose: verbose, quiet: quiet);
             if (!gitWrapper.DeleteTag(tag, deleteRemote))
             {
                 return ResultHelper.Fail(-1, $"Failed to delete tag '{tag}'");
             }
 
-            DisplayGitInfo();
+            if (!quiet)
+            {
+                DisplayGitInfo();
+            }
+
             return ResultHelper.Success();
         }
 

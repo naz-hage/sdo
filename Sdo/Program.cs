@@ -35,7 +35,7 @@ namespace Sdo
             // Add global options
             var quietOption = new Option<bool>("--quiet", ["-q"])
             {
-                Description = "Suppress the SDO version banner",
+                Description = "Suppress the SDO banner and non-result Git tag command messages",
                 Recursive = true
             };
             var verboseOption = new Option<bool>("--verbose", ["-v"])

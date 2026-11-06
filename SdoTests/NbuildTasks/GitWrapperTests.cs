@@ -1,5 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Launcher.Services;
 using Ntools;
+using Sdo;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -198,6 +200,144 @@ namespace NbuildTasks.Tests
             Assert.IsTrue(GitWrapper.SetTag(tag));
             Assert.IsTrue(GitWrapper.LocalTagExists(tag));
             Assert.IsFalse(GitWrapper.RemoteTagExists(tag));
+        }
+
+        [TestMethod]
+        public void ProgramMain_WithQuietTagSet_PrintsOnlyTheSetTag()
+        {
+            var tag = $"8.8.{Random.Shared.Next(100000, int.MaxValue)}";
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "set", "--tag", tag, "-q"));
+                Assert.AreEqual($"{tag}{Environment.NewLine}", output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+                Assert.IsTrue(git.LocalTagExists(tag));
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+                if (git.LocalTagExists(tag)) git.DeleteTag(tag);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("stage")]
+        [DataRow("prod")]
+        public void ProgramMain_WithQuietAutoTag_PrintsOnlyTheCreatedTag(string buildType)
+        {
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var seedTag = $"8.{Random.Shared.Next(100000, 900000)}.{Random.Shared.Next(100000, int.MaxValue)}";
+            Assert.IsTrue(git.SetTag(seedTag));
+            var expectedTag = git.AutoTag(buildType);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(expectedTag));
+
+            var tagFile = Path.Combine(git.WorkingDirectory, ".temp", ".tag");
+            var tagFileExisted = File.Exists(tagFile);
+            var previousTagFile = tagFileExisted ? File.ReadAllText(tagFile) : null;
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "auto", "--buildtype", buildType, "-q"));
+                Assert.AreEqual($"{expectedTag}{Environment.NewLine}", output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+                Assert.IsTrue(git.LocalTagExists(expectedTag));
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+                if (git.LocalTagExists(expectedTag)) git.DeleteTag(expectedTag);
+                if (git.LocalTagExists(seedTag)) git.DeleteTag(seedTag);
+
+                if (tagFileExisted)
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(tagFile)!);
+                    File.WriteAllText(tagFile, previousTagFile!);
+                }
+                else if (File.Exists(tagFile))
+                {
+                    File.Delete(tagFile);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ProgramMain_WithQuietTagDelete_IsSilentAndPreservesExitStatus()
+        {
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var tag = $"8.8.{Random.Shared.Next(100000, int.MaxValue)}";
+            var missingTag = $"8.8.{Random.Shared.Next(100000, int.MaxValue)}";
+            Assert.IsTrue(git.SetTag(tag));
+
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("repo", "tag", "delete", "--tag", tag, "-q"));
+                Assert.AreEqual(string.Empty, output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+                Assert.IsFalse(git.LocalTagExists(tag));
+
+                output.GetStringBuilder().Clear();
+                error.GetStringBuilder().Clear();
+                Assert.AreNotEqual(0, Program.Main("git", "tag", "delete", "--tag", missingTag, "-q"));
+                Assert.AreEqual(string.Empty, output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+                if (git.LocalTagExists(tag)) git.DeleteTag(tag);
+            }
+        }
+
+        [TestMethod]
+        public void ProgramMain_WithQuietTagList_KeepsListOutput()
+        {
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "list", "-q"));
+                StringAssert.Contains(output.ToString(), "1.0.0");
+                Assert.IsFalse(output.ToString().Contains(Nversion.Get(), StringComparison.Ordinal));
+                Assert.AreEqual(string.Empty, error.ToString());
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+            }
         }
 
         [TestMethod]

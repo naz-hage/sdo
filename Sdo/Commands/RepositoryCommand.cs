@@ -300,11 +300,11 @@ namespace Sdo.Commands
                 "tag",
                 description);
 
-            AddAutoTagCommand(tagCommand, verboseOption);
-            AddDeleteTagCommand(tagCommand, verboseOption);
+            AddAutoTagCommand(tagCommand, verboseOption, quietOption);
+            AddDeleteTagCommand(tagCommand, verboseOption, quietOption);
             AddGetTagCommand(tagCommand, quietOption);
             AddListTagCommand(tagCommand, verboseOption);
-            AddSetTagCommand(tagCommand, verboseOption);
+            AddSetTagCommand(tagCommand, verboseOption, quietOption);
 
             Subcommands.Add(tagCommand);
         }
@@ -341,7 +341,7 @@ namespace Sdo.Commands
             tagCommand.Subcommands.Add(listCommand);
         }
 
-        private void AddAutoTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
+        private void AddAutoTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption, Option<bool>? quietOption)
         {
             var autoCommand = new System.CommandLine.Command(
                 "auto",
@@ -366,13 +366,14 @@ namespace Sdo.Commands
                 var push = parseResult.GetValue(pushOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.SetAutoTag(buildType, push, verbose, dryRun).Code;
+                var quiet = quietOption != null && parseResult.GetValue(quietOption);
+                return Nbuild.Command.SetAutoTag(buildType, push, verbose, dryRun, quiet).Code;
             });
 
             tagCommand.Subcommands.Add(autoCommand);
         }
 
-        private void AddDeleteTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
+        private void AddDeleteTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption, Option<bool>? quietOption)
         {
             var deleteCommand = new System.CommandLine.Command(
                 "delete",
@@ -397,13 +398,14 @@ namespace Sdo.Commands
                 var deleteRemote = parseResult.GetValue(remoteOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.DeleteTag(tag, verbose, dryRun, deleteRemote).Code;
+                var quiet = quietOption != null && parseResult.GetValue(quietOption);
+                return Nbuild.Command.DeleteTag(tag, verbose, dryRun, deleteRemote, quiet).Code;
             });
 
             tagCommand.Subcommands.Add(deleteCommand);
         }
 
-        private void AddSetTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
+        private void AddSetTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption, Option<bool>? quietOption)
         {
             var setCommand = new System.CommandLine.Command(
                 "set",
@@ -425,9 +427,13 @@ namespace Sdo.Commands
             setCommand.TreatUnmatchedTokensAsErrors = true;
             setCommand.SetAction(parseResult =>
             {
+                var quiet = quietOption != null && parseResult.GetValue(quietOption);
                 if (parseResult.UnmatchedTokens.Count > 0)
                 {
-                    Console.Error.WriteLine($"Unknown option or argument: {string.Join(' ', parseResult.UnmatchedTokens)}");
+                    if (!quiet)
+                    {
+                        Console.Error.WriteLine($"Unknown option or argument: {string.Join(' ', parseResult.UnmatchedTokens)}");
+                    }
                     return 1;
                 }
 
@@ -435,7 +441,7 @@ namespace Sdo.Commands
                 var push = parseResult.GetValue(pushOption);
                 var verbose = parseResult.GetValue(verboseOption);
                 var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.SetTag(tag, verbose, dryRun, push).Code;
+                return Nbuild.Command.SetTag(tag, verbose, dryRun, push, quiet).Code;
             });
 
             tagCommand.Subcommands.Add(setCommand);

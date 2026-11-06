@@ -31,6 +31,7 @@ namespace NbuildTasks
         };
 
         public bool Verbose = false;
+        private readonly bool _quiet;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GitWrapper"/> class.
@@ -42,9 +43,10 @@ namespace NbuildTasks
         /// The working directory is set to the specified project directory or the current directory if no project is provided.
         /// In test mode, uses temp directories to avoid conflicts with build cleanup.
         /// </remarks>
-        public GitWrapper(string? project = null, bool verbose = false, bool testMode = false) : base(testMode)
+        public GitWrapper(string? project = null, bool verbose = false, bool testMode = false, bool quiet = false) : base(testMode)
         {
             Verbose = verbose;
+            _quiet = quiet;
 
             if (testMode)
             {
@@ -146,12 +148,27 @@ namespace NbuildTasks
         /// <returns>A <see cref="ResultHelper"/> containing the result of the Git command.</returns>
         private ResultHelper ExecuteGitCommand(string arguments, bool showCommand = true)
         {
-            if (showCommand)
+            if (showCommand && !_quiet)
             {
                 ConsoleHelper.WriteLine($"git {arguments}", ConsoleColor.Blue);
             }
             Process.StartInfo.Arguments = arguments;
-            return Process.LockStart(Verbose);
+            return Process.LockStart(Verbose && !_quiet);
+        }
+
+        private void WriteError(string message, string? details = null)
+        {
+            if (!_quiet)
+            {
+                if (details is null)
+                {
+                    ErrorHelper.WriteError(message);
+                }
+                else
+                {
+                    ErrorHelper.WriteError(message, details);
+                }
+            }
         }
 
         /// <summary>
@@ -185,7 +202,7 @@ namespace NbuildTasks
         {
             if (!IsValidTag(newTag) && !IsValid4Tag(newTag))
             {
-                ErrorHelper.WriteError($"Invalid tag '{newTag}'.");
+                WriteError($"Invalid tag '{newTag}'.");
                 return false;
             }
 
@@ -204,7 +221,7 @@ namespace NbuildTasks
         {
             if (!IsValidTag(newTag))
             {
-                ErrorHelper.WriteError($"Invalid tag '{newTag}'.");
+                WriteError($"Invalid tag '{newTag}'.");
                 return false;
             }
 
@@ -295,7 +312,7 @@ namespace NbuildTasks
         {
             if (!IsValidTag(tag) && !IsValid4Tag(tag))
             {
-                ErrorHelper.WriteError($"Invalid tag '{tag}'.");
+                WriteError($"Invalid tag '{tag}'.");
                 return false;
             }
 
@@ -317,7 +334,7 @@ namespace NbuildTasks
 
             if (!localTagExists && !remoteTagExists)
             {
-                ErrorHelper.WriteError($"Tag '{tag}' was not found locally or on origin.");
+                WriteError($"Tag '{tag}' was not found locally or on origin.");
                 return false;
             }
 
@@ -421,7 +438,7 @@ namespace NbuildTasks
             var details = result.Output.Count > 0
                 ? string.Join(Environment.NewLine, result.Output)
                 : null;
-            ErrorHelper.WriteError(message, details);
+            WriteError(message, details);
         }
 
         /// <remarks>
@@ -972,7 +989,7 @@ namespace NbuildTasks
         {
             if (string.IsNullOrEmpty(buildType))
             {
-                Console.WriteLine($"BuildType is null or empty");
+                if (!_quiet) Console.WriteLine("BuildType is null or empty");
                 return string.Empty;
             }
 
@@ -986,7 +1003,7 @@ namespace NbuildTasks
             }
             else
             {
-                Console.WriteLine($"Unknown buildType: {buildType}");
+                if (!_quiet) Console.WriteLine($"Unknown buildType: {buildType}");
                 throw new ArgumentException($"Unknown buildType: {buildType}");
             }
         }
@@ -1104,7 +1121,7 @@ namespace NbuildTasks
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exception occurred when building a production tag: {ex.Message}");
+                    if (!_quiet) Console.WriteLine($"Exception occurred when building a production tag: {ex.Message}");
                     return null;
                 }
             }
@@ -1123,10 +1140,10 @@ namespace NbuildTasks
                 return true;
             }
 
-            Console.WriteLine("Failed to fetch all remote branches and prune deleted branches.");
+            if (!_quiet) Console.WriteLine("Failed to fetch all remote branches and prune deleted branches.");
             foreach (var line in result.Output)
             {
-                if (Verbose) Console.WriteLine(line);
+                if (Verbose && !_quiet) Console.WriteLine(line);
             }
 
             return false;
