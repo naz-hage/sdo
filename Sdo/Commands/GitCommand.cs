@@ -20,7 +20,7 @@ namespace Sdo.Commands
                 commandName: "git",
                 description: "Local Git operations",
                 includeRepositoryManagementCommands: false,
-                canonicalGitNamespace: true)
+                includeGitCommands: true)
         {
         }
     }

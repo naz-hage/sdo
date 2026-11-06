@@ -689,7 +689,6 @@ Manage local and remote Git branches. The current branch, `main`, and `master` a
 
 ```bash
 sdo git branch get --quiet
-sdo repo branch get -q
 sdo git branch --list
 sdo git branch --list --local
 sdo git branch --list --remote
@@ -720,7 +719,6 @@ sdo git clone --url https://github.com/owner/repository --dry-run
 
 ```bash
 sdo git tag get
-sdo repo tag get
 sdo git tag get --quiet
 sdo git tag get -q
 sdo git tag list
@@ -778,9 +776,8 @@ Use `sdo repo` for hosted repository management and repository information.
 - `delete` — Delete a repository
 - `info` — Display local Git and remote repository information
 - `list` — List repositories
-- `branch`, `clone`, and `tag` — Deprecated aliases for the corresponding `sdo git` commands
 
-The legacy `sdo repo branch`, `sdo repo clone`, and `sdo repo tag` forms remain available for compatibility. Prefer the equivalent `sdo git` commands for new usage.
+Use `sdo git` for local branch, clone, and tag operations.
 
 An unmatched single token is treated as an MSBuild target, preserving the legacy target-invocation behavior:
 

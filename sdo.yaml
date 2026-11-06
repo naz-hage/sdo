@@ -54,7 +54,7 @@ steps:
     expectedReturnCode: 0
   - name: autotag-stage
     path: sdo
-    arguments: repo tag auto -b $(BuildType) --verbose
+    arguments: git tag auto -b $(BuildType) --verbose
     workingDirectory: .
     expectedReturnCode: 0
   - name: test

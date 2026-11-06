@@ -37,15 +37,13 @@ public class RepositoryCommandTests
     }
 
     [TestMethod]
-    public void RepositoryGitCommands_AreMarkedAsDeprecatedAliases()
+    public void RepositoryCommand_ContainsOnlyRepositoryManagementSubcommands()
     {
         var command = new RepositoryCommand(_verboseOption);
 
-        foreach (var name in new[] { "branch", "clone", "tag" })
-        {
-            var subcommand = command.Subcommands.Single(item => item.Name == name);
-            StringAssert.Contains(subcommand.Description, "Deprecated alias for `sdo git");
-        }
+        CollectionAssert.AreEqual(
+            new[] { "create", "delete", "info", "list" },
+            command.Subcommands.Select(subcommand => subcommand.Name).ToArray());
     }
 
     [TestMethod]
@@ -59,7 +57,7 @@ public class RepositoryCommandTests
     [TestMethod]
     public void Constructor_AddsBranchSubcommand()
     {
-        var command = new RepositoryCommand(_verboseOption);
+        var command = new GitCommand(_verboseOption);
         var branchCmd = command.Subcommands.Single(s => s.Name == "branch");
 
         Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--list"));
@@ -74,7 +72,7 @@ public class RepositoryCommandTests
     [TestMethod]
     public void Constructor_AddsCloneSubcommandWithUrlAndPathOptions()
     {
-        var command = new RepositoryCommand(_verboseOption, dryRunOption: new Option<bool>("--dry-run"));
+        var command = new GitCommand(_verboseOption, new Option<bool>("--dry-run"));
         var cloneCmd = command.Subcommands.Single(s => s.Name == "clone");
 
         Assert.IsNotNull(cloneCmd.Options.FirstOrDefault(o => o.Name == "--url"));
@@ -84,7 +82,7 @@ public class RepositoryCommandTests
     [TestMethod]
     public void Constructor_AddsTagSubcommandWithNestedCommands()
     {
-        var command = new RepositoryCommand(_verboseOption, dryRunOption: new Option<bool>("--dry-run"));
+        var command = new GitCommand(_verboseOption, new Option<bool>("--dry-run"));
         var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
         var nestedNames = tagCmd.Subcommands.Select(s => s.Name).ToList();
 
@@ -94,7 +92,7 @@ public class RepositoryCommandTests
     [TestMethod]
     public void AutoTagSubcommand_HasBuildTypeShortAlias()
     {
-        var command = new RepositoryCommand(_verboseOption);
+        var command = new GitCommand(_verboseOption);
         var tagCmd = command.Subcommands.First(s => s.Name == "tag");
         var autoCmd = tagCmd.Subcommands.First(s => s.Name == "auto");
         var buildTypeOption = autoCmd.Options.First(o => o.Name == "--buildtype");
@@ -105,7 +103,7 @@ public class RepositoryCommandTests
     [TestMethod]
     public void TagCommandsExposeExplicitRemoteOptions()
     {
-        var command = new RepositoryCommand(_verboseOption, dryRunOption: new Option<bool>("--dry-run"));
+        var command = new GitCommand(_verboseOption, new Option<bool>("--dry-run"));
         var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
         var autoCmd = tagCmd.Subcommands.Single(s => s.Name == "auto");
         var deleteCmd = tagCmd.Subcommands.Single(s => s.Name == "delete");
@@ -152,7 +150,7 @@ public class RepositoryCommandTests
     {
         var command = new RepositoryCommand(_verboseOption);
         var subcommandNames = command.Subcommands.Select(s => s.Name).ToList();
-        Assert.IsTrue(new[] { "branch", "clone", "create", "delete", "info", "list", "tag" }.SequenceEqual(subcommandNames));
+        Assert.IsTrue(new[] { "create", "delete", "info", "list" }.SequenceEqual(subcommandNames));
     }
 
     [TestMethod]

@@ -80,21 +80,6 @@ public class ProgramTests
     }
 
     [TestMethod]
-    public void Main_WithRepositoryCloneDryRun_ReturnsZero()
-    {
-        var result = Program.Main(
-            "repo",
-            "clone",
-            "--url",
-            "https://github.com/user/repo",
-            "--path",
-            "C:\\temp\\repo",
-            "--dry-run");
-
-        Assert.AreEqual(0, result);
-    }
-
-    [TestMethod]
     public void Main_WithGitCloneDryRun_ReturnsZero()
     {
         var result = Program.Main(
@@ -110,15 +95,15 @@ public class ProgramTests
     }
 
     [TestMethod]
-    public void Main_WithRepositoryTagDryRunCommands_ReturnZero()
+    public void Main_WithGitTagDryRunCommands_ReturnZero()
     {
-        var setResult = Program.Main("repo", "tag", "set", "--tag", "1.2.3", "--dry-run");
-        var setPushResult = Program.Main("repo", "tag", "set", "--tag", "1.2.3", "--push", "--dry-run");
-        var deleteResult = Program.Main("repo", "tag", "delete", "--tag", "1.2.3", "--dry-run");
-        var deleteRemoteResult = Program.Main("repo", "tag", "delete", "--tag", "1.2.3", "--remote", "--dry-run");
-        var getResult = Program.Main("repo", "tag", "get");
-        var autoResult = Program.Main("repo", "tag", "auto", "--buildtype", "stage", "--dry-run");
-        var autoPushResult = Program.Main("repo", "tag", "auto", "--buildtype", "stage", "--push", "--dry-run");
+        var setResult = Program.Main("git", "tag", "set", "--tag", "1.2.3", "--dry-run");
+        var setPushResult = Program.Main("git", "tag", "set", "--tag", "1.2.3", "--push", "--dry-run");
+        var deleteResult = Program.Main("git", "tag", "delete", "--tag", "1.2.3", "--dry-run");
+        var deleteRemoteResult = Program.Main("git", "tag", "delete", "--tag", "1.2.3", "--remote", "--dry-run");
+        var getResult = Program.Main("git", "tag", "get");
+        var autoResult = Program.Main("git", "tag", "auto", "--buildtype", "stage", "--dry-run");
+        var autoPushResult = Program.Main("git", "tag", "auto", "--buildtype", "stage", "--push", "--dry-run");
 
         Assert.AreEqual(0, setResult);
         Assert.AreEqual(0, setPushResult);
@@ -127,18 +112,6 @@ public class ProgramTests
         Assert.AreEqual(0, getResult);
         Assert.AreEqual(0, autoResult);
         Assert.AreEqual(0, autoPushResult);
-    }
-
-    [TestMethod]
-    public void Main_WithGitTagDryRunCommands_ReturnZero()
-    {
-        var setResult = Program.Main("git", "tag", "set", "--tag", "1.2.3", "--dry-run");
-        var getResult = Program.Main("git", "tag", "get");
-        var deleteResult = Program.Main("git", "tag", "delete", "--tag", "1.2.3", "--remote", "--dry-run");
-
-        Assert.AreEqual(0, setResult);
-        Assert.AreEqual(0, getResult);
-        Assert.AreEqual(0, deleteResult);
     }
 
     [TestMethod]
@@ -152,10 +125,6 @@ public class ProgramTests
         try
         {
             Assert.AreEqual(0, Program.Main("git", "tag", "get", "--quiet"));
-            Assert.AreEqual($"{expectedTag}{Environment.NewLine}", output.ToString());
-
-            output.GetStringBuilder().Clear();
-            Assert.AreEqual(0, Program.Main("repo", "tag", "get", "-q"));
             Assert.AreEqual($"{expectedTag}{Environment.NewLine}", output.ToString());
         }
         finally
@@ -175,10 +144,6 @@ public class ProgramTests
         try
         {
             Assert.AreEqual(0, Program.Main("git", "branch", "get", "--quiet"));
-            Assert.AreEqual($"{expectedBranch}{Environment.NewLine}", output.ToString());
-
-            output.GetStringBuilder().Clear();
-            Assert.AreEqual(0, Program.Main("repo", "branch", "get", "-q"));
             Assert.AreEqual($"{expectedBranch}{Environment.NewLine}", output.ToString());
         }
         finally
@@ -227,9 +192,17 @@ public class ProgramTests
     }
 
     [TestMethod]
+    public void Main_RepositoryCommandRejectsGitSubcommands()
+    {
+        Assert.AreNotEqual(0, Program.Main("repo", "branch", "get"));
+        Assert.AreNotEqual(0, Program.Main("repo", "clone", "--url", "https://github.com/user/repo", "--dry-run"));
+        Assert.AreNotEqual(0, Program.Main("repo", "tag", "get"));
+    }
+
+    [TestMethod]
     public void Main_WithRemovedPushAutoCommand_ReturnsNonZero()
     {
-        var result = Program.Main("repo", "tag", "push-auto", "--buildtype", "stage");
+        var result = Program.Main("git", "tag", "push-auto", "--buildtype", "stage");
 
         Assert.AreNotEqual(0, result);
     }
@@ -250,10 +223,10 @@ public class ProgramTests
     }
 
     [TestMethod]
-    public void Main_WithBuildTypeOnRepositoryTagSet_ReturnsNonZero()
+    public void Main_WithBuildTypeOnGitTagSet_ReturnsNonZero()
     {
         var result = Program.Main(
-            "repo", "tag", "set",
+            "git", "tag", "set",
             "--tag", "push-auto",
             "--buildtype", "stage",
             "--dry-run");

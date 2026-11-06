@@ -318,7 +318,7 @@ namespace NbuildTasks.Tests
                 Console.SetOut(output);
                 Console.SetError(error);
 
-                Assert.AreEqual(0, Program.Main("repo", "tag", "delete", "--tag", tag, "-q"));
+                Assert.AreEqual(0, Program.Main("git", "tag", "delete", "--tag", tag, "-q"));
                 Assert.AreEqual(string.Empty, output.ToString());
                 Assert.AreEqual(string.Empty, error.ToString());
                 Assert.IsFalse(git.LocalTagExists(tag));
