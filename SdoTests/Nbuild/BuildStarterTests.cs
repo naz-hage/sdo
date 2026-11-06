@@ -162,10 +162,8 @@ namespace Nbuild.Tests
         {
             Dictionary<string, bool> ngitTargets = new()
             {
-                { "GIT_STATUS", true },
                 { "AUTOTAG_STAGE", true },
                 { "SET_TAG", true },
-                { "GIT_PULL", true },
                 { "AUTOTAG_PROD", true },
                 { "TAG", true },
                 { "PUSH_TAG", true },

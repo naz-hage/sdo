@@ -61,7 +61,6 @@
 			<CoverageFolder Condition="'$(CoverageFolder)' == ''">$(ArtifactsSolutionFolder)\CoverageReport\$(ProductVersion)</CoverageFolder>
 			<ArtifactsTestResultsFolder Condition="'$(GITHUB_ACTIONS)' == 'true'">$(SolutionDir)\TestResults\$(ProductVersion)</ArtifactsTestResultsFolder>
 			<CoverageFolder Condition="'$(GITHUB_ACTIONS)' == 'true'">$(SolutionDir)\CoverageReport\$(ProductVersion)</CoverageFolder>
-			<TestFilesFolder>$(DevDrive)\Test</TestFilesFolder>
 			
 			<!-- Define dotnet tools path -->
 			<DotNetToolsPath>$(USERPROFILE)\.dotnet\tools</DotNetToolsPath>

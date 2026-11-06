@@ -1,17 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<!--This targets file can be used only if it imported by common.targets-->
 
-    <!-- Display the current git status -->
-    <Target Name="GIT_STATUS" >
-
-        <Exec Command='git status --porcelain' ConsoleToMSBuild="true">
-            <Output TaskParameter="ConsoleOutput" PropertyName="GitStatus" />
-        </Exec>
-        <Message Importance="high" Text="Git Status: $(GitStatus)" />
-
-        <Message Text="==> COMMON_DONE"/>
-    </Target>
-
     <!-- Increment version for a stage build -->
     <Target Name="AUTOTAG_STAGE" >
         <Git Command="AutoTag" TaskParameter="Stage">
@@ -23,7 +12,6 @@
 
         <Message Text="==> COMMON_DONE"/>
     </Target>
-
 
     <!-- Set version for a stage build -->
     <Target Name="SET_TAG" AfterTargets="AUTOTAG_STAGE;AUTOTAG_PROD">
@@ -37,11 +25,6 @@
         <RedError Condition="'$(ProductVersion)' == ''" Message="SetTag Failed: Product Version property is not defined." />
 
         <Message Text="==> COMMON_DONE"/>
-    </Target>
-
-    <!-- Get the latest tag from git -->
-    <Target Name="GIT_PULL" DependsOnTargets="GIT_BRANCH">
-        <Exec Command='git pull -r'/>
     </Target>
 
     <!-- Increment version for a production build -->
@@ -95,4 +78,3 @@
     </Target>
 
 </Project>
-

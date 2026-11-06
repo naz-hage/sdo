@@ -121,7 +121,7 @@ steps:
     arguments: "PUBLISH"
     workingDirectory: .
     expectedReturnCode: 0
-    - name: package
+  - name: package
     path: pwsh.exe
     arguments: >-
       -NoProfile -Command

@@ -36,6 +36,50 @@ namespace NbuildTests
         }
 
         [TestMethod]
+        public async Task DeleteRelease_NormalizesGitHubUrlBeforeCallingFactory()
+        {
+            var previousFactory = Command.ReleaseServiceFactory;
+            FakeReleaseService? fakeService = null;
+            Command.ReleaseServiceFactory = repo =>
+            {
+                Assert.AreEqual("owner/repository", repo);
+                var service = new FakeReleaseService(HttpStatusCode.NoContent);
+                fakeService = service;
+                return service;
+            };
+
+            try
+            {
+                var result = await Command.DeleteRelease("https://github.com/owner/repository", "v1.2.3");
+
+                Assert.IsTrue(result.IsSuccess());
+                Assert.AreEqual("v1.2.3", fakeService?.DeletedTag);
+            }
+            finally
+            {
+                Command.ReleaseServiceFactory = previousFactory;
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteRelease_RejectsNonGitHubUrlWithoutCallingFactory()
+        {
+            var previousFactory = Command.ReleaseServiceFactory;
+            Command.ReleaseServiceFactory = _ => throw new AssertFailedException("Invalid repository URLs must not call the release service.");
+
+            try
+            {
+                var result = await Command.DeleteRelease("https://example.com/owner/repository", "v1.2.3");
+
+                Assert.IsFalse(result.IsSuccess());
+            }
+            finally
+            {
+                Command.ReleaseServiceFactory = previousFactory;
+            }
+        }
+
+        [TestMethod]
         public async Task DeleteRelease_ReturnsFailureWhenServiceFails()
         {
             var previousFactory = Command.ReleaseServiceFactory;

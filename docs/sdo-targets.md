@@ -93,10 +93,8 @@ Actions and under the artifacts solution folder otherwise.
 
 | **Target Name** | **Description** |
 | --- | --- |
-| GIT_STATUS          | Display the current git status |
 | AUTOTAG_STAGE       | Increment version for a stage build |
 | SET_TAG             | Set version for a stage build |
-| GIT_PULL            | Get the latest tag from git |
 | AUTOTAG_PROD        | Increment version for a production build |
 | TAG                 | Get the tag from git |
 | PUSH_TAG            | Push the tag to the remote repo |

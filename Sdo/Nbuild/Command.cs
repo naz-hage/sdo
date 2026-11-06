@@ -2563,8 +2563,21 @@ namespace Nbuild
         {
             if (string.IsNullOrWhiteSpace(repo))
             {
-                ConsoleHelper.WriteError("Error: valid repository is required");
+                ConsoleHelper.WriteError("Error: valid GitHub repository in owner/name or URL format is required");
                 return ResultHelper.Fail(-1, "Repository is required");
+            }
+
+            repo = repo.Trim();
+            if (Uri.TryCreate(repo, UriKind.Absolute, out _))
+            {
+                if (!TryParseGitHubRepository(repo, out var parsedRepository) ||
+                    string.IsNullOrWhiteSpace(parsedRepository))
+                {
+                    ConsoleHelper.WriteError($"Error: invalid GitHub repository URL '{repo}'");
+                    return ResultHelper.Fail(-1, "Invalid GitHub repository URL");
+                }
+
+                repo = parsedRepository;
             }
 
             if (string.IsNullOrWhiteSpace(tag))
