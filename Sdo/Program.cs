@@ -29,12 +29,15 @@ namespace Sdo
         /// <returns>Exit code: 0 for success, non-zero for errors.</returns>
         public static int Main(params string[] args)
         {
-            ConsoleHelper.WriteWarning($"{Nversion.Get()}\n");
-
             // Create the root command
             var rootCommand = new RootCommand("Simple DevOps Operations CLI tool for Azure DevOps and GitHub");
 
             // Add global options
+            var quietOption = new Option<bool>("--quiet", ["-q"])
+            {
+                Description = "Suppress the SDO version banner",
+                Recursive = true
+            };
             var verboseOption = new Option<bool>("--verbose", ["-v"])
             {
                 Description = "Enable verbose output"
@@ -43,6 +46,7 @@ namespace Sdo
             {
                 Description = "Perform a dry run without side effects"
             };
+            rootCommand.Options.Add(quietOption);
             rootCommand.Options.Add(verboseOption);
             rootCommand.Options.Add(dryRunOption);
 
@@ -51,8 +55,8 @@ namespace Sdo
             rootCommand.Subcommands.Add(new Commands.AuthCommand(verboseOption));
             rootCommand.Subcommands.Add(new Commands.PipelineCommand(verboseOption));
             rootCommand.Subcommands.Add(new Commands.PullRequestCommand(verboseOption));
-            rootCommand.Subcommands.Add(new Commands.RepositoryCommand(verboseOption, dryRunOption: dryRunOption));
-            rootCommand.Subcommands.Add(new Commands.GitCommand(verboseOption, dryRunOption));
+            rootCommand.Subcommands.Add(new Commands.RepositoryCommand(verboseOption, dryRunOption: dryRunOption, quietOption: quietOption));
+            rootCommand.Subcommands.Add(new Commands.GitCommand(verboseOption, dryRunOption, quietOption));
             rootCommand.Subcommands.Add(new Commands.WorkItemCommand(verboseOption));
             rootCommand.Subcommands.Add(new Commands.UserCommand(verboseOption));
 
@@ -109,7 +113,13 @@ namespace Sdo
             });
 
             // Parse and execute
-            return rootCommand.Parse(args).Invoke();
+            var parseResult = rootCommand.Parse(args);
+            if (!parseResult.GetValue(quietOption))
+            {
+                ConsoleHelper.WriteWarning(Nversion.Get());
+            }
+
+            return parseResult.Invoke();
         }
     }
 }

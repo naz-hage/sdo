@@ -144,9 +144,12 @@ namespace NbuildTasks
         /// </summary>
         /// <param name="arguments">The arguments to pass to the Git command.</param>
         /// <returns>A <see cref="ResultHelper"/> containing the result of the Git command.</returns>
-        private ResultHelper ExecuteGitCommand(string arguments)
+        private ResultHelper ExecuteGitCommand(string arguments, bool showCommand = true)
         {
-            ConsoleHelper.WriteLine($"git {arguments}", ConsoleColor.Blue);
+            if (showCommand)
+            {
+                ConsoleHelper.WriteLine($"git {arguments}", ConsoleColor.Blue);
+            }
             Process.StartInfo.Arguments = arguments;
             return Process.LockStart(Verbose);
         }
@@ -228,8 +231,21 @@ namespace NbuildTasks
         /// <returns>return valid stage tag, otherwise null if failed</returns>
         private string GetBranch()
         {
+            return GetBranch(showCommand: true);
+        }
+
+        /// <summary>
+        /// Gets the current local branch without logging the Git command.
+        /// </summary>
+        public string GetBranchQuietly()
+        {
+            return GetBranch(showCommand: false);
+        }
+
+        private string GetBranch(bool showCommand)
+        {
             var branch = string.Empty;
-            var result = ExecuteGitCommand("rev-parse --abbrev-ref HEAD");
+            var result = ExecuteGitCommand("rev-parse --abbrev-ref HEAD", showCommand);
             if ((result.Code == 0) && (result.Output.Count == 1))
             {
                 branch = result.GetFirstOutput();
@@ -240,7 +256,20 @@ namespace NbuildTasks
 
         private string GetTag()
         {
-            var result = ExecuteGitCommand("describe --abbrev=0 --tags");
+            return GetTag(showCommand: true);
+        }
+
+        /// <summary>
+        /// Gets the nearest local tag without logging the Git command.
+        /// </summary>
+        public string GetTagQuietly()
+        {
+            return GetTag(showCommand: false);
+        }
+
+        private string GetTag(bool showCommand)
+        {
+            var result = ExecuteGitCommand("describe --abbrev=0 --tags", showCommand);
             return (result.Code == 0) && (result.Output.Count == 1)
                 ? CheckForErrorAndDisplayOutput(result.Output) ? string.Empty : result.GetFirstOutput()
                 : string.Empty;

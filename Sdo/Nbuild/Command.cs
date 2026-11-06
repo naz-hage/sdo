@@ -2303,6 +2303,42 @@ namespace Nbuild
             return ResultHelper.Success();
         }
 
+        public static ResultHelper GetTag(bool quiet = false)
+        {
+            var tag = new GitWrapper().GetTagQuietly();
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                const string message = "No local Git tag was found, or the current directory is not a Git repository.";
+                if (!quiet)
+                {
+                    ConsoleHelper.WriteError($"Error: {message}");
+                }
+
+                return ResultHelper.Fail(-1, message);
+            }
+
+            Console.WriteLine(tag);
+            return ResultHelper.Success();
+        }
+
+        public static ResultHelper GetBranch(bool quiet = false)
+        {
+            var branch = new GitWrapper().GetBranchQuietly();
+            if (string.IsNullOrWhiteSpace(branch))
+            {
+                const string message = "Not a Git repository or no current branch was found.";
+                if (!quiet)
+                {
+                    ConsoleHelper.WriteError($"Error: {message}");
+                }
+
+                return ResultHelper.Fail(-1, message);
+            }
+
+            Console.WriteLine(branch);
+            return ResultHelper.Success();
+        }
+
         /// <summary>
         /// Sets the auto tag based on the provided build type and optionally pushes the tag.
         /// </summary>

@@ -1,4 +1,5 @@
 using Sdo;
+using NbuildTasks;
 
 namespace SdoTests;
 
@@ -115,6 +116,7 @@ public class ProgramTests
         var setPushResult = Program.Main("repo", "tag", "set", "--tag", "1.2.3", "--push", "--dry-run");
         var deleteResult = Program.Main("repo", "tag", "delete", "--tag", "1.2.3", "--dry-run");
         var deleteRemoteResult = Program.Main("repo", "tag", "delete", "--tag", "1.2.3", "--remote", "--dry-run");
+        var getResult = Program.Main("repo", "tag", "get");
         var autoResult = Program.Main("repo", "tag", "auto", "--buildtype", "stage", "--dry-run");
         var autoPushResult = Program.Main("repo", "tag", "auto", "--buildtype", "stage", "--push", "--dry-run");
 
@@ -122,6 +124,7 @@ public class ProgramTests
         Assert.AreEqual(0, setPushResult);
         Assert.AreEqual(0, deleteResult);
         Assert.AreEqual(0, deleteRemoteResult);
+        Assert.AreEqual(0, getResult);
         Assert.AreEqual(0, autoResult);
         Assert.AreEqual(0, autoPushResult);
     }
@@ -130,10 +133,97 @@ public class ProgramTests
     public void Main_WithGitTagDryRunCommands_ReturnZero()
     {
         var setResult = Program.Main("git", "tag", "set", "--tag", "1.2.3", "--dry-run");
+        var getResult = Program.Main("git", "tag", "get");
         var deleteResult = Program.Main("git", "tag", "delete", "--tag", "1.2.3", "--remote", "--dry-run");
 
         Assert.AreEqual(0, setResult);
+        Assert.AreEqual(0, getResult);
         Assert.AreEqual(0, deleteResult);
+    }
+
+    [TestMethod]
+    public void Main_WithQuietGitTagGet_SuppressesBannerAndBlankLines()
+    {
+        var expectedTag = new GitWrapper().GetTagQuietly();
+        var originalOutput = Console.Out;
+        using var output = new StringWriter();
+        Console.SetOut(output);
+
+        try
+        {
+            Assert.AreEqual(0, Program.Main("git", "tag", "get", "--quiet"));
+            Assert.AreEqual($"{expectedTag}{Environment.NewLine}", output.ToString());
+
+            output.GetStringBuilder().Clear();
+            Assert.AreEqual(0, Program.Main("repo", "tag", "get", "-q"));
+            Assert.AreEqual($"{expectedTag}{Environment.NewLine}", output.ToString());
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
+    }
+
+    [TestMethod]
+    public void Main_WithQuietGitBranchGet_PrintsOnlyCurrentBranch()
+    {
+        var expectedBranch = new GitWrapper().GetBranchQuietly();
+        var originalOutput = Console.Out;
+        using var output = new StringWriter();
+        Console.SetOut(output);
+
+        try
+        {
+            Assert.AreEqual(0, Program.Main("git", "branch", "get", "--quiet"));
+            Assert.AreEqual($"{expectedBranch}{Environment.NewLine}", output.ToString());
+
+            output.GetStringBuilder().Clear();
+            Assert.AreEqual(0, Program.Main("repo", "branch", "get", "-q"));
+            Assert.AreEqual($"{expectedBranch}{Environment.NewLine}", output.ToString());
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
+    }
+
+    [TestMethod]
+    public void Main_WithQuietGitGetErrors_SuppressesMessagesAndKeepsFailureExitCode()
+    {
+        var workingDirectory = Path.Combine(Path.GetTempPath(), $"sdo-not-a-repository-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(workingDirectory);
+
+        var originalDirectory = Environment.CurrentDirectory;
+        var originalOutput = Console.Out;
+        var originalError = Console.Error;
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        try
+        {
+            Environment.CurrentDirectory = workingDirectory;
+            Console.SetOut(output);
+            Console.SetError(error);
+
+            var tagResult = Program.Main("git", "tag", "get", "-q");
+            Assert.AreNotEqual(0, tagResult);
+            Assert.AreEqual(string.Empty, output.ToString());
+            Assert.AreEqual(string.Empty, error.ToString());
+
+            output.GetStringBuilder().Clear();
+            error.GetStringBuilder().Clear();
+            var branchResult = Program.Main("git", "branch", "get", "-q");
+            Assert.AreNotEqual(0, branchResult);
+            Assert.AreEqual(string.Empty, output.ToString());
+            Assert.AreEqual(string.Empty, error.ToString());
+        }
+        finally
+        {
+            Environment.CurrentDirectory = originalDirectory;
+            Console.SetOut(originalOutput);
+            Console.SetError(originalError);
+            Directory.Delete(workingDirectory, recursive: true);
+        }
     }
 
     [TestMethod]

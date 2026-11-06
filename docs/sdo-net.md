@@ -78,6 +78,7 @@ Usage:
   sdo [command] [options] [[--] <additional arguments>...]
 
 Options:
+  -q, --quiet     Suppress the SDO version banner and branch/tag get error messages
   -v, --verbose   Enable verbose output
   -dr, --dry-run  Perform a dry run without side effects
   -?, -h, --help  Show help and usage information
@@ -687,6 +688,8 @@ Usage:
 Manage local and remote Git branches. The current branch, `main`, and `master` are always protected.
 
 ```bash
+sdo git branch get --quiet
+sdo repo branch get -q
 sdo git branch --list
 sdo git branch --list --local
 sdo git branch --list --remote
@@ -716,6 +719,10 @@ sdo git clone --url https://github.com/owner/repository --dry-run
 #### git tag
 
 ```bash
+sdo git tag get
+sdo repo tag get
+sdo git tag get --quiet
+sdo git tag get -q
 sdo git tag list
 sdo git tag list --all
 sdo git tag set --tag 1.2.3 --dry-run
@@ -727,6 +734,8 @@ sdo git tag delete --tag 1.2.3 --dry-run
 sdo git tag delete --tag 1.2.3 --remote
 ```
 
+Use `--quiet` (`-q`) to suppress the SDO version banner. For `branch get` and `tag get`, it also suppresses error messages while preserving the nonzero exit code; successful commands leave only the branch or tag name on standard output, with no surrounding blank lines.
+
 When tags differ, `list` appends discrepancy lines after the local tag listing:
 
 ```text
@@ -736,6 +745,7 @@ remote: 2.6.1
 
 Tag operations affect the local repository by default:
 
+- `get` prints the nearest local tag on one line, without additional Git command output.
 - `list` shows the 10 highest local tags by version, in descending order. Add `--all` to list every local tag.
 - By default, discrepancies compare the 10 highest tags from each side by version. `local:` shows tags from the local top 10 that are absent from `origin`; `remote:` shows tags from the remote top 10 that are absent locally. Lines are omitted when that side has no discrepancies.
 - Add `--all` to list and compare every local and remote tag.

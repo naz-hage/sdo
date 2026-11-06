@@ -31,8 +31,8 @@ namespace Sdo.Commands
         /// Initializes a new instance of the RepositoryCommand class.
         /// </summary>
         /// <param name="verboseOption">Option for verbose output.</param>
-        public RepositoryCommand(Option<bool> verboseOption, Sdo.Mapping.IMappingGenerator? mappingGenerator = null, Sdo.Mapping.IMappingPresenter? mappingPresenter = null, Option<bool>? dryRunOption = null)
-            : this(verboseOption, mappingGenerator, mappingPresenter, dryRunOption, "repo", "Repository management commands", true, false)
+        public RepositoryCommand(Option<bool> verboseOption, Sdo.Mapping.IMappingGenerator? mappingGenerator = null, Sdo.Mapping.IMappingPresenter? mappingPresenter = null, Option<bool>? dryRunOption = null, Option<bool>? quietOption = null)
+            : this(verboseOption, mappingGenerator, mappingPresenter, dryRunOption, quietOption, "repo", "Repository management commands", true, false)
         {
         }
 
@@ -41,6 +41,7 @@ namespace Sdo.Commands
             Sdo.Mapping.IMappingGenerator? mappingGenerator,
             Sdo.Mapping.IMappingPresenter? mappingPresenter,
             Option<bool>? dryRunOption,
+            Option<bool>? quietOption,
             string commandName,
             string description,
             bool includeRepositoryManagementCommands,
@@ -53,7 +54,7 @@ namespace Sdo.Commands
             _dryRunOption = dryRunOption;
 
             // Add subcommands (in alphabetical order)
-            AddBranchCommand(verboseOption, canonicalGitNamespace);
+            AddBranchCommand(verboseOption, canonicalGitNamespace, quietOption);
             AddCloneCommand(verboseOption, canonicalGitNamespace);
             if (includeRepositoryManagementCommands)
             {
@@ -62,10 +63,10 @@ namespace Sdo.Commands
                 AddInfoCommand(verboseOption);
                 AddListCommand(verboseOption);
             }
-            AddTagCommand(verboseOption, canonicalGitNamespace);
+            AddTagCommand(verboseOption, canonicalGitNamespace, quietOption);
         }
 
-        private void AddBranchCommand(Option<bool> verboseOption, bool canonicalGitNamespace)
+        private void AddBranchCommand(Option<bool> verboseOption, bool canonicalGitNamespace, Option<bool>? quietOption)
         {
             var description = canonicalGitNamespace
                 ? "Manage Git branches"
@@ -103,6 +104,7 @@ namespace Sdo.Commands
             branchCommand.Add(nameOption);
             branchCommand.Add(verboseOption);
             AddDryRunOption(branchCommand);
+            AddGetBranchCommand(branchCommand, quietOption);
             branchCommand.SetAction(parseResult =>
             {
                 var list = parseResult.GetValue(listOption);
@@ -241,6 +243,16 @@ namespace Sdo.Commands
             Subcommands.Add(branchCommand);
         }
 
+        private void AddGetBranchCommand(Command branchCommand, Option<bool>? quietOption)
+        {
+            var getCommand = new Command(
+                "get",
+                "Display the current local Git branch on a single line.");
+            getCommand.SetAction(parseResult =>
+                Nbuild.Command.GetBranch(quietOption != null && parseResult.GetValue(quietOption)).Code);
+            branchCommand.Subcommands.Add(getCommand);
+        }
+
         private void AddCloneCommand(Option<bool> verboseOption, bool canonicalGitNamespace)
         {
             var description = canonicalGitNamespace
@@ -279,7 +291,7 @@ namespace Sdo.Commands
             Subcommands.Add(cloneCommand);
         }
 
-        private void AddTagCommand(Option<bool> verboseOption, bool canonicalGitNamespace)
+        private void AddTagCommand(Option<bool> verboseOption, bool canonicalGitNamespace, Option<bool>? quietOption)
         {
             var description = canonicalGitNamespace
                 ? "Manage Git tags. Commands change local tags by default; list shows the latest 10 by version and compares with origin (--all lists and compares every tag), --push publishes tags, and delete --remote also removes them from origin."
@@ -290,10 +302,21 @@ namespace Sdo.Commands
 
             AddAutoTagCommand(tagCommand, verboseOption);
             AddDeleteTagCommand(tagCommand, verboseOption);
+            AddGetTagCommand(tagCommand, quietOption);
             AddListTagCommand(tagCommand, verboseOption);
             AddSetTagCommand(tagCommand, verboseOption);
 
             Subcommands.Add(tagCommand);
+        }
+
+        private void AddGetTagCommand(System.CommandLine.Command tagCommand, Option<bool>? quietOption)
+        {
+            var getCommand = new System.CommandLine.Command(
+                "get",
+                "Display the current local Git tag on a single line.");
+            getCommand.SetAction(parseResult =>
+                Nbuild.Command.GetTag(quietOption != null && parseResult.GetValue(quietOption)).Code);
+            tagCommand.Subcommands.Add(getCommand);
         }
 
         private void AddListTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)

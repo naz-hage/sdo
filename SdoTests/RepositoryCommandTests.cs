@@ -68,6 +68,7 @@ public class RepositoryCommandTests
         Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--delete"));
         Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--contains"));
         Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--name"));
+        Assert.IsNotNull(branchCmd.Subcommands.FirstOrDefault(command => command.Name == "get"));
     }
 
     [TestMethod]
@@ -87,7 +88,7 @@ public class RepositoryCommandTests
         var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
         var nestedNames = tagCmd.Subcommands.Select(s => s.Name).ToList();
 
-        Assert.IsTrue(new[] { "auto", "delete", "list", "set" }.SequenceEqual(nestedNames));
+        Assert.IsTrue(new[] { "auto", "delete", "get", "list", "set" }.SequenceEqual(nestedNames));
     }
 
     [TestMethod]
@@ -108,12 +109,14 @@ public class RepositoryCommandTests
         var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
         var autoCmd = tagCmd.Subcommands.Single(s => s.Name == "auto");
         var deleteCmd = tagCmd.Subcommands.Single(s => s.Name == "delete");
+        var getCmd = tagCmd.Subcommands.Single(s => s.Name == "get");
         var listCmd = tagCmd.Subcommands.Single(s => s.Name == "list");
         var setCmd = tagCmd.Subcommands.Single(s => s.Name == "set");
 
         Assert.IsNotNull(autoCmd.Options.FirstOrDefault(o => o.Name == "--push"));
         Assert.IsNotNull(setCmd.Options.FirstOrDefault(o => o.Name == "--push"));
         Assert.IsNotNull(deleteCmd.Options.FirstOrDefault(o => o.Name == "--remote"));
+        Assert.AreEqual("Display the current local Git tag on a single line.", getCmd.Description);
         Assert.IsNotNull(listCmd.Options.FirstOrDefault(o => o.Name == "--all"));
         Assert.IsFalse(tagCmd.Subcommands.Any(s => s.Name == "push-auto"));
     }

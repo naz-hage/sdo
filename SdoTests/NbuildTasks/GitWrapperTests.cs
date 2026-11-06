@@ -115,7 +115,49 @@ namespace NbuildTasks.Tests
         public void GetCurrentBranchTest() => Assert.AreEqual("main", GitWrapper.Branch);
 
         [TestMethod]
+        public void GetBranchCommand_PrintsOnlyTheCurrentBranch()
+        {
+            var expectedBranch = GitWrapper.Branch;
+            var originalOutput = Console.Out;
+            using var output = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                var result = Nbuild.Command.GetBranch();
+
+                Assert.IsTrue(result.IsSuccess());
+                Assert.AreEqual(expectedBranch + Environment.NewLine, output.ToString());
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+            }
+        }
+
+        [TestMethod]
         public void GetCurrentTagTest() => Assert.AreEqual("1.0.0", GitWrapper.Tag);
+
+        [TestMethod]
+        public void GetTagCommand_PrintsOnlyTheCurrentTag()
+        {
+            var expectedTag = GitWrapper.Tag;
+            var originalOutput = Console.Out;
+            using var output = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                var result = Nbuild.Command.GetTag();
+
+                Assert.IsTrue(result.IsSuccess());
+                Assert.AreEqual(expectedTag + Environment.NewLine, output.ToString());
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+            }
+        }
 
         [TestMethod]
         public void ProjectNameFromUrlTest()

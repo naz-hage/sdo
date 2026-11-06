@@ -10,12 +10,13 @@ namespace Sdo.Commands
     /// </summary>
     public sealed class GitCommand : RepositoryCommand
     {
-        public GitCommand(Option<bool> verboseOption, Option<bool>? dryRunOption = null)
+        public GitCommand(Option<bool> verboseOption, Option<bool>? dryRunOption = null, Option<bool>? quietOption = null)
             : base(
                 verboseOption,
                 mappingGenerator: null,
                 mappingPresenter: null,
                 dryRunOption: dryRunOption,
+                quietOption: quietOption,
                 commandName: "git",
                 description: "Local Git operations",
                 includeRepositoryManagementCommands: false,
