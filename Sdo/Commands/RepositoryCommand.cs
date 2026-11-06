@@ -298,7 +298,7 @@ namespace Sdo.Commands
             AddAutoTagCommand(tagCommand, verboseOption, quietOption);
             AddDeleteTagCommand(tagCommand, verboseOption, quietOption);
             AddGetTagCommand(tagCommand, quietOption);
-            AddListTagCommand(tagCommand, verboseOption);
+            AddListTagCommand(tagCommand, verboseOption, quietOption);
             AddPushTagCommand(tagCommand, verboseOption, quietOption);
             AddSetTagCommand(tagCommand, verboseOption, quietOption);
 
@@ -315,7 +315,7 @@ namespace Sdo.Commands
             tagCommand.Subcommands.Add(getCommand);
         }
 
-        private void AddListTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
+        private void AddListTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption, Option<bool>? quietOption)
         {
             var listCommand = new System.CommandLine.Command(
                 "list",
@@ -331,7 +331,8 @@ namespace Sdo.Commands
             {
                 var all = parseResult.GetValue(allOption);
                 var verbose = parseResult.GetValue(verboseOption);
-                return Nbuild.Command.ListTags(all, verbose).Code;
+                var quiet = quietOption != null && parseResult.GetValue(quietOption);
+                return Nbuild.Command.ListTags(all, verbose, quiet).Code;
             });
 
             tagCommand.Subcommands.Add(listCommand);

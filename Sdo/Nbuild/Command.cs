@@ -2559,9 +2559,9 @@ namespace Nbuild
             return ResultHelper.Success();
         }
 
-        public static ResultHelper ListTags(bool all = false, bool verbose = false)
+        public static ResultHelper ListTags(bool all = false, bool verbose = false, bool quiet = false)
         {
-            var gitWrapper = new GitWrapper(verbose: verbose);
+            var gitWrapper = new GitWrapper(verbose: verbose, quiet: quiet);
             if (!gitWrapper.IsGitRepository())
             {
                 ConsoleHelper.WriteError("Error: Not a git repository");

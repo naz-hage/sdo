@@ -23,7 +23,6 @@ stages:
       - coverage
       - coverage-summary
       - publish
-      - copy-artifacts
       - smoke-test
       - package
       - githubprerelease
@@ -119,6 +118,11 @@ steps:
   - name: publish
     path: sdo
     arguments: "PUBLISH"
+    workingDirectory: .
+    expectedReturnCode: 0
+  - name: smoke-test
+    path: sdo
+    arguments: SMOKE_TEST
     workingDirectory: .
     expectedReturnCode: 0
   - name: package

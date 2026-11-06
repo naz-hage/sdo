@@ -414,7 +414,7 @@
 		<Message Text=">== NB_TEST_DIAG_ALL completed" Importance="high" />
 	</Target>
 
-    <!-- Comprehensive smoke test to verify published artifacts and build system integrity -->
+    <!-- Verify that the published SDO executable starts successfully. -->
     <Target Name="SMOKE_TEST" DependsOnTargets="PROPERTIES">
         <Exec Command='"$(ArtifactsFolder)\sdo.exe" --version' WorkingDirectory="$(SolutionDir)" />
     </Target>

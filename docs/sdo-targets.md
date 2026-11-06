@@ -46,8 +46,8 @@
 | TEST                | This prevents double test execution that causes conflicts |
 
 `PROPERTIES` initializes the artifact, test-results, and coverage output folders.
-`PUBLISH`, tests, coverage, and packaging use these paths directly; the deprecated
-`ARTIFACTS` and `COPY_ARTIFACTS` targets are no longer required.
+`ARTIFACTS` and `COPY_ARTIFACTS` have been removed; publishing, tests, coverage,
+and packaging use these paths directly.
 
 
 - **C:\Program Files\Nbuild\common.targets Targets**

@@ -384,6 +384,7 @@ namespace NbuildTasks.Tests
                 Assert.AreEqual(0, Program.Main("git", "tag", "list", "-q"));
                 StringAssert.Contains(output.ToString(), "1.0.0");
                 Assert.IsFalse(output.ToString().Contains(Nversion.Get(), StringComparison.Ordinal));
+                Assert.IsFalse(output.ToString().Contains("git ", StringComparison.OrdinalIgnoreCase));
                 Assert.AreEqual(string.Empty, error.ToString());
             }
             finally
