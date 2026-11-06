@@ -8,7 +8,6 @@ included in the consolidated `sdo.dll` assembly.
 | Task | Use |
 | --- | --- |
 | `RedError` | Write an error message in red. |
-| `Git` | Read or update Git tags. |
 | `ColorMessage` | Write a colored message. |
 | `FileVersion` | Read a file version. |
 | `WebDownload` | Download a file. |
@@ -19,8 +18,8 @@ included in the consolidated `sdo.dll` assembly.
 The tasks are registered by
 [`common.targets`](../Sdo/Resources/common.targets).
 
-The `Git` task remains available for existing custom MSBuild projects. The
-built-in Git targets use the `sdo git` CLI instead, capturing quiet output into
+Git operations are provided by the `sdo git` CLI; the legacy MSBuild `Git`
+task has been removed. Built-in Git targets capture quiet CLI output into
 MSBuild properties.
 
 ## Examples

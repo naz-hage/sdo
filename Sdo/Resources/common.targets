@@ -34,7 +34,6 @@
 	
 	<UsingTask TaskName="NbuildTasks.ColorMessage" AssemblyFile="$(BuildTools)\sdo.dll"/>
 	<UsingTask TaskName="NbuildTasks.RedError" AssemblyFile="$(BuildTools)\sdo.dll" />
-	<UsingTask TaskName="NbuildTasks.Git" AssemblyFile="$(BuildTools)\sdo.dll" />
 	<UsingTask TaskName="NbuildTasks.WebDownload" AssemblyFile="$(BuildTools)\sdo.dll" />
 	<UsingTask TaskName="NbuildTasks.FileVersion" AssemblyFile="$(BuildTools)\sdo.dll" />
 	<UsingTask TaskName="NbuildTasks.UnZip" AssemblyFile="$(BuildTools)\sdo.dll" />
