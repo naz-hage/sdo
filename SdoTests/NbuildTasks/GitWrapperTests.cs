@@ -1,11 +1,8 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Launcher.Services;
 using Ntools;
 using Sdo;
-using System;
+using Sdo.Git;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using static NbuildTasks.Enums;
 
 namespace NbuildTasks.Tests

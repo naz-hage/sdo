@@ -6,6 +6,7 @@
 // Implementation of platform detection service that analyzes Git remote URLs
 // to determine the DevOps platform (GitHub or Azure DevOps).
 
+using Sdo.Git;
 using Sdo.Interfaces;
 
 namespace Sdo.Services
@@ -128,7 +129,7 @@ namespace Sdo.Services
         {
             try
             {
-                return new NbuildTasks.GitWrapper(quiet: true).GetRemoteUrl();
+                return new GitWrapper(quiet: true).GetRemoteUrl();
             }
             catch
             {

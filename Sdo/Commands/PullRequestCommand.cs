@@ -7,7 +7,7 @@
 // Supports both GitHub pull requests and Azure DevOps pull requests.
 
 using Launcher.Services;
-using NbuildTasks;
+using Sdo.Git;
 using Sdo.Interfaces;
 using Sdo.Services;
 using System.CommandLine;
@@ -45,13 +45,13 @@ namespace Sdo.Commands
         private void AddCreateCommand(Option<bool> verboseOption)
         {
             var createCommand = new System.CommandLine.Command("create", "Create a pull request from markdown file");
-            var fileOption = new Option<string?>("--file", ["-f"]) 
-            { 
-                Description = "Path to markdown file containing PR details (auto-detected as .temp/<work-item-id>-pr-message.md if not provided)" 
+            var fileOption = new Option<string?>("--file", ["-f"])
+            {
+                Description = "Path to markdown file containing PR details (auto-detected as .temp/<work-item-id>-pr-message.md if not provided)"
             };
-            var workItemOption = new Option<int?>("--work-item", ["-w"]) 
-            { 
-                Description = "Work item ID to link to the pull request (auto-detected from branch name if not provided)" 
+            var workItemOption = new Option<int?>("--work-item", ["-w"])
+            {
+                Description = "Work item ID to link to the pull request (auto-detected from branch name if not provided)"
             };
             var draftOption = new Option<bool>("--draft", ["-d"]) { Description = "Create as draft pull request" };
             var dryRunOption = new Option<bool>("--dry-run", ["-n"]) { Description = "Parse and preview PR creation without creating it" };
@@ -172,7 +172,7 @@ namespace Sdo.Commands
                 {
                     var currentBranch = GetCurrentBranch();
                     workItem = ExtractWorkItemIdFromBranch(currentBranch);
-                    
+
                     if (!workItem.HasValue || workItem <= 0)
                     {
                         ConsoleHelper.WriteError("Error: Could not determine work item ID");
@@ -192,7 +192,7 @@ namespace Sdo.Commands
                         Console.WriteLine("  sdo pr create --work-item <id>");
                         return 1;
                     }
-                    
+
                     if (verbose)
                     {
                         Console.WriteLine($"[VERBOSE] Auto-detected work item ID '{workItem}' from branch '{currentBranch}'");
@@ -203,7 +203,7 @@ namespace Sdo.Commands
                 if (string.IsNullOrEmpty(file))
                 {
                     file = ConstructDefaultFilePath(workItem.Value);
-                    
+
                     if (verbose)
                     {
                         Console.WriteLine($"[VERBOSE] Auto-detected file path: {file}");
@@ -326,7 +326,7 @@ namespace Sdo.Commands
 
                     using var client = new GitHubClient(pat);
                     var currentBranch = GetCurrentBranch();
-                    
+
                     // Check if the current branch exists on the remote before attempting to create PR
                     if (!BranchExistsOnRemote(currentBranch))
                     {
@@ -336,7 +336,7 @@ namespace Sdo.Commands
                         Console.WriteLine("\nThen retry the PR creation command.");
                         return 1;
                     }
-                    
+
                     try
                     {
                         var pr = await client.CreatePullRequestAsync(repoInfo.Owner, repoInfo.Repo, title,
@@ -422,7 +422,7 @@ namespace Sdo.Commands
 
                     using var client = new AzureDevOpsClient(pat, organization, project);
                     var currentBranch = GetCurrentBranch();
-                    
+
                     // Check if the current branch exists on the remote before attempting to create PR
                     if (!BranchExistsOnRemote(currentBranch))
                     {
@@ -432,7 +432,7 @@ namespace Sdo.Commands
                         Console.WriteLine("\nThen retry the PR creation command.");
                         return 1;
                     }
-                    
+
                     var pr = await client.CreatePullRequestAsync(project, repoInfo.Repo, title,
                         $"refs/heads/{currentBranch}", "refs/heads/main", body);
 
@@ -476,7 +476,7 @@ namespace Sdo.Commands
             }
         }
 
-        
+
 
         private async Task<int> ListPullRequests(string? status, int top, bool verbose)
         {

@@ -1,5 +1,5 @@
 using Sdo;
-using NbuildTasks;
+using Sdo.Git;
 
 namespace SdoTests;
 

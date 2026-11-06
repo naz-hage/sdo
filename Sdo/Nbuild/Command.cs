@@ -3,6 +3,7 @@ using Launcher.Services;
 using Nbuild.Services;
 using NbuildTasks;
 using Ntools;
+using Sdo.Git;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Runtime.InteropServices;

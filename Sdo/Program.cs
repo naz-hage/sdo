@@ -8,7 +8,6 @@
 // for Azure DevOps and GitHub work item and repository management.
 
 using Launcher.Services;
-using NbuildTasks;
 using System.CommandLine;
 
 namespace Sdo
@@ -55,7 +54,7 @@ namespace Sdo
             rootCommand.Subcommands.Add(new Commands.AuthCommand(verboseOption));
             rootCommand.Subcommands.Add(new Commands.PipelineCommand(verboseOption));
             rootCommand.Subcommands.Add(new Commands.PullRequestCommand(verboseOption));
-            rootCommand.Subcommands.Add(new Commands.RepositoryCommand(verboseOption, dryRunOption: dryRunOption, quietOption: quietOption));
+            rootCommand.Subcommands.Add(new Commands.RepositoryCommand(verboseOption, dryRunOption: dryRunOption));
             rootCommand.Subcommands.Add(new Commands.GitCommand(verboseOption, dryRunOption, quietOption));
             rootCommand.Subcommands.Add(new Commands.WorkItemCommand(verboseOption));
             rootCommand.Subcommands.Add(new Commands.UserCommand(verboseOption));
