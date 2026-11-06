@@ -100,6 +100,13 @@ Actions and under the artifacts solution folder otherwise.
 | PUSH_TAG            | Push the tag to the remote repo |
 | GIT_BRANCH          | Get the current git branch |
 
+The built-in Git targets invoke `sdo git` commands with `-q` and capture their
+single-line output into MSBuild properties. Stage and production auto-tagging
+uses `sdo git tag auto --dry-run -q` to calculate `ProductVersion`, then
+`SET_TAG` runs `sdo git tag set` to create the tag locally. `PUSH_TAG` and the
+GitHub release targets in `common.targets` and `sdo.targets` run
+`sdo git tag push` to publish an existing tag without replacing it. The
+`NbuildTasks.Git` task remains available for compatibility with custom targets.
 
 - **unit-tests.targets Targets**
 

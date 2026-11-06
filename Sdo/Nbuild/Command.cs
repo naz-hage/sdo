@@ -2314,6 +2314,32 @@ namespace Nbuild
             return ResultHelper.Success();
         }
 
+        public static ResultHelper PushTag(string? tag, bool verbose = false, bool quiet = false)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                if (!quiet) ConsoleHelper.WriteError("Error: valid tag is required");
+                return ResultHelper.Fail(-1, "Tag is required");
+            }
+
+            var gitWrapper = new GitWrapper(verbose: verbose, quiet: quiet);
+            if (!gitWrapper.PushTag(tag))
+            {
+                return ResultHelper.Fail(-1, $"Failed to push tag '{tag}' to origin");
+            }
+
+            if (quiet)
+            {
+                Console.WriteLine(tag);
+            }
+            else
+            {
+                ConsoleHelper.WriteSuccess($"Pushed tag '{tag}' to origin.");
+            }
+
+            return ResultHelper.Success();
+        }
+
         public static ResultHelper GetTag(bool quiet = false)
         {
             var tag = new GitWrapper().GetTagQuietly();
@@ -2393,6 +2419,11 @@ namespace Nbuild
                     }
                     ConsoleHelper.WriteVerbose("DRY-RUN: No actual changes will be made to the repository or remote.");
                 }
+                else
+                {
+                    Console.WriteLine(nextTag);
+                }
+
                 return ResultHelper.Success();
             }
 

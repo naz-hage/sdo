@@ -730,9 +730,11 @@ sdo git tag set --tag 1.2.3 --dry-run
 sdo git tag set --tag 1.2.3 -q
 sdo git tag auto --buildtype stage --dry-run
 sdo git tag auto -b stage --dry-run
+sdo git tag auto --buildtype stage --dry-run -q
 sdo git tag auto --buildtype prod -q
 sdo git tag set --tag 1.2.3 --push
 sdo git tag auto --buildtype stage --push
+sdo git tag push --tag 1.2.3 -q
 sdo git tag delete --tag 1.2.3 --dry-run
 sdo git tag delete --tag 1.2.3 -q
 sdo git tag delete --tag 1.2.3 --remote
@@ -756,6 +758,8 @@ Tag operations affect the local repository by default:
 - If `origin` cannot be queried, the command returns a failure instead of reporting an inaccurate comparison.
 - `set` creates or replaces an annotated tag at the current `HEAD`.
 - `auto` calculates and creates the next `STAGE` or `PROD` tag locally and writes it to `.temp\.tag`.
+- `auto --dry-run -q` prints only the calculated tag without creating it or writing `.temp\.tag`.
+- `push --tag <tag>` publishes an existing local tag to `origin` without changing the local tag or pushing the current branch. With `-q`, it prints only the tag on success.
 - `--push` on `set` or `auto` also pushes only that tag to `origin`; it does not pull or push the current branch.
 - With `-q`, successful `set` and `auto` commands print only the tag they created. `delete -q` prints nothing; its exit code is `0` only when deletion succeeds and nonzero when the tag is missing or deletion fails. Quiet tag mutations suppress error text while retaining their failure exit code.
 - `list -q` suppresses only the SDO version banner; the full tag listing and any discrepancy lines remain visible.

@@ -134,10 +134,21 @@
   
 	<!-- Creates a prod release -->
 	<Target Name="GITHUB_RELEASE" DependsOnTargets="PACKAGE_FILE;GIT_BRANCH" AfterTargets="PROD" Condition="'$(GITHUB_ACTIONS)' != ''" >
-		<Git Command="PushTag" TaskParameter="$(ProductVersion)">
-			<Output TaskParameter="Output" PropertyName="PushResult"/>
-		</Git>
-		<RedError Condition="'$(PushResult)' != 'True'" Message="Failed to push tag $(ProductVersion) to remote repository. Build cannot continue with version conflicts." />
+		<PropertyGroup>
+			<PushTagExitCode></PushTagExitCode>
+			<PushTagOutput></PushTagOutput>
+		</PropertyGroup>
+		<Exec
+			Condition="'$(ProductVersion)' != ''"
+			Command='"$(SdoExe)" git tag push --tag "$(ProductVersion)" -q'
+			WorkingDirectory="$(MSBuildProjectDirectory)"
+			ConsoleToMSBuild="true"
+			StandardOutputImportance="Low"
+			IgnoreExitCode="true">
+			<Output TaskParameter="ConsoleOutput" PropertyName="PushTagOutput" />
+			<Output TaskParameter="ExitCode" PropertyName="PushTagExitCode" />
+		</Exec>
+		<RedError Condition="'$(ProductVersion)' == '' or '$(PushTagExitCode)' != '0' or '$(PushTagOutput)' != '$(ProductVersion)'" Message="Failed to push tag $(ProductVersion) to remote repository. Build cannot continue with version conflicts." />
 		<Exec Command='"$(SdoExe)" release create -r $(OWNER)/$(SolutionName) -t $(ProductVersion) -b $(GitBranch) -f $(PackageFile)' WorkingDirectory="$(BuildTools)" />
 
 		<Message Text="==> DONE"/>
@@ -145,10 +156,21 @@
 
 	<!-- Creates a pre-release -->
 	<Target Name="GITHUB_PRE_RELEASE" DependsOnTargets="PACKAGE_FILE;GIT_BRANCH" AfterTargets="STAGE" Condition="'$(GITHUB_ACTIONS)' != ''" >
-		<Git Command="PushTag" TaskParameter="$(ProductVersion)">
-			<Output TaskParameter="Output" PropertyName="PushResult"/>
-		</Git>
-		<RedError Condition="'$(PushResult)' != 'True'" Message="Failed to push tag $(ProductVersion) to remote repository. Build cannot continue with version conflicts." />
+		<PropertyGroup>
+			<PushTagExitCode></PushTagExitCode>
+			<PushTagOutput></PushTagOutput>
+		</PropertyGroup>
+		<Exec
+			Condition="'$(ProductVersion)' != ''"
+			Command='"$(SdoExe)" git tag push --tag "$(ProductVersion)" -q'
+			WorkingDirectory="$(MSBuildProjectDirectory)"
+			ConsoleToMSBuild="true"
+			StandardOutputImportance="Low"
+			IgnoreExitCode="true">
+			<Output TaskParameter="ConsoleOutput" PropertyName="PushTagOutput" />
+			<Output TaskParameter="ExitCode" PropertyName="PushTagExitCode" />
+		</Exec>
+		<RedError Condition="'$(ProductVersion)' == '' or '$(PushTagExitCode)' != '0' or '$(PushTagOutput)' != '$(ProductVersion)'" Message="Failed to push tag $(ProductVersion) to remote repository. Build cannot continue with version conflicts." />
 		<Exec Command='"$(SdoExe)" release create -p -r $(OWNER)/$(SolutionName) -t $(ProductVersion) -b $(GitBranch) -f $(PackageFile)' WorkingDirectory="$(BuildTools)" />
 
 		<Message Text="==> DONE"/>

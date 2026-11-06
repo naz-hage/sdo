@@ -19,6 +19,10 @@ included in the consolidated `sdo.dll` assembly.
 The tasks are registered by
 [`common.targets`](../Sdo/Resources/common.targets).
 
+The `Git` task remains available for existing custom MSBuild projects. The
+built-in Git targets use the `sdo git` CLI instead, capturing quiet output into
+MSBuild properties.
+
 ## Examples
 
 Display a colored message:
@@ -29,13 +33,17 @@ Display a colored message:
 </Target>
 ```
 
-Read a Git tag:
+Read a Git tag through the SDO CLI:
 
 ```xml
 <Target Name="TAG">
-  <Git Command="GetTag" Branch="$(Branch)" BuildType="$(BuildType)">
-    <Output TaskParameter="Tag" PropertyName="Tag" />
-  </Git>
+  <Exec
+    Command='"$(BuildTools)\sdo.exe" git tag get -q'
+    ConsoleToMSBuild="true"
+    IgnoreExitCode="true">
+    <Output TaskParameter="ConsoleOutput" PropertyName="Tag" />
+    <Output TaskParameter="ExitCode" PropertyName="TagExitCode" />
+  </Exec>
   <Message Text="Tag: $(Tag)" Importance="high" />
 </Target>
 ```

@@ -279,6 +279,28 @@ namespace NbuildTasks.Tests
         }
 
         [TestMethod]
+        public void ProgramMain_WithQuietAutoTagDryRun_PrintsCandidateWithoutCreatingIt()
+        {
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var expectedTag = git.AutoTag("stage");
+            var originalOutput = Console.Out;
+            using var output = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "auto", "--buildtype", "stage", "--dry-run", "-q"));
+                Assert.AreEqual($"{expectedTag}{Environment.NewLine}", output.ToString());
+                Assert.IsFalse(git.LocalTagExists(expectedTag));
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+            }
+        }
+
+        [TestMethod]
         public void ProgramMain_WithQuietTagDelete_IsSilentAndPreservesExitStatus()
         {
             var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
@@ -312,6 +334,37 @@ namespace NbuildTasks.Tests
                 Console.SetOut(originalOutput);
                 Console.SetError(originalError);
                 if (git.LocalTagExists(tag)) git.DeleteTag(tag);
+            }
+        }
+
+        [TestMethod]
+        public void ProgramMain_WithQuietPushTag_PrintsOnlyPushedTag()
+        {
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var tag = $"8.8.{Random.Shared.Next(100000, int.MaxValue)}";
+            Assert.IsTrue(git.SetTag(tag));
+
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "push", "--tag", tag, "-q"));
+                Assert.AreEqual($"{tag}{Environment.NewLine}", output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+                Assert.IsTrue(git.RemoteTagExists(tag));
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+                if (git.RemoteTagExists(tag)) git.DeleteTag(tag, deleteRemote: true);
+                else if (git.LocalTagExists(tag)) git.DeleteTag(tag);
             }
         }
 

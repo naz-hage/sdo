@@ -304,6 +304,7 @@ namespace Sdo.Commands
             AddDeleteTagCommand(tagCommand, verboseOption, quietOption);
             AddGetTagCommand(tagCommand, quietOption);
             AddListTagCommand(tagCommand, verboseOption);
+            AddPushTagCommand(tagCommand, verboseOption, quietOption);
             AddSetTagCommand(tagCommand, verboseOption, quietOption);
 
             Subcommands.Add(tagCommand);
@@ -339,6 +340,30 @@ namespace Sdo.Commands
             });
 
             tagCommand.Subcommands.Add(listCommand);
+        }
+
+        private void AddPushTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption, Option<bool>? quietOption)
+        {
+            var pushCommand = new System.CommandLine.Command(
+                "push",
+                "Push an existing local tag to origin without changing it.");
+            var tagOption = new Option<string>("--tag", ["-t"])
+            {
+                Description = "Tag to push to origin",
+                Required = true
+            };
+
+            pushCommand.Add(tagOption);
+            pushCommand.Add(verboseOption);
+            pushCommand.SetAction(parseResult =>
+            {
+                var tag = parseResult.GetValue(tagOption);
+                var verbose = parseResult.GetValue(verboseOption);
+                var quiet = quietOption != null && parseResult.GetValue(quietOption);
+                return Nbuild.Command.PushTag(tag, verbose, quiet).Code;
+            });
+
+            tagCommand.Subcommands.Add(pushCommand);
         }
 
         private void AddAutoTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption, Option<bool>? quietOption)
