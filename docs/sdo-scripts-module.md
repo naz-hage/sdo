@@ -82,7 +82,7 @@ dotnet publish .\Sdo\Sdo.csproj `
 ```
 The `PUBLISH` target invokes `dotnet publish` once per non-test project and
 writes every project to the same versioned output folder. The `SMOKE_TEST`
-target uses `Test-TargetDelegation`.
+target runs the published `sdo.exe --version` command.
 
 Example GitHub Actions setup:
 

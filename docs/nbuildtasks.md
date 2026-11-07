@@ -8,7 +8,6 @@ included in the consolidated `sdo.dll` assembly.
 | Task | Use |
 | --- | --- |
 | `RedError` | Write an error message in red. |
-| `Git` | Read or update Git tags. |
 | `ColorMessage` | Write a colored message. |
 | `FileVersion` | Read a file version. |
 | `WebDownload` | Download a file. |
@@ -18,6 +17,10 @@ included in the consolidated `sdo.dll` assembly.
 
 The tasks are registered by
 [`common.targets`](../Sdo/Resources/common.targets).
+
+Git operations are provided by the `sdo git` CLI; the legacy MSBuild `Git`
+task has been removed. Built-in Git targets capture quiet CLI output into
+MSBuild properties.
 
 ## Examples
 
@@ -29,13 +32,17 @@ Display a colored message:
 </Target>
 ```
 
-Read a Git tag:
+Read a Git tag through the SDO CLI:
 
 ```xml
 <Target Name="TAG">
-  <Git Command="GetTag" Branch="$(Branch)" BuildType="$(BuildType)">
-    <Output TaskParameter="Tag" PropertyName="Tag" />
-  </Git>
+  <Exec
+    Command='"$(BuildTools)\sdo.exe" git tag get -q'
+    ConsoleToMSBuild="true"
+    IgnoreExitCode="true">
+    <Output TaskParameter="ConsoleOutput" PropertyName="Tag" />
+    <Output TaskParameter="ExitCode" PropertyName="TagExitCode" />
+  </Exec>
   <Message Text="Tag: $(Tag)" Importance="high" />
 </Target>
 ```

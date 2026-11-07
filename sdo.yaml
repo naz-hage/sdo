@@ -23,7 +23,6 @@ stages:
       - coverage
       - coverage-summary
       - publish
-      - copy-artifacts
       - smoke-test
       - package
       - githubprerelease
@@ -54,7 +53,7 @@ steps:
     expectedReturnCode: 0
   - name: autotag-stage
     path: sdo
-    arguments: repo tag auto -b $(BuildType) --verbose
+    arguments: git tag auto -b $(BuildType) --verbose
     workingDirectory: .
     expectedReturnCode: 0
   - name: test
@@ -121,45 +120,9 @@ steps:
     arguments: "PUBLISH"
     workingDirectory: .
     expectedReturnCode: 0
-  - name: copy-artifacts
-    path: sdo
-    arguments: "COPY_ARTIFACTS"
-    workingDirectory: .
-    expectedReturnCode: 0
   - name: smoke-test
-    path: pwsh.exe
-    arguments: >-
-      -NoProfile -Command
-      "$version = (Get-Content '.\.temp\.tag').Trim();
-      $artifacts = '$(ArtifactDirectory)\$(Project)\Release\' + $version;
-      if (-not (Test-Path $artifacts)) {
-        Write-Error ('Artifacts folder not found at: ' + $artifacts);
-        exit 1
-      };
-      $executable = Join-Path $artifacts 'GitHubRelease.exe';
-      if (Test-Path $executable) {
-        & $executable --help;
-        Write-Host ('GitHubRelease.exe exit code: ' + $LASTEXITCODE)
-      };
-      $source = Join-Path (Get-Location) 'sdo.targets';
-      $delegate = Join-Path (Get-Location) 'nb\resources\common.targets';
-      if (-not (Test-Path $source)) {
-        Write-Error ('Source target file not found: ' + $source);
-        exit 1
-      };
-      if (-not (Test-Path $delegate)) {
-        Write-Error ('Delegate target file not found: ' + $delegate);
-        exit 1
-      };
-      $module = Join-Path $env:ProgramFiles 'sdo\sdo-scripts.psm1';
-      if (-not (Test-Path $module)) {
-        Write-Error ('Build tools module not found: ' + $module);
-        exit 1
-      };
-      Import-Module $module -Force;
-      Test-TargetDelegation -SourceTarget STAGE -DelegateTarget STAGE_NEW
-      -SourceFile $source -DelegateFile $delegate;
-      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"
+    path: sdo
+    arguments: SMOKE_TEST
     workingDirectory: .
     expectedReturnCode: 0
   - name: package

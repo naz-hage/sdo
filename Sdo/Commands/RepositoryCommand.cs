@@ -7,7 +7,6 @@
 // Supports both GitHub repositories and Azure DevOps Git repositories.
 
 using Launcher.Services;
-using NbuildTasks;
 using Sdo.Interfaces;
 using Sdo.Models;
 using Sdo.Services;
@@ -31,7 +30,12 @@ namespace Sdo.Commands
         /// Initializes a new instance of the RepositoryCommand class.
         /// </summary>
         /// <param name="verboseOption">Option for verbose output.</param>
-        public RepositoryCommand(Option<bool> verboseOption, Sdo.Mapping.IMappingGenerator? mappingGenerator = null, Sdo.Mapping.IMappingPresenter? mappingPresenter = null, Option<bool>? dryRunOption = null) : base("repo", "Repository management commands")
+        public RepositoryCommand(
+            Option<bool> verboseOption,
+            Sdo.Mapping.IMappingGenerator? mappingGenerator = null,
+            Sdo.Mapping.IMappingPresenter? mappingPresenter = null,
+            Option<bool>? dryRunOption = null)
+            : base("repo", "Repository management commands")
         {
             _platformDetector = new PlatformService();
             _mappingGenerator = mappingGenerator ?? new Sdo.Mapping.MappingGenerator();
@@ -39,362 +43,17 @@ namespace Sdo.Commands
             _dryRunOption = dryRunOption;
 
             // Add subcommands (in alphabetical order)
-            AddBranchCommand(verboseOption);
-            AddCloneCommand(verboseOption);
             AddCreateCommand(verboseOption);
             AddDeleteCommand(verboseOption);
             AddInfoCommand(verboseOption);
             AddListCommand(verboseOption);
-            AddTagCommand(verboseOption);
-        }
-
-        private void AddBranchCommand(Option<bool> verboseOption)
-        {
-            var branchCommand = new Command("branch", "Manage Git branches");
-            var listOption = new Option<bool>("--list")
-            {
-                Description = "List local and remote branches"
-            };
-            var localOption = new Option<bool>("--local")
-            {
-                Description = "Limit listing to local branches"
-            };
-            var remoteOption = new Option<bool>("--remote")
-            {
-                Description = "Limit listing to remote branches"
-            };
-            var deleteOption = new Option<bool>("--delete")
-            {
-                Description = "Delete matching local and remote branches"
-            };
-            var containsOption = new Option<string?>("--contains")
-            {
-                Description = "Only select branches whose names contain this text"
-            };
-            var nameOption = new Option<string?>("--name")
-            {
-                Description = "Select one branch by name"
-            };
-            branchCommand.Add(listOption);
-            branchCommand.Add(localOption);
-            branchCommand.Add(remoteOption);
-            branchCommand.Add(deleteOption);
-            branchCommand.Add(containsOption);
-            branchCommand.Add(nameOption);
-            branchCommand.Add(verboseOption);
-            AddDryRunOption(branchCommand);
-            branchCommand.SetAction(parseResult =>
-            {
-                var list = parseResult.GetValue(listOption);
-                var localOnly = parseResult.GetValue(localOption);
-                var remoteOnly = parseResult.GetValue(remoteOption);
-                var delete = parseResult.GetValue(deleteOption);
-                var contains = parseResult.GetValue(containsOption);
-                var name = parseResult.GetValue(nameOption);
-                var verbose = parseResult.GetValue(verboseOption);
-                var dryRun = GetDryRunValue(parseResult);
-
-                if (localOnly && remoteOnly)
-                {
-                    ConsoleHelper.WriteError("Use either --local or --remote, not both.");
-                    return 1;
-                }
-
-                if (list && delete)
-                {
-                    ConsoleHelper.WriteError("Use either --list or --delete, not both.");
-                    return 1;
-                }
-
-                var git = new GitWrapper(verbose: verbose);
-                var local = (!remoteOnly || delete)
-                    ? git.ListBranches().Select(branch => branch.Trim())
-                        .Where(branch => !string.IsNullOrWhiteSpace(branch)).ToList()
-                    : [];
-                var remote = (!localOnly || delete)
-                    ? git.ListRemoteBranches()
-                    : [];
-
-                if (list)
-                {
-                    if (!remoteOnly)
-                    {
-                        ConsoleHelper.WriteLine("Local branches:");
-                        foreach (var branch in local)
-                        {
-                            ConsoleHelper.WriteLine($"  {branch}");
-                        }
-                    }
-
-                    if (!localOnly)
-                    {
-                        ConsoleHelper.WriteLine("Remote branches:");
-                        foreach (var branch in remote)
-                        {
-                            ConsoleHelper.WriteLine($"  {branch}");
-                        }
-                    }
-
-                    return 0;
-                }
-
-                if (!delete)
-                {
-                    ConsoleHelper.WriteError("Specify --list to list branches or --delete with --name or --contains to delete branches.");
-                    return 1;
-                }
-
-                if (localOnly || remoteOnly)
-                {
-                    ConsoleHelper.WriteError("--local and --remote are only valid with --list.");
-                    return 1;
-                }
-
-                if (string.IsNullOrWhiteSpace(contains) && string.IsNullOrWhiteSpace(name))
-                {
-                    ConsoleHelper.WriteError("Specify --name or --contains to select branches for deletion.");
-                    return 1;
-                }
-
-                var selected = local.Concat(remote)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .Where(branch => string.IsNullOrWhiteSpace(name) ||
-                                     branch.Equals(name, StringComparison.OrdinalIgnoreCase))
-                    .Where(branch => string.IsNullOrWhiteSpace(contains) ||
-                                     branch.Contains(contains, StringComparison.OrdinalIgnoreCase))
-                    .Where(branch => !branch.Equals(git.Branch, StringComparison.OrdinalIgnoreCase) &&
-                                     !branch.Equals("main", StringComparison.OrdinalIgnoreCase) &&
-                                     !branch.Equals("master", StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-                if (selected.Count == 0)
-                {
-                    ConsoleHelper.WriteError("No matching branches were found.");
-                    return 1;
-                }
-
-                ConsoleHelper.WriteLine("Branches selected for deletion:");
-                foreach (var branch in selected)
-                {
-                    var isLocal = local.Contains(branch, StringComparer.OrdinalIgnoreCase);
-                    var isRemote = remote.Contains(branch, StringComparer.OrdinalIgnoreCase);
-                    var location = isLocal && isRemote
-                        ? "local & remote"
-                        : isLocal
-                            ? "local"
-                            : "remote";
-                    ConsoleHelper.WriteLine($"  {branch} ({location})");
-                }
-
-                if (!string.IsNullOrWhiteSpace(contains))
-                {
-                    ConsoleHelper.WriteWarning($"Delete {selected.Count} matching branch(es)? Type 'yes' to continue:");
-                    if (!string.Equals(Console.ReadLine(), "yes", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ConsoleHelper.WriteInfo("Deletion cancelled.");
-                        return 0;
-                    }
-                }
-
-                if (dryRun)
-                {
-                    ConsoleHelper.WriteInfo($"Dry run: would delete {selected.Count} branch(es).");
-                    return 0;
-                }
-
-                var failures = 0;
-                foreach (var branch in selected)
-                {
-                    if (local.Contains(branch, StringComparer.OrdinalIgnoreCase) && !git.DeleteBranch(branch))
-                    {
-                        failures++;
-                    }
-
-                    if (remote.Contains(branch, StringComparer.OrdinalIgnoreCase) && !git.DeleteRemoteBranch(branch))
-                    {
-                        failures++;
-                    }
-                }
-
-                return failures == 0 ? 0 : 1;
-            });
-            Subcommands.Add(branchCommand);
-        }
-
-        private void AddCloneCommand(Option<bool> verboseOption)
-        {
-            var cloneCommand = new System.CommandLine.Command(
-                "clone",
-                "Clone a Git repository to a specified path");
-            var urlOption = new Option<string>("--url")
-            {
-                Description = "Git repository URL",
-                Required = true
-            };
-            var pathOption = new Option<string?>("--path")
-            {
-                Description = "Destination path; defaults to the current directory"
-            };
-
-            cloneCommand.Add(urlOption);
-            cloneCommand.Add(pathOption);
-            cloneCommand.Add(verboseOption);
-            if (_dryRunOption != null)
-            {
-                cloneCommand.Add(_dryRunOption);
-            }
-
-            cloneCommand.SetAction(parseResult =>
-            {
-                var url = parseResult.GetValue(urlOption);
-                var path = parseResult.GetValue(pathOption);
-                var verbose = parseResult.GetValue(verboseOption);
-                var dryRun = _dryRunOption != null && parseResult.GetValue(_dryRunOption);
-                return Nbuild.Command.Clone(url, path, verbose, dryRun).Code;
-            });
-
-            Subcommands.Add(cloneCommand);
-        }
-
-        private void AddTagCommand(Option<bool> verboseOption)
-        {
-            var tagCommand = new System.CommandLine.Command(
-                "tag",
-                "Manage Git tags");
-
-            AddAutoTagCommand(tagCommand, verboseOption);
-            AddDeleteTagCommand(tagCommand, verboseOption);
-            AddPushAutoTagCommand(tagCommand, verboseOption);
-            AddSetTagCommand(tagCommand, verboseOption);
-
-            Subcommands.Add(tagCommand);
-        }
-
-        private void AddAutoTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
-        {
-            var autoCommand = new System.CommandLine.Command(
-                "auto",
-                "Automatically set the next Git tag based on build type");
-            var buildTypeOption = new Option<string>("--buildtype", ["-b"])
-            {
-                Description = "Build type: STAGE or PROD",
-                Required = true
-            };
-
-            autoCommand.Add(buildTypeOption);
-            autoCommand.Add(verboseOption);
-            AddDryRunOption(autoCommand);
-            autoCommand.SetAction(parseResult =>
-            {
-                var buildType = parseResult.GetValue(buildTypeOption);
-                var verbose = parseResult.GetValue(verboseOption);
-                var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.SetAutoTag(buildType, false, verbose, dryRun).Code;
-            });
-
-            tagCommand.Subcommands.Add(autoCommand);
-        }
-
-        private void AddDeleteTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
-        {
-            var deleteCommand = new System.CommandLine.Command(
-                "delete",
-                "Delete a Git tag");
-            var tagOption = new Option<string>("--tag", ["-t"])
-            {
-                Description = "Tag to delete",
-                Required = true
-            };
-
-            deleteCommand.Add(tagOption);
-            deleteCommand.Add(verboseOption);
-            AddDryRunOption(deleteCommand);
-            deleteCommand.SetAction(parseResult =>
-            {
-                var tag = parseResult.GetValue(tagOption);
-                var verbose = parseResult.GetValue(verboseOption);
-                var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.DeleteTag(tag, verbose, dryRun).Code;
-            });
-
-            tagCommand.Subcommands.Add(deleteCommand);
-        }
-
-        private void AddPushAutoTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
-        {
-            var pushAutoCommand = new System.CommandLine.Command(
-                "push-auto",
-                "Automatically set and push the next Git tag based on build type");
-            var buildTypeOption = new Option<string>("--buildtype", ["-b"])
-            {
-                Description = "Build type: STAGE or PROD",
-                Required = true
-            };
-
-            pushAutoCommand.Add(buildTypeOption);
-            pushAutoCommand.Add(verboseOption);
-            AddDryRunOption(pushAutoCommand);
-            pushAutoCommand.SetAction(parseResult =>
-            {
-                var buildType = parseResult.GetValue(buildTypeOption);
-                var verbose = parseResult.GetValue(verboseOption);
-                var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.SetAutoTag(buildType, true, verbose, dryRun).Code;
-            });
-
-            tagCommand.Subcommands.Add(pushAutoCommand);
-        }
-
-        private void AddSetTagCommand(System.CommandLine.Command tagCommand, Option<bool> verboseOption)
-        {
-            var setCommand = new System.CommandLine.Command(
-                "set",
-                "Set a Git tag");
-            var tagOption = new Option<string>("--tag", ["-t"])
-            {
-                Description = "Tag to set",
-                Required = true
-            };
-
-            setCommand.Add(tagOption);
-            setCommand.Add(verboseOption);
-            AddDryRunOption(setCommand);
-            setCommand.TreatUnmatchedTokensAsErrors = true;
-            setCommand.SetAction(parseResult =>
-            {
-                if (parseResult.UnmatchedTokens.Count > 0)
-                {
-                    Console.Error.WriteLine($"Unknown option or argument: {string.Join(' ', parseResult.UnmatchedTokens)}");
-                    return 1;
-                }
-
-                var tag = parseResult.GetValue(tagOption);
-                var verbose = parseResult.GetValue(verboseOption);
-                var dryRun = GetDryRunValue(parseResult);
-                return Nbuild.Command.SetTag(tag, verbose, dryRun).Code;
-            });
-
-            tagCommand.Subcommands.Add(setCommand);
-        }
-
-        private void AddDryRunOption(System.CommandLine.Command command)
-        {
-            if (_dryRunOption != null)
-            {
-                command.Add(_dryRunOption);
-            }
-        }
-
-        private bool GetDryRunValue(System.CommandLine.ParseResult parseResult)
-        {
-            return _dryRunOption != null && parseResult.GetValue(_dryRunOption);
         }
 
         private void AddInfoCommand(Option<bool> verboseOption)
         {
             var infoCommand = new System.CommandLine.Command(
                 "info",
-                "Display local Git and remote repository information");
+                "Display hosted repository information for the current Git remote");
 
             infoCommand.Add(verboseOption);
             if (_dryRunOption != null)
@@ -407,18 +66,16 @@ namespace Sdo.Commands
                 var dryRun = _dryRunOption != null && parseResult.GetValue(_dryRunOption);
                 if (verbose)
                 {
-                    ConsoleHelper.WriteVerbose("[VERBOSE] Displaying Git repository information.");
+                    ConsoleHelper.WriteVerbose("[VERBOSE] Displaying hosted repository information.");
                 }
 
-                var localResult = dryRun
-                    ? Nbuild.Command.DisplayGitInfo(verbose, dryRun)
-                    : Nbuild.Command.DisplayGitBranch();
-                if (!localResult.IsSuccess())
+                if (dryRun)
                 {
-                    return localResult.Code;
+                    ConsoleHelper.WriteVerbose("DRY-RUN: Repository information lookup skipped.");
+                    return 0;
                 }
 
-                return dryRun ? 0 : await ShowRepository(verbose);
+                return await ShowRepository(verbose);
             });
 
             Subcommands.Add(infoCommand);
@@ -657,7 +314,7 @@ namespace Sdo.Commands
         {
             try
             {
-                if (verbose) Console.WriteLine("Retrieving repository information from current Git remote...");
+                if (verbose) Console.WriteLine("Retrieving hosted repository information...");
 
                 var platform = _platformDetector.DetectPlatform();
                 var repoInfo = _platformDetector.GetRepositoryInfo();

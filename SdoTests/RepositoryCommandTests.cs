@@ -22,6 +22,31 @@ public class RepositoryCommandTests
     }
 
     [TestMethod]
+    public void GitCommand_ContainsOnlyBranchCloneAndTagSubcommands()
+    {
+        var command = new GitCommand(_verboseOption, new Option<bool>("--dry-run"));
+
+        Assert.AreEqual("git", command.Name);
+        CollectionAssert.AreEqual(
+            new[] { "branch", "clone", "tag" },
+            command.Subcommands.Select(subcommand => subcommand.Name).ToArray());
+
+        var tagCommand = command.Subcommands.Single(subcommand => subcommand.Name == "tag");
+        var listCommand = tagCommand.Subcommands.Single(subcommand => subcommand.Name == "list");
+        Assert.IsNotNull(listCommand.Options.FirstOrDefault(option => option.Name == "--all"));
+    }
+
+    [TestMethod]
+    public void RepositoryCommand_ContainsOnlyRepositoryManagementSubcommands()
+    {
+        var command = new RepositoryCommand(_verboseOption);
+
+        CollectionAssert.AreEqual(
+            new[] { "create", "delete", "info", "list" },
+            command.Subcommands.Select(subcommand => subcommand.Name).ToArray());
+    }
+
+    [TestMethod]
     public void Constructor_AddsCreateSubcommand()
     {
         var command = new RepositoryCommand(_verboseOption);
@@ -32,7 +57,7 @@ public class RepositoryCommandTests
     [TestMethod]
     public void Constructor_AddsBranchSubcommand()
     {
-        var command = new RepositoryCommand(_verboseOption);
+        var command = new GitCommand(_verboseOption);
         var branchCmd = command.Subcommands.Single(s => s.Name == "branch");
 
         Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--list"));
@@ -41,12 +66,13 @@ public class RepositoryCommandTests
         Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--delete"));
         Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--contains"));
         Assert.IsNotNull(branchCmd.Options.FirstOrDefault(o => o.Name == "--name"));
+        Assert.IsNotNull(branchCmd.Subcommands.FirstOrDefault(command => command.Name == "get"));
     }
 
     [TestMethod]
     public void Constructor_AddsCloneSubcommandWithUrlAndPathOptions()
     {
-        var command = new RepositoryCommand(_verboseOption, dryRunOption: new Option<bool>("--dry-run"));
+        var command = new GitCommand(_verboseOption, new Option<bool>("--dry-run"));
         var cloneCmd = command.Subcommands.Single(s => s.Name == "clone");
 
         Assert.IsNotNull(cloneCmd.Options.FirstOrDefault(o => o.Name == "--url"));
@@ -56,22 +82,43 @@ public class RepositoryCommandTests
     [TestMethod]
     public void Constructor_AddsTagSubcommandWithNestedCommands()
     {
-        var command = new RepositoryCommand(_verboseOption, dryRunOption: new Option<bool>("--dry-run"));
+        var command = new GitCommand(_verboseOption, new Option<bool>("--dry-run"));
         var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
         var nestedNames = tagCmd.Subcommands.Select(s => s.Name).ToList();
 
-        Assert.IsTrue(new[] { "auto", "delete", "push-auto", "set" }.SequenceEqual(nestedNames));
+        Assert.IsTrue(new[] { "auto", "delete", "get", "list", "push", "set" }.SequenceEqual(nestedNames));
     }
 
     [TestMethod]
     public void AutoTagSubcommand_HasBuildTypeShortAlias()
     {
-        var command = new RepositoryCommand(_verboseOption);
+        var command = new GitCommand(_verboseOption);
         var tagCmd = command.Subcommands.First(s => s.Name == "tag");
         var autoCmd = tagCmd.Subcommands.First(s => s.Name == "auto");
         var buildTypeOption = autoCmd.Options.First(o => o.Name == "--buildtype");
 
         Assert.IsTrue(buildTypeOption.Aliases.Contains("-b"));
+    }
+
+    [TestMethod]
+    public void TagCommandsExposeExplicitRemoteOptions()
+    {
+        var command = new GitCommand(_verboseOption, new Option<bool>("--dry-run"));
+        var tagCmd = command.Subcommands.Single(s => s.Name == "tag");
+        var autoCmd = tagCmd.Subcommands.Single(s => s.Name == "auto");
+        var deleteCmd = tagCmd.Subcommands.Single(s => s.Name == "delete");
+        var getCmd = tagCmd.Subcommands.Single(s => s.Name == "get");
+        var listCmd = tagCmd.Subcommands.Single(s => s.Name == "list");
+        var pushCmd = tagCmd.Subcommands.Single(s => s.Name == "push");
+        var setCmd = tagCmd.Subcommands.Single(s => s.Name == "set");
+
+        Assert.IsNotNull(autoCmd.Options.FirstOrDefault(o => o.Name == "--push"));
+        Assert.IsNotNull(setCmd.Options.FirstOrDefault(o => o.Name == "--push"));
+        Assert.IsNotNull(deleteCmd.Options.FirstOrDefault(o => o.Name == "--remote"));
+        Assert.AreEqual("Display the current local Git tag on a single line.", getCmd.Description);
+        Assert.IsNotNull(listCmd.Options.FirstOrDefault(o => o.Name == "--all"));
+        Assert.IsNotNull(pushCmd.Options.FirstOrDefault(o => o.Name == "--tag"));
+        Assert.IsFalse(tagCmd.Subcommands.Any(s => s.Name == "push-auto"));
     }
 
     [TestMethod]
@@ -103,7 +150,7 @@ public class RepositoryCommandTests
     {
         var command = new RepositoryCommand(_verboseOption);
         var subcommandNames = command.Subcommands.Select(s => s.Name).ToList();
-        Assert.IsTrue(new[] { "branch", "clone", "create", "delete", "info", "list", "tag" }.SequenceEqual(subcommandNames));
+        Assert.IsTrue(new[] { "create", "delete", "info", "list" }.SequenceEqual(subcommandNames));
     }
 
     [TestMethod]

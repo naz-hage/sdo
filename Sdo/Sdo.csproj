@@ -31,6 +31,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Include="..\dev-setup\apps.yaml" Link="apps.yaml" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+	  <None Update="Resources\common.targets" Link="common.targets" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+	  <None Update="Resources\ngit.targets" Link="ngit.targets" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+	  <None Update="Resources\sdo.targets" Link="sdo.targets" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+	  <None Include="..\scripts\module-package\sdo-scripts.psd1;" Link="sdo-scripts.psd1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+	  <None Include="..\scripts\module-package\sdo-scripts.psm1;" Link="sdo-scripts.psm1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <EmbeddedResource Include="Resources\mapping.md" LogicalName="Sdo.mapping.md" />
 	  <EmbeddedResource Include="Resources\Nbackup.json" LogicalName="Sdo.Resources.Nbackup.json" />
 	  <EmbeddedResource Include="Resources\common.targets" LogicalName="nb.resources.common.targets" />

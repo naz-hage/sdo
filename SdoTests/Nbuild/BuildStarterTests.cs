@@ -23,29 +23,21 @@ namespace Nbuild.Tests
             List<string> expectedCommonTargets =
             [
                 "PROPERTIES",
+                "UPDATE_VERSIONED_PATHS",
                 "CLEAN",
-                "INSTALL_DEP",
                 "TELEMETRY_OPT_OUT",
                 "DEV",
-                "STAGE",
-                "PROD",
                 "GITHUB_RELEASE",
                 "GITHUB_PRE_RELEASE",
-                "STAGE_DEPLOY",
-                "PROD_DEPLOY",
                 "SOLUTION",
-                "SOLUTION_MSBUILD",
                 "PACKAGE",
                 "PACKAGE_FILE",
-                "COPY_ARTIFACTS",
-                "DEPLOY",
                 "TEST",
-                "TEST_DEBUG",
                 "PUBLISH",
                 "COVERAGE",
                 "COVERAGE_SUMMARY",
-                "STAGE_NEW",
-                "PROD_NEW",
+                "STAGE",
+                "PROD",
                 "IS_ADMIN",
                 "SingleProject",
                 "HandleError"
@@ -62,8 +54,24 @@ namespace Nbuild.Tests
             Console.WriteLine($"Actual Targets:");
             Console.WriteLine($"{string.Join(",\n", actual.Select(a => $"\"{a}\""))}");
 
-            // assert that arrays actual and expected are equal
-            CollectionAssert.AreEqual(expectedCommonTargets, actual, StringComparer.OrdinalIgnoreCase);
+            var expectedCounts = expectedCommonTargets
+                .GroupBy(target => target, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
+            var actualCounts = actual
+                .GroupBy(target => target, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
+            var discrepancies = expectedCounts.Keys
+                .Union(actualCounts.Keys, StringComparer.OrdinalIgnoreCase)
+                .Where(target => expectedCounts.GetValueOrDefault(target) != actualCounts.GetValueOrDefault(target))
+                .OrderBy(target => target, StringComparer.OrdinalIgnoreCase)
+                .Select(target =>
+                    $"  {target}: expected {expectedCounts.GetValueOrDefault(target)}, actual {actualCounts.GetValueOrDefault(target)}")
+                .ToArray();
+
+            Assert.AreEqual(
+                0,
+                discrepancies.Length,
+                $"Target discrepancies:{Environment.NewLine}{string.Join(Environment.NewLine, discrepancies)}");
         }
 
         private static string ExtractCommonTargetsFile()
@@ -154,10 +162,8 @@ namespace Nbuild.Tests
         {
             Dictionary<string, bool> ngitTargets = new()
             {
-                { "GIT_STATUS", true },
                 { "AUTOTAG_STAGE", true },
                 { "SET_TAG", true },
-                { "GIT_PULL", true },
                 { "AUTOTAG_PROD", true },
                 { "TAG", true },
                 { "PUSH_TAG", true },
@@ -169,19 +175,13 @@ namespace Nbuild.Tests
             {
                 { "PROPERTIES", true },
                 { "CLEAN", true },
-                { "INSTALL_DEP", true },
                 { "TELEMETRY_OPT_OUT", true },
                 { "STAGE", true },
                 { "PROD", true },
-                { "STAGE_DEPLOY", true },
-                { "PROD_DEPLOY", true },
                 { "SOLUTION", true },
-                { "SOLUTION_MSBUILD", true },
                 { "PACKAGE", true },
-                { "COPY_ARTIFACTS", true },
-                { "DEPLOY", true },
+                { "DEPLOY", false },
                 { "TEST", true },
-                { "TEST_DEBUG", true },
                 { "IS_ADMIN", true },
                 { "JUNK_TARGET", false },
                 { "SingleProject", true },

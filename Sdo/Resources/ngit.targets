@@ -1,98 +1,130 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<!--This targets file can be used only if it imported by common.targets-->
-
-    <!-- Display the current git status -->
-    <Target Name="GIT_STATUS" >
-
-        <Exec Command='git status --porcelain' ConsoleToMSBuild="true">
-            <Output TaskParameter="ConsoleOutput" PropertyName="GitStatus" />
-        </Exec>
-        <Message Importance="high" Text="Git Status: $(GitStatus)" />
-
-        <Message Text="==> COMMON_DONE"/>
-    </Target>
+    <!--This targets file can be used only if it is imported by common.targets-->
 
     <!-- Increment version for a stage build -->
-    <Target Name="AUTOTAG_STAGE" >
-        <Git Command="AutoTag" TaskParameter="Stage">
-            <Output TaskParameter="Output" PropertyName="ProductVersion"/>
-        </Git>
+    <Target Name="AUTOTAG_STAGE">
+        <PropertyGroup>
+            <ProductVersion></ProductVersion>
+            <AutoTagExitCode></AutoTagExitCode>
+        </PropertyGroup>
+        <Exec
+            Command='"$(BuildTools)\sdo.exe" git tag auto --buildtype STAGE --dry-run -q'
+            WorkingDirectory="$(MSBuildProjectDirectory)"
+            ConsoleToMSBuild="true"
+            StandardOutputImportance="Low"
+            IgnoreExitCode="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="ProductVersion" />
+            <Output TaskParameter="ExitCode" PropertyName="AutoTagExitCode" />
+        </Exec>
+        <RedError Condition="'$(AutoTagExitCode)' != '0' or '$(ProductVersion)' == ''" Message="AutoTag Staging Failed: Product Version property is not defined." />
         <Message Text="Task - Git Next Tag:'$(ProductVersion)'"/>
-
-        <RedError Condition="'$(ProductVersion)' == ''" Message="AutoTag Staging Failed: Product Version property is not defined." />
-
         <Message Text="==> COMMON_DONE"/>
     </Target>
 
-
-    <!-- Set version for a stage build -->
-    <Target Name="SET_TAG" AfterTargets="AUTOTAG_STAGE;AUTOTAG_PROD">
+    <!-- Set the computed version tag -->
+    <Target Name="SET_TAG" AfterTargets="AUTOTAG_STAGE;AUTOTAG_PROD" Condition="'$(ProductVersion)' != ''">
         <Message Text="Git Next tag: $(ProductVersion)"/>
-
-        <Git Command="SetTag" TaskParameter="$(ProductVersion)">
-            <Output TaskParameter="Output" PropertyName="ProductVersion"/>
-        </Git>
+        <PropertyGroup>
+            <SetTagExitCode></SetTagExitCode>
+            <SetTagOutput></SetTagOutput>
+        </PropertyGroup>
+        <Exec
+            Command='"$(BuildTools)\sdo.exe" git tag set --tag "$(ProductVersion)" -q'
+            WorkingDirectory="$(MSBuildProjectDirectory)"
+            ConsoleToMSBuild="true"
+            StandardOutputImportance="Low"
+            IgnoreExitCode="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="SetTagOutput" />
+            <Output TaskParameter="ExitCode" PropertyName="SetTagExitCode" />
+        </Exec>
+        <RedError Condition="'$(SetTagExitCode)' != '0' or '$(SetTagOutput)' != '$(ProductVersion)'" Message="SetTag Failed: Product Version property is not defined." />
+        <PropertyGroup>
+            <ProductVersion>$(SetTagOutput)</ProductVersion>
+        </PropertyGroup>
         <Message Text="Task - Git Next Tag:'$(ProductVersion)'"/>
-
-        <RedError Condition="'$(ProductVersion)' == ''" Message="SetTag Failed: Product Version property is not defined." />
-
         <Message Text="==> COMMON_DONE"/>
-    </Target>
-
-    <!-- Get the latest tag from git -->
-    <Target Name="GIT_PULL" DependsOnTargets="GIT_BRANCH">
-        <Exec Command='git pull -r'/>
     </Target>
 
     <!-- Increment version for a production build -->
     <Target Name="AUTOTAG_PROD" DependsOnTargets="GIT_BRANCH">
+        <PropertyGroup>
+            <ProductVersion></ProductVersion>
+            <AutoTagExitCode></AutoTagExitCode>
+        </PropertyGroup>
         <RedError Condition="'$(GitBranch)' != 'main'" Message="Error: Must be on main branch for a production release." />
-
-          <Git Command="AutoTag" TaskParameter="Prod">
-            <Output TaskParameter="Output" PropertyName="ProductVersion"/>
-        </Git>
+        <Exec
+            Condition="'$(GitBranch)' == 'main'"
+            Command='"$(BuildTools)\sdo.exe" git tag auto --buildtype PROD --dry-run -q'
+            WorkingDirectory="$(MSBuildProjectDirectory)"
+            ConsoleToMSBuild="true"
+            StandardOutputImportance="Low"
+            IgnoreExitCode="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="ProductVersion" />
+            <Output TaskParameter="ExitCode" PropertyName="AutoTagExitCode" />
+        </Exec>
+        <RedError Condition="'$(GitBranch)' == 'main' and ('$(AutoTagExitCode)' != '0' or '$(ProductVersion)' == '')" Message="AutoTag Prod Failed: Product Version property is not defined." />
         <Message Text="Task - Git Next Tag:'$(ProductVersion)'"/>
-
-        <RedError Condition="'$(ProductVersion)' == ''" Message="AutoTag Prod Failed: Product Version property is not defined." />
         <Message Text="==> COMMON_DONE"/>
     </Target>
 
     <!-- Get the tag from git -->
-    <Target Name="TAG" >
-        <Git Command="GetTag" >
-            <Output TaskParameter="Output" PropertyName="ProductVersion"/>
-        </Git>
+    <Target Name="TAG">
+        <PropertyGroup>
+            <ProductVersion></ProductVersion>
+            <TagExitCode></TagExitCode>
+        </PropertyGroup>
+        <Exec
+            Command='"$(BuildTools)\sdo.exe" git tag get -q'
+            WorkingDirectory="$(MSBuildProjectDirectory)"
+            ConsoleToMSBuild="true"
+            StandardOutputImportance="Low"
+            IgnoreExitCode="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="ProductVersion" />
+            <Output TaskParameter="ExitCode" PropertyName="TagExitCode" />
+        </Exec>
         <Message Text="Task - Git Tag:'$(ProductVersion)'"/>
-
-        <RedError Condition="'$(ProductVersion)' == ''" Message="GetTag Failed: Product Version property is not defined." />
+        <RedError Condition="'$(TagExitCode)' != '0' or '$(ProductVersion)' == ''" Message="GetTag Failed: Product Version property is not defined." />
         <Message Text="==> COMMON_DONE"/>
     </Target>
 
     <!-- Push the tag to the remote repo -->
     <Target Name="PUSH_TAG" DependsOnTargets="GIT_BRANCH;TAG">
-
-        <Git Command="PushTag" TaskParameter="$(ProductVersion)">
-            <Output TaskParameter="Output" PropertyName="Result"/>
-        </Git>
-
-        <Message Text="Task - Git Push Tag Result:'$(Result)'"/>
-
-        <RedError Condition="'$(Result)' != 'True'" Message="DeteteTag Failed: Product Version property is not defined." />
-
+        <PropertyGroup>
+            <PushTagExitCode></PushTagExitCode>
+            <PushTagOutput></PushTagOutput>
+        </PropertyGroup>
+        <Exec
+            Condition="'$(ProductVersion)' != ''"
+            Command='"$(BuildTools)\sdo.exe" git tag push --tag "$(ProductVersion)" -q'
+            WorkingDirectory="$(MSBuildProjectDirectory)"
+            ConsoleToMSBuild="true"
+            StandardOutputImportance="Low"
+            IgnoreExitCode="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="PushTagOutput" />
+            <Output TaskParameter="ExitCode" PropertyName="PushTagExitCode" />
+        </Exec>
+        <Message Text="Task - Git Push Tag Result:'$(PushTagOutput)'"/>
+        <RedError Condition="'$(ProductVersion)' == '' or '$(PushTagExitCode)' != '0' or '$(PushTagOutput)' != '$(ProductVersion)'" Message="PushTag Failed: Tag '$(ProductVersion)' was not pushed successfully." />
         <Message Text="==> COMMON_DONE"/>
     </Target>
 
     <!-- Get the current git branch -->
-    <Target Name="GIT_BRANCH" >
-        <Git Command="GetBranch">
-            <Output TaskParameter="Output" PropertyName="GitBranch"/>
-        </Git>
+    <Target Name="GIT_BRANCH">
+        <PropertyGroup>
+            <GitBranch></GitBranch>
+            <GitBranchExitCode></GitBranchExitCode>
+        </PropertyGroup>
+        <Exec
+            Command='"$(BuildTools)\sdo.exe" git branch get -q'
+            WorkingDirectory="$(MSBuildProjectDirectory)"
+            ConsoleToMSBuild="true"
+            StandardOutputImportance="Low"
+            IgnoreExitCode="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+            <Output TaskParameter="ExitCode" PropertyName="GitBranchExitCode" />
+        </Exec>
         <Message Text="Task - Git Branch:'$(GitBranch)'"/>
-
-        <RedError Condition="'$(GitBranch)' == ''" Message="GetBranch Failed: GitBranch property is not defined." />
-
+        <RedError Condition="'$(GitBranchExitCode)' != '0' or '$(GitBranch)' == ''" Message="GetBranch Failed: GitBranch property is not defined." />
         <Message Text="==> COMMON_DONE"/>
     </Target>
-
 </Project>
-

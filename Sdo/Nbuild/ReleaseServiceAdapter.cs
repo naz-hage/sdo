@@ -15,5 +15,10 @@ namespace Nbuild
         {
             return _inner.DownloadAssetByName(tagName, assetName, downloadPath);
         }
+
+        public Task<HttpResponseMessage> DeleteReleaseByTagAsync(string tagName)
+        {
+            return _inner.DeleteReleaseByTagAsync(tagName);
+        }
     }
 }

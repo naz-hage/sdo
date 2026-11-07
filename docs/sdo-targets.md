@@ -2,8 +2,6 @@
 
 | **Target Name** | **Description** |
 | --- | --- |
-| ARTIFACTS           | Setup the ARTIFACTS folders for binaries and test results - override |
-| FILE_VERSIONS       | Test for FileVersion task and powershell file-version.ps1 |
 | SETUP_ENVIRONMENT   | Setup development environment by importing sdo-scripts and calling Set-DevelopmentEnvironment |
 | TEST_NTOOLS_SCRIPTS | Test that sdo-scripts module is installed and can report a version |
 | MKDOCS              | Build docs locally for testing |
@@ -43,10 +41,13 @@
 | NB_DIAG_GitHubReleaseTests |  |
 | NB_TEST_DIAG_ALL    | Aggregate target: run all per-project diagnostics sequentially |
 | STAGE               | Create a stage package for testing |
-| PROD                | Create a PROD package for release (delegates to PROD_NEW in common.targets) |
-| SMOKE_TEST          | Comprehensive smoke test to verify published artifacts and build system integrity |
+| PROD                | Create a PROD package for release |
+| SMOKE_TEST          | Run the published `sdo.exe --version` check |
 | TEST                | This prevents double test execution that causes conflicts |
-| PUBLISH             | Publish all non-test projects to one versioned artifacts folder without PDB files |
+
+`PROPERTIES` initializes the artifact, test-results, and coverage output folders.
+`ARTIFACTS` and `COPY_ARTIFACTS` have been removed; publishing, tests, coverage,
+and packaging use these paths directly.
 
 
 - **C:\Program Files\Nbuild\common.targets Targets**
@@ -55,27 +56,19 @@
 | --- | --- |
 | PROPERTIES          | Common properties that will be used by all targets |
 | CLEAN               | Clean up the project and artifacts folder |
-| INSTALL_DEP         | Install dependencies |
 | TELEMETRY_OPT_OUT   | Opt out of the DOTNET_CLI_TELEMETRY_OPTOUT - move to common |
 | DEV                 | Create a development package for testing without incrementing the version |
 | STAGE               | Create a stage package for testing |
 | PROD                | Create a PROD package for release |
 | GITHUB_RELEASE      | Creates a prod release |
 | GITHUB_PRE_RELEASE  | Creates a pre-release |
-| STAGE_DEPLOY        | Create a STAGE package and deploy for testing |
-| PROD_DEPLOY         | Create a PROD package and deploy for release |
 | SOLUTION            | Build the solution Release configuration  using dotnet build |
-| SOLUTION_MSBUILD    | Build the solution Release configuration  using MSBuild |
 | PACKAGE             | Create a package for the solution default is a zip file of all artifacts |
-| COPY_ARTIFACTS      | Save the artifacts to the artifacts folder |
 | DEPLOY              | Deploy the package. default is to extract artifacts into DeploymentProperty folder |
 | TEST                | Run all tests using dotnet test in Release mode |
-| TEST_DEBUG          | Run all tests using dotnet test in Debug mode |
 | PUBLISH             | Publish all non-test projects to one versioned artifacts folder without PDB files |
 | COVERAGE            | Generate code coverage reports |
 | COVERAGE_SUMMARY    | Display high-level code coverage summary |
-| STAGE_NEW           | Enhanced stage package for testing with coverage and smoke tests |
-| PROD_NEW            | Enhanced prod package for release with coverage and smoke tests |
 | IS_ADMIN            | Check if current process is running in admin mode AdminCheckExitCode property is set |
 | SingleProject       | Example how to build a single project |
 | HandleError         | Error handling placeholder |
@@ -91,19 +84,29 @@ Test projects are excluded from the project list. Debug symbols are disabled,
 and any `.pdb` files remaining in the output folder are removed before the
 target completes.
 
+After stage or production auto-tagging, the default artifacts, test-results, and
+coverage properties are updated to use the generated `ProductVersion`.
+Test-results and coverage paths remain under the solution directory in GitHub
+Actions and under the artifacts solution folder otherwise.
+
 - **C:\Program Files\nbuild\ngit.targets Targets**
 
 | **Target Name** | **Description** |
 | --- | --- |
-| GIT_STATUS          | Display the current git status |
 | AUTOTAG_STAGE       | Increment version for a stage build |
 | SET_TAG             | Set version for a stage build |
-| GIT_PULL            | Get the latest tag from git |
 | AUTOTAG_PROD        | Increment version for a production build |
 | TAG                 | Get the tag from git |
 | PUSH_TAG            | Push the tag to the remote repo |
 | GIT_BRANCH          | Get the current git branch |
 
+The built-in Git targets invoke `sdo git` commands with `-q` and capture their
+single-line output into MSBuild properties. Stage and production auto-tagging
+uses `sdo git tag auto --dry-run -q` to calculate `ProductVersion`, then
+`SET_TAG` runs `sdo git tag set` to create the tag locally. `PUSH_TAG` and the
+GitHub release targets in `common.targets` and `sdo.targets` run
+`sdo git tag push` to publish an existing tag without replacing it. The legacy
+MSBuild `Git` task has been removed.
 
 - **unit-tests.targets Targets**
 

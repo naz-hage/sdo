@@ -1,9 +1,8 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Launcher.Services;
 using Ntools;
-using System;
+using Sdo;
+using Sdo.Git;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using static NbuildTasks.Enums;
 
 namespace NbuildTasks.Tests
@@ -115,7 +114,49 @@ namespace NbuildTasks.Tests
         public void GetCurrentBranchTest() => Assert.AreEqual("main", GitWrapper.Branch);
 
         [TestMethod]
+        public void GetBranchCommand_PrintsOnlyTheCurrentBranch()
+        {
+            var expectedBranch = GitWrapper.Branch;
+            var originalOutput = Console.Out;
+            using var output = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                var result = Nbuild.Command.GetBranch();
+
+                Assert.IsTrue(result.IsSuccess());
+                Assert.AreEqual(expectedBranch + Environment.NewLine, output.ToString());
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+            }
+        }
+
+        [TestMethod]
         public void GetCurrentTagTest() => Assert.AreEqual("1.0.0", GitWrapper.Tag);
+
+        [TestMethod]
+        public void GetTagCommand_PrintsOnlyTheCurrentTag()
+        {
+            var expectedTag = GitWrapper.Tag;
+            var originalOutput = Console.Out;
+            using var output = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                var result = Nbuild.Command.GetTag();
+
+                Assert.IsTrue(result.IsSuccess());
+                Assert.AreEqual(expectedTag + Environment.NewLine, output.ToString());
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+            }
+        }
 
         [TestMethod]
         public void ProjectNameFromUrlTest()
@@ -144,6 +185,210 @@ namespace NbuildTasks.Tests
 
             Assert.AreEqual(tag, GitWrapper.Tag);
             Assert.IsTrue(GitWrapper.IsValidTag(tag));
+            Assert.IsTrue(GitWrapper.LocalTagExists(tag));
+            Assert.IsFalse(GitWrapper.RemoteTagExists(tag));
+        }
+
+        [TestMethod]
+        public void SetTag_CreatesOnlyLocalTag()
+        {
+            var tag = "7.7." + (DateTime.UtcNow.Ticks % 1000000);
+
+            Assert.IsTrue(GitWrapper.SetTag(tag));
+            Assert.IsTrue(GitWrapper.LocalTagExists(tag));
+            Assert.IsFalse(GitWrapper.RemoteTagExists(tag));
+        }
+
+        [TestMethod]
+        public void ProgramMain_WithQuietTagSet_PrintsOnlyTheSetTag()
+        {
+            var tag = $"8.8.{Random.Shared.Next(100000, int.MaxValue)}";
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "set", "--tag", tag, "-q"));
+                Assert.AreEqual($"{tag}{Environment.NewLine}", output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+                Assert.IsTrue(git.LocalTagExists(tag));
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+                if (git.LocalTagExists(tag)) git.DeleteTag(tag);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("stage")]
+        [DataRow("prod")]
+        public void ProgramMain_WithQuietAutoTag_PrintsOnlyTheCreatedTag(string buildType)
+        {
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var seedTag = $"8.{Random.Shared.Next(100000, 900000)}.{Random.Shared.Next(100000, int.MaxValue)}";
+            Assert.IsTrue(git.SetTag(seedTag));
+            var expectedTag = git.AutoTag(buildType);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(expectedTag));
+
+            var tagFile = Path.Combine(git.WorkingDirectory, ".temp", ".tag");
+            var tagFileExisted = File.Exists(tagFile);
+            var previousTagFile = tagFileExisted ? File.ReadAllText(tagFile) : null;
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "auto", "--buildtype", buildType, "-q"));
+                Assert.AreEqual($"{expectedTag}{Environment.NewLine}", output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+                Assert.IsTrue(git.LocalTagExists(expectedTag));
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+                if (git.LocalTagExists(expectedTag)) git.DeleteTag(expectedTag);
+                if (git.LocalTagExists(seedTag)) git.DeleteTag(seedTag);
+
+                if (tagFileExisted)
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(tagFile)!);
+                    File.WriteAllText(tagFile, previousTagFile!);
+                }
+                else if (File.Exists(tagFile))
+                {
+                    File.Delete(tagFile);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ProgramMain_WithQuietAutoTagDryRun_PrintsCandidateWithoutCreatingIt()
+        {
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var expectedTag = git.AutoTag("stage");
+            var originalOutput = Console.Out;
+            using var output = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "auto", "--buildtype", "stage", "--dry-run", "-q"));
+                Assert.AreEqual($"{expectedTag}{Environment.NewLine}", output.ToString());
+                Assert.IsFalse(git.LocalTagExists(expectedTag));
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+            }
+        }
+
+        [TestMethod]
+        public void ProgramMain_WithQuietTagDelete_IsSilentAndPreservesExitStatus()
+        {
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var tag = $"8.8.{Random.Shared.Next(100000, int.MaxValue)}";
+            var missingTag = $"8.8.{Random.Shared.Next(100000, int.MaxValue)}";
+            Assert.IsTrue(git.SetTag(tag));
+
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "delete", "--tag", tag, "-q"));
+                Assert.AreEqual(string.Empty, output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+                Assert.IsFalse(git.LocalTagExists(tag));
+
+                output.GetStringBuilder().Clear();
+                error.GetStringBuilder().Clear();
+                Assert.AreNotEqual(0, Program.Main("git", "tag", "delete", "--tag", missingTag, "-q"));
+                Assert.AreEqual(string.Empty, output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+                if (git.LocalTagExists(tag)) git.DeleteTag(tag);
+            }
+        }
+
+        [TestMethod]
+        public void ProgramMain_WithQuietPushTag_PrintsOnlyPushedTag()
+        {
+            var git = new GitWrapper(ProjectName, testMode: true, quiet: true);
+            var tag = $"8.8.{Random.Shared.Next(100000, int.MaxValue)}";
+            Assert.IsTrue(git.SetTag(tag));
+
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "push", "--tag", tag, "-q"));
+                Assert.AreEqual($"{tag}{Environment.NewLine}", output.ToString());
+                Assert.AreEqual(string.Empty, error.ToString());
+                Assert.IsTrue(git.RemoteTagExists(tag));
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+                if (git.RemoteTagExists(tag)) git.DeleteTag(tag, deleteRemote: true);
+                else if (git.LocalTagExists(tag)) git.DeleteTag(tag);
+            }
+        }
+
+        [TestMethod]
+        public void ProgramMain_WithQuietTagList_KeepsListOutput()
+        {
+            var originalOutput = Console.Out;
+            var originalError = Console.Error;
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            try
+            {
+                Console.SetOut(output);
+                Console.SetError(error);
+
+                Assert.AreEqual(0, Program.Main("git", "tag", "list", "-q"));
+                StringAssert.Contains(output.ToString(), "1.0.0");
+                Assert.IsFalse(output.ToString().Contains(Nversion.Get(), StringComparison.Ordinal));
+                Assert.IsFalse(output.ToString().Contains("git ", StringComparison.OrdinalIgnoreCase));
+                Assert.AreEqual(string.Empty, error.ToString());
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                Console.SetError(originalError);
+            }
         }
 
         [TestMethod]
@@ -222,11 +467,116 @@ namespace NbuildTasks.Tests
             Assert.IsTrue(GitWrapper.RemoteTagExists(tag));
             Assert.IsTrue(GitWrapper.ListLocalTags().Contains(tag));
             Assert.IsTrue(GitWrapper.ListRemoteTags().Contains(tag));
+
             Assert.IsTrue(GitWrapper.DeleteTag(tag));
+            Assert.IsFalse(GitWrapper.LocalTagExists(tag));
+            Assert.IsTrue(GitWrapper.RemoteTagExists(tag));
+
+            Assert.IsTrue(GitWrapper.DeleteTag(tag, deleteRemote: true));
+            Assert.IsFalse(GitWrapper.RemoteTagExists(tag));
         }
 
         [TestMethod]
         public void ListBranchesTest() => Assert.IsTrue(GitWrapper.ListBranches().Contains("main"));
+
+        [TestMethod]
+        public void TryListLocalTags_ReturnsAllTagsInDescendingVersionOrder()
+        {
+            var expectedAddedTags = Enumerable.Range(0, 11)
+                .Reverse()
+                .Select(version => $"9999.0.{version}")
+                .ToList();
+            var tagsToAdd = Enumerable.Range(0, 11)
+                .Select(version => $"9999.0.{version}")
+                .ToList();
+
+            try
+            {
+                foreach (var tag in tagsToAdd)
+                {
+                    Assert.IsTrue(GitWrapper.SetTag(tag), $"Could not create fixture tag {tag}.");
+                }
+
+                Assert.IsTrue(GitWrapper.TryListLocalTags(out var allTags));
+                CollectionAssert.AreEqual(expectedAddedTags, allTags.Take(expectedAddedTags.Count).ToList());
+                Assert.IsTrue(allTags.Contains("1.0.0"));
+            }
+            finally
+            {
+                foreach (var tag in tagsToAdd)
+                {
+                    GitWrapper.DeleteTag(tag);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ListTags_ListsLatestTagsAndShowsLocalRemoteDiscrepancies()
+        {
+            var minorVersion = 1000 + (int)(DateTime.UtcNow.Ticks % 8000);
+            var localOnlyTags = Enumerable.Range(0, 11)
+                .Select(version => $"9999.{minorVersion}.{version}")
+                .ToList();
+            var expectedLatestTags = Enumerable.Range(1, 10)
+                .Reverse()
+                .Select(version => $"9999.{minorVersion}.{version}")
+                .ToList();
+            var remoteOnlyTag = $"9998.{minorVersion}.0";
+            var originalOutput = Console.Out;
+            using var output = new StringWriter();
+
+            try
+            {
+                foreach (var tag in localOnlyTags)
+                {
+                    Assert.IsTrue(GitWrapper.SetTag(tag), $"Could not create fixture tag {tag}.");
+                }
+
+                Assert.IsTrue(GitWrapper.SetTag(remoteOnlyTag));
+                Assert.IsTrue(GitWrapper.PushTag(remoteOnlyTag));
+                Assert.IsTrue(GitWrapper.DeleteTag(remoteOnlyTag));
+
+                Console.SetOut(output);
+                var result = Nbuild.Command.ListTags();
+
+                Assert.IsTrue(result.IsSuccess());
+                var outputLines = output.ToString()
+                    .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                var listedTags = outputLines.Where(GitWrapper.IsValidTag).Take(10).ToList();
+                CollectionAssert.AreEqual(
+                    expectedLatestTags,
+                    listedTags,
+                    $"Unexpected tag listing output: {output}");
+                var localDiscrepancyLine = Array.FindIndex(outputLines, line => line.StartsWith("local: ", StringComparison.Ordinal));
+                var remoteDiscrepancyLine = Array.FindIndex(outputLines, line => line.StartsWith("remote: ", StringComparison.Ordinal));
+                var lastListedTagLine = Array.LastIndexOf(outputLines, expectedLatestTags[^1]);
+                Assert.IsTrue(localDiscrepancyLine > lastListedTagLine);
+                Assert.IsTrue(remoteDiscrepancyLine > localDiscrepancyLine);
+                Assert.AreEqual($"local: {string.Join(", ", expectedLatestTags)}", outputLines[localDiscrepancyLine]);
+                StringAssert.Contains(outputLines[remoteDiscrepancyLine], remoteOnlyTag);
+
+                foreach (var tag in localOnlyTags)
+                {
+                    Assert.IsTrue(GitWrapper.PushTag(tag), $"Could not publish fixture tag {tag}.");
+                }
+
+                output.GetStringBuilder().Clear();
+                Assert.IsTrue(Nbuild.Command.ListTags().IsSuccess());
+                var matchingOutputLines = output.ToString()
+                    .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                Assert.IsFalse(matchingOutputLines.Any(line => line.StartsWith("local: ", StringComparison.Ordinal)));
+                Assert.IsFalse(matchingOutputLines.Any(line => line.StartsWith("remote: ", StringComparison.Ordinal)));
+                Assert.IsFalse(matchingOutputLines.Any(line => line.Contains("none", StringComparison.OrdinalIgnoreCase)));
+            }
+            finally
+            {
+                Console.SetOut(originalOutput);
+                foreach (var tag in localOnlyTags.Append(remoteOnlyTag))
+                {
+                    GitWrapper.DeleteTag(tag, deleteRemote: true);
+                }
+            }
+        }
 
         [TestMethod]
         public void CallGitCommand_ShouldExecuteArguments()
@@ -308,8 +658,48 @@ namespace NbuildTasks.Tests
         {
             var tag = GitWrapper.SetAutoTag(BuildType.STAGE.ToString());
 
+            Assert.IsFalse(GitWrapper.RemoteTagExists(tag));
             Assert.IsTrue(GitWrapper.PushTag(tag));
             Assert.IsTrue(GitWrapper.ListRemoteTags().Contains(tag));
+        }
+
+        [TestMethod]
+        public void PushTag_ReturnsFalseWhenOriginIsUnavailable()
+        {
+            var wrapper = GitWrapper;
+            var tag = "6.6." + (DateTime.UtcNow.Ticks % 1000000);
+            Assert.IsTrue(wrapper.SetTag(tag));
+
+            var repository = wrapper.WorkingDirectory;
+            RunGit(repository, "remote remove origin");
+            try
+            {
+                Assert.IsFalse(wrapper.PushTag(tag));
+            }
+            finally
+            {
+                RunGit(repository, "remote add origin " + Quote(BareRepository));
+            }
+        }
+
+        [TestMethod]
+        public void DeleteTag_ReturnsFalseWhenOriginCannotBeChecked()
+        {
+            var wrapper = GitWrapper;
+            var tag = "5.5." + (DateTime.UtcNow.Ticks % 1000000);
+            Assert.IsTrue(wrapper.SetTag(tag));
+
+            var repository = wrapper.WorkingDirectory;
+            RunGit(repository, "remote remove origin");
+            try
+            {
+                Assert.IsFalse(wrapper.DeleteTag(tag, deleteRemote: true));
+                Assert.IsTrue(wrapper.LocalTagExists(tag));
+            }
+            finally
+            {
+                RunGit(repository, "remote add origin " + Quote(BareRepository));
+            }
         }
 
         [TestMethod]

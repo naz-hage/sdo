@@ -1,13 +1,10 @@
 using Launcher.Services;
+using NbuildTasks;
 using Ntools;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using static NbuildTasks.Enums;
 
-namespace NbuildTasks
+namespace Sdo.Git
 {
     /// <summary>
     /// Provides a wrapper for Git operations, including tag management, branch management, and repository cloning.
@@ -31,6 +28,7 @@ namespace NbuildTasks
         };
 
         public bool Verbose = false;
+        private readonly bool _quiet;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GitWrapper"/> class.
@@ -42,9 +40,10 @@ namespace NbuildTasks
         /// The working directory is set to the specified project directory or the current directory if no project is provided.
         /// In test mode, uses temp directories to avoid conflicts with build cleanup.
         /// </remarks>
-        public GitWrapper(string? project = null, bool verbose = false, bool testMode = false) : base(testMode)
+        public GitWrapper(string? project = null, bool verbose = false, bool testMode = false, bool quiet = false) : base(testMode)
         {
             Verbose = verbose;
+            _quiet = quiet;
 
             if (testMode)
             {
@@ -144,11 +143,29 @@ namespace NbuildTasks
         /// </summary>
         /// <param name="arguments">The arguments to pass to the Git command.</param>
         /// <returns>A <see cref="ResultHelper"/> containing the result of the Git command.</returns>
-        private ResultHelper ExecuteGitCommand(string arguments)
+        private ResultHelper ExecuteGitCommand(string arguments, bool showCommand = true)
         {
-            ConsoleHelper.WriteLine($"git {arguments}", ConsoleColor.Blue);
+            if (showCommand && !_quiet)
+            {
+                ConsoleHelper.WriteLine($"git {arguments}", ConsoleColor.Blue);
+            }
             Process.StartInfo.Arguments = arguments;
-            return Process.LockStart(Verbose);
+            return Process.LockStart(Verbose && !_quiet);
+        }
+
+        private void WriteError(string message, string? details = null)
+        {
+            if (!_quiet)
+            {
+                if (details is null)
+                {
+                    ErrorHelper.WriteError(message);
+                }
+                else
+                {
+                    ErrorHelper.WriteError(message, details);
+                }
+            }
         }
 
         /// <summary>
@@ -175,102 +192,49 @@ namespace NbuildTasks
             return nextTag;
         }
 
-        /// <summary>
-        /// Pushes a new tag to the remote repository.
-        /// </summary>
+        /// <summary>Pushes only the specified tag to origin.</summary>
         /// <param name="newTag">The tag to push.</param>
         /// <returns><c>true</c> if the tag is successfully pushed; otherwise, <c>false</c>.</returns>
-        /// <exception cref="ArgumentException">Thrown if the tag is null or empty.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if the branch is null or empty.</exception>
-        /// <remarks>
-        /// This method first pulls the latest changes from the remote branch before pushing the tag.
-        /// </remarks>
         public bool PushTag(string newTag)
         {
-            if (string.IsNullOrEmpty(newTag))
+            if (!IsValidTag(newTag) && !IsValid4Tag(newTag))
             {
-                throw new ArgumentException("Tag cannot be null or empty", nameof(newTag));
-            }
-
-            if (string.IsNullOrEmpty(Branch))
-            {
-                throw new InvalidOperationException("Branch cannot be null or empty");
-            }
-
-            // Pull the latest changes from the remote branch
-            var pullResult = ExecuteGitCommand($"pull origin {Branch}");
-            if (pullResult.Code != 0)
-            {
-                Console.WriteLine("Failed to pull the latest changes from the remote branch.");
-                foreach (var line in pullResult.Output)
-                {
-                    if (Verbose) Console.WriteLine(line);
-                }
+                WriteError($"Invalid tag '{newTag}'.");
                 return false;
             }
 
-            // Push the new tag to the remote repository
-            var pushResult = ExecuteGitCommand($"push origin {Branch} {newTag}");
-            if (pushResult.Code == 0 && pushResult.Output.Count > 0)
+            var result = ExecuteGitCommand($"push origin refs/tags/{newTag}");
+            if (result.Code == 0)
             {
-                foreach (var line in pushResult.Output)
-                {
-                    if (Verbose) Console.WriteLine(line);
-                    if (line.Contains("fatal") || line.Contains("error"))
-                    {
-                        Console.WriteLine($"Error pushing tag: {line}");
-                        return false;
-                    }
-                }
                 return true;
             }
-            else
-            {
-                foreach (var line in pushResult.Output)
-                {
-                    if (Verbose) Console.WriteLine(line);
-                    if (line.Contains("fatal") || line.Contains("error"))
-                    {
-                        Console.WriteLine($"Error pushing tag: {line}");
-                    }
-                }
-                return false;
-            }
+
+            DisplayGitCommandFailure($"Failed to push tag '{newTag}' to origin.", result);
+            return false;
         }
 
+        /// <summary>Creates or replaces an annotated tag at HEAD in the local repository.</summary>
         public bool SetTag(string newTag)
         {
-            if (string.IsNullOrEmpty(newTag)) return false;
-
-            if (!IsValidTag(newTag)) return false;
-
-            if (LocalTagExists(newTag)) DeleteLocalTag(newTag);
-
-            bool resultSetTag = true;
-            for (int i = 0; i < 2; i++)
+            if (!IsValidTag(newTag))
             {
-                var result = ExecuteGitCommand($"tag -a {newTag} HEAD -m \"Automated tag\"");
-                if ((result.Code == 0) && (result.Output.Count >= 0))
-                {
-                    foreach (var line in result.Output)
-                    {
-                        if (Verbose) Console.WriteLine(line);
-                        if (line.Contains("fatal"))
-                        {
-                            resultSetTag = false;
-                            break;
-                        }
-                        else
-                        {
-                            resultSetTag = PushTag(newTag);
-                        }
-                    }
-                }
-                if (Verbose) Console.WriteLine($"SetTag try: {++i}");
-                if (resultSetTag) break;
+                WriteError($"Invalid tag '{newTag}'.");
+                return false;
             }
 
-            return resultSetTag;
+            if (LocalTagExists(newTag) && !DeleteLocalTag(newTag))
+            {
+                return false;
+            }
+
+            var result = ExecuteGitCommand($"tag -a {newTag} HEAD -m \"Automated tag\"");
+            if (result.Code == 0)
+            {
+                return true;
+            }
+
+            DisplayGitCommandFailure($"Failed to create local tag '{newTag}'.", result);
+            return false;
         }
 
         /// <summary>
@@ -281,8 +245,21 @@ namespace NbuildTasks
         /// <returns>return valid stage tag, otherwise null if failed</returns>
         private string GetBranch()
         {
+            return GetBranch(showCommand: true);
+        }
+
+        /// <summary>
+        /// Gets the current local branch without logging the Git command.
+        /// </summary>
+        public string GetBranchQuietly()
+        {
+            return GetBranch(showCommand: false);
+        }
+
+        private string GetBranch(bool showCommand)
+        {
             var branch = string.Empty;
-            var result = ExecuteGitCommand("rev-parse --abbrev-ref HEAD");
+            var result = ExecuteGitCommand("rev-parse --abbrev-ref HEAD", showCommand);
             if ((result.Code == 0) && (result.Output.Count == 1))
             {
                 branch = result.GetFirstOutput();
@@ -293,7 +270,20 @@ namespace NbuildTasks
 
         private string GetTag()
         {
-            var result = ExecuteGitCommand("describe --abbrev=0 --tags");
+            return GetTag(showCommand: true);
+        }
+
+        /// <summary>
+        /// Gets the nearest local tag without logging the Git command.
+        /// </summary>
+        public string GetTagQuietly()
+        {
+            return GetTag(showCommand: false);
+        }
+
+        private string GetTag(bool showCommand)
+        {
+            var result = ExecuteGitCommand("describe --abbrev=0 --tags", showCommand);
             return (result.Code == 0) && (result.Output.Count == 1)
                 ? CheckForErrorAndDisplayOutput(result.Output) ? string.Empty : result.GetFirstOutput()
                 : string.Empty;
@@ -301,24 +291,61 @@ namespace NbuildTasks
 
         public bool LocalTagExists(string tag)
         {
-            return ListLocalTags().Any(x => x.Contains(tag));
+            return ListLocalTags().Contains(tag, StringComparer.Ordinal);
         }
 
         public bool RemoteTagExists(string tag)
         {
-            return ListRemoteTags().Any(x => x.Contains(tag));
+            return ListRemoteTags().Contains(tag, StringComparer.Ordinal);
         }
 
-        public bool DeleteTag(string tag)
+        /// <summary>
+        /// Deletes a tag locally and optionally deletes it from origin.
+        /// </summary>
+        /// <param name="tag">The tag name.</param>
+        /// <param name="deleteRemote">Whether to also delete the tag from origin.</param>
+        /// <returns><c>true</c> if the requested deletion succeeds; otherwise, <c>false</c>.</returns>
+        public bool DeleteTag(string tag, bool deleteRemote = false)
         {
-            // Check if the tag exists locally and attempt to delete it
-            bool localTagDeleted = ListLocalTags().Contains(tag) && DeleteLocalTag(tag);
+            if (!IsValidTag(tag) && !IsValid4Tag(tag))
+            {
+                WriteError($"Invalid tag '{tag}'.");
+                return false;
+            }
 
-            // Check if the tag exists remotely and attempt to delete it
-            bool remoteTagDeleted = ListRemoteTags().Contains(tag) && DeleteRemoteTag(tag);
+            var localTagExists = LocalTagExists(tag);
+            var remoteTagExists = false;
+            if (deleteRemote)
+            {
+                var remoteCheck = ExecuteGitCommand($"ls-remote --exit-code --tags --refs origin refs/tags/{tag}");
+                if (remoteCheck.Code == 0)
+                {
+                    remoteTagExists = true;
+                }
+                else if (remoteCheck.Code != 2)
+                {
+                    DisplayGitCommandFailure($"Failed to check tag '{tag}' on origin.", remoteCheck);
+                    return false;
+                }
+            }
 
-            // Return true only if the tag was deleted from at least one location
-            return localTagDeleted || remoteTagDeleted;
+            if (!localTagExists && !remoteTagExists)
+            {
+                WriteError($"Tag '{tag}' was not found locally or on origin.");
+                return false;
+            }
+
+            if (localTagExists && !DeleteLocalTag(tag))
+            {
+                return false;
+            }
+
+            if (remoteTagExists && !DeleteRemoteTag(tag))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public List<string> ListLocalTags()
@@ -327,52 +354,88 @@ namespace NbuildTasks
             return result.Code == 0 && result.Output.Count >= 1 ? result.Output.ToList() : new List<string>();
         }
 
+        public bool TryListLocalTags(out List<string> tags)
+        {
+            var result = ExecuteGitCommand("tag --list --sort=-version:refname");
+            if (result.Code != 0)
+            {
+                DisplayGitCommandFailure("Failed to list local tags.", result);
+                tags = new List<string>();
+                return false;
+            }
+
+            tags = result.Output.ToList();
+            return true;
+        }
+
         public List<string> ListRemoteTags()
         {
-            var tags = new List<string>();
-            var result = ExecuteGitCommand("ls-remote --tags");
-            if (result.Code == 0 && result.Output.Count >= 1)
+            return TryListRemoteTags(out var tags) ? tags : new List<string>();
+        }
+
+        public bool TryListRemoteTags(out List<string> tags)
+        {
+            var result = ExecuteGitCommand("ls-remote --sort=-version:refname --tags --refs origin");
+            if (result.Code != 0)
             {
-                foreach (var line in result.Output)
+                DisplayGitCommandFailure("Failed to list tags from origin.", result);
+                tags = new List<string>();
+                return false;
+            }
+
+            const string tagReferencePrefix = "refs/tags/";
+            tags = new List<string>();
+            foreach (var line in result.Output)
+            {
+                var separatorIndex = line.IndexOf('\t');
+                if (separatorIndex < 0)
                 {
-                    // extract tag from line
-                    var items = line.Split('/');
-                    var tag = items.Last();
-                    if (IsValid4Tag(tag) || IsValidTag(tag))
-                        tags.Add(tag);
+                    continue;
+                }
+
+                var reference = line[(separatorIndex + 1)..];
+                if (reference.StartsWith(tagReferencePrefix, StringComparison.Ordinal))
+                {
+                    tags.Add(reference[tagReferencePrefix.Length..]);
                 }
             }
 
-            return tags;
+            tags = tags.Distinct(StringComparer.Ordinal).ToList();
+            return true;
         }
 
         private bool DeleteLocalTag(string tag)
         {
             if (!LocalTagExists(tag)) return true;
 
-            var result = ExecuteGitCommand($"tag -d {tag}");
-            return result.Code == 0
-                    && result.Output.Count >= 1
-                    && result.Output.Exists(line => line.StartsWith($"Deleted tag '{tag}'"));
+            var result = ExecuteGitCommand($"tag -d -- {tag}");
+            if (result.Code == 0)
+            {
+                return true;
+            }
+
+            DisplayGitCommandFailure($"Failed to delete local tag '{tag}'.", result);
+            return false;
         }
 
         private bool DeleteRemoteTag(string tag)
         {
-            if (!RemoteTagExists(tag)) return true;
-
-            var result = ExecuteGitCommand($"push origin :refs/tags/{tag}");
-            if (result.Code == 0 && result.Output.Count >= 1)
+            var result = ExecuteGitCommand($"push --delete origin refs/tags/{tag}");
+            if (result.Code == 0)
             {
-                foreach (var line in result.Output)
-                {
-                    if (line.Contains($"[deleted]") && line.Contains(tag))
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
 
+            DisplayGitCommandFailure($"Failed to delete tag '{tag}' from origin.", result);
             return false;
+        }
+
+        private void DisplayGitCommandFailure(string message, ResultHelper result)
+        {
+            var details = result.Output.Count > 0
+                ? string.Join(Environment.NewLine, result.Output)
+                : null;
+            WriteError(message, details);
         }
 
         /// <remarks>
@@ -923,7 +986,7 @@ namespace NbuildTasks
         {
             if (string.IsNullOrEmpty(buildType))
             {
-                Console.WriteLine($"BuildType is null or empty");
+                if (!_quiet) Console.WriteLine("BuildType is null or empty");
                 return string.Empty;
             }
 
@@ -937,7 +1000,7 @@ namespace NbuildTasks
             }
             else
             {
-                Console.WriteLine($"Unknown buildType: {buildType}");
+                if (!_quiet) Console.WriteLine($"Unknown buildType: {buildType}");
                 throw new ArgumentException($"Unknown buildType: {buildType}");
             }
         }
@@ -1055,7 +1118,7 @@ namespace NbuildTasks
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exception occurred when building a production tag: {ex.Message}");
+                    if (!_quiet) Console.WriteLine($"Exception occurred when building a production tag: {ex.Message}");
                     return null;
                 }
             }
@@ -1074,10 +1137,10 @@ namespace NbuildTasks
                 return true;
             }
 
-            Console.WriteLine("Failed to fetch all remote branches and prune deleted branches.");
+            if (!_quiet) Console.WriteLine("Failed to fetch all remote branches and prune deleted branches.");
             foreach (var line in result.Output)
             {
-                if (Verbose) Console.WriteLine(line);
+                if (Verbose && !_quiet) Console.WriteLine(line);
             }
 
             return false;
