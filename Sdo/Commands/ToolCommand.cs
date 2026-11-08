@@ -25,7 +25,10 @@ namespace Sdo.Commands
 
         private void AddInstallCommand(Option<bool> verboseOption, Option<bool>? dryRunOption)
         {
-            var installCommand = new System.CommandLine.Command("install", "Install tools from a manifest or by application name.");
+            var installCommand = new System.CommandLine.Command("install", "Install tools from a manifest or by application name.")
+            {
+                TreatUnmatchedTokensAsErrors = true
+            };
             var manifestOption = new Option<string?>("--manifest", ["-m"])
             {
                 Description = "Path to a JSON or YAML tools manifest; if omitted, searches apps.yaml in the current directory, the executable directory, and the default installation directory"
@@ -42,6 +45,12 @@ namespace Sdo.Commands
             AddDryRunOption(installCommand, dryRunOption);
             installCommand.SetAction(parseResult =>
             {
+                if (parseResult.UnmatchedTokens.Count > 0)
+                {
+                    Console.Error.WriteLine($"Error: Unknown option or argument: {string.Join(' ', parseResult.UnmatchedTokens)}");
+                    return 1;
+                }
+
                 var manifest = parseResult.GetValue(manifestOption);
                 var name = parseResult.GetValue(nameOption);
                 var version = parseResult.GetValue(versionOption);

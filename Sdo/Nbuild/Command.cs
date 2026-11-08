@@ -1150,9 +1150,6 @@ namespace Nbuild
                 if (nbuildApp.AddToPath == true)
                 {
                     PathManager.AddAppInstallPathToEnvironmentPath(nbuildApp.InstallPath);
-                    ConsoleHelper.WriteSuccess($"{nbuildApp.InstallPath} added to user PATH for {nbuildApp.Name}.");
-                
-                    return ResultHelper.Success();
                 }
 
                 ConsoleHelper.WriteWarning($"{nbuildApp.Name} {GetAppFileVersion(nbuildApp)} already installed.");
@@ -1393,7 +1390,7 @@ namespace Nbuild
                    (!string.IsNullOrEmpty(nbuildApp.InstallPath) && Directory.Exists(nbuildApp.InstallPath));
         }
 
-        private static bool IsAppVersionGreaterOrEqual(NbuildApp nbuildApp, bool equal = false)
+        internal static bool IsAppVersionGreaterOrEqual(NbuildApp nbuildApp, bool equal = false)
         {
             var currentVersion = GetAppFileVersion(nbuildApp);
             var versionGreater = false;
@@ -1853,7 +1850,7 @@ namespace Nbuild
                 : value.Replace(currentVersion, latestVersion, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static void ApplyAppVersion(NbuildApp app, string? latestVersion)
+        internal static void ApplyAppVersion(NbuildApp app, string? latestVersion)
         {
             if (string.IsNullOrEmpty(latestVersion) || string.IsNullOrEmpty(app.Version))
             {
@@ -1861,6 +1858,10 @@ namespace Nbuild
             }
 
             var currentVersion = app.Version;
+            if (!string.Equals(currentVersion, latestVersion, StringComparison.OrdinalIgnoreCase))
+            {
+                app.StoredHash = null;
+            }
             app.InstallPath = ReplaceAppVersion(app.InstallPath, currentVersion, latestVersion);
             app.AppFileName = ReplaceAppVersion(app.AppFileName, currentVersion, latestVersion);
             app.WebDownloadFile = ReplaceAppVersion(app.WebDownloadFile, currentVersion, latestVersion);
@@ -2112,6 +2113,10 @@ namespace Nbuild
                     if (Verbose)
                     {
                         ConsoleHelper.WriteVerbose($"Overriding version: {foundApp.Version} -> {version}");
+                    }
+                    if (!string.Equals(foundApp.Version, version, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foundApp.StoredHash = null;
                     }
                     foundApp.Version = version;
                 }
