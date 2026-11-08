@@ -13,7 +13,7 @@ namespace NbuildTests
         private const string NbuildAssemblyName = "sdo.dll";
         private const string NbuildAppListJsonFile = "ntools.json";
         private const string LocalTest = "LOCAL_TEST";
-        private const string VersionToTest = "2.5.0";
+        private const string VersionToTest = "2.7.0";
         // Local test mode flag
         private bool? LocalTestMode;
 
@@ -152,7 +152,7 @@ namespace NbuildTests
         [TestMethod]
         public void Uninstall_DryRun_WithNameTargetsOnlySelectedApp()
         {
-            var result = Command.Uninstall("apps.yaml", false, true, "Crossplane CLI", "2.5.0");
+            var result = Command.Uninstall("apps.yaml", false, true, "Crossplane CLI");
 
             Assert.IsTrue(result.IsSuccess());
             Assert.IsTrue(result.Output.Any(x => x.Contains("app 'Crossplane CLI'")));
