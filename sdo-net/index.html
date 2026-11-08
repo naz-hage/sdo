@@ -2881,7 +2881,11 @@ sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> <
 </code></pre></div>
 <p><code>--name</code> is required with <code>--latest</code>. Use <code>--manifest</code> (<code>-m</code>) to select a
 specific YAML manifest. <code>--appversion</code> cannot be combined with
-<code>--latest</code>.</p>
+<code>--latest</code>. Latest discovery selects a stable release, not a pre-release.
+To install a specific version, including a pre-release, use
+<code>--appversion</code> or <code>-av</code> instead:</p>
+<div class="highlight"><pre><span></span><code>sdo<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--name<span class="w"> </span>home<span class="w"> </span>--manifest<span class="w"> </span>.<span class="se">\d</span>ev-setup<span class="se">\a</span>pps.yaml<span class="w"> </span>-av<span class="w"> </span><span class="m">7</span>.26.9
+</code></pre></div>
 <h5 id="tool-list-columns"><code>tool list</code> columns<a class="headerlink" href="#tool-list-columns" title="Anchor link to this section for reference">&para;</a></h5>
 <p>The <code>sdo tool list</code> table contains one row for each application in the selected
 manifest:</p>
