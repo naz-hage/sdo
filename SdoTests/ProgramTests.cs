@@ -820,6 +820,53 @@ steps:
     }
 
     [TestMethod]
+    [DataRow("-av")]
+    [DataRow("--appversion")]
+    public void Main_WithInstallVersionOverride_UsesRequestedVersion(string option)
+    {
+        var manifestPath = Path.Combine(Path.GetTempPath(), $"sdo-install-{Guid.NewGuid():N}.yaml");
+        File.WriteAllText(manifestPath, """
+            Version: '1.2.0'
+            NbuildAppList:
+              - Name: home
+                Version: '2.0.0'
+                AppFileName: home.exe
+                WebDownloadFile: https://example.com/home-$(Version).zip
+                DownloadedFile: home-$(Version).zip
+                InstallCommand: cmd.exe
+                InstallArgs: /c exit 0
+                InstallPath: C:\Temp\home
+                UninstallCommand: cmd.exe
+                UninstallArgs: /c exit 0
+            """);
+        var originalOut = Console.Out;
+        using var output = new StringWriter();
+        Console.SetOut(output);
+
+        try
+        {
+            var result = Program.Main("tool", "install", "-n", "home", "-m", manifestPath,
+                option, "7.26.9", "--dry-run");
+
+            Assert.AreEqual(0, result);
+            StringAssert.Contains(output.ToString(), "home - Version: 7.26.9");
+        }
+        finally
+        {
+            Console.SetOut(originalOut);
+            File.Delete(manifestPath);
+        }
+    }
+
+    [TestMethod]
+    public void Main_WithToolInstallUnknownOption_ReturnsError()
+    {
+        var result = Program.Main("tool", "install", "-n", "home", "--av", "7.26.9", "--dry-run");
+
+        Assert.AreNotEqual(0, result);
+    }
+
+    [TestMethod]
     public void Main_WithInstallYamlAlias_ReturnsError()
     {
         var result = Program.Main("tool", "install", "-y", "apps.yaml", "--dry-run");

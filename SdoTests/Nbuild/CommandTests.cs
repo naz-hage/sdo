@@ -13,7 +13,7 @@ namespace NbuildTests
         private const string NbuildAssemblyName = "sdo.dll";
         private const string NbuildAppListJsonFile = "ntools.json";
         private const string LocalTest = "LOCAL_TEST";
-        private const string VersionToTest = "2.5.0";
+        private const string VersionToTest = "2.7.0";
         // Local test mode flag
         private bool? LocalTestMode;
 
@@ -152,7 +152,7 @@ namespace NbuildTests
         [TestMethod]
         public void Uninstall_DryRun_WithNameTargetsOnlySelectedApp()
         {
-            var result = Command.Uninstall("apps.yaml", false, true, "Crossplane CLI", "2.5.0");
+            var result = Command.Uninstall("apps.yaml", false, true, "Crossplane CLI");
 
             Assert.IsTrue(result.IsSuccess());
             Assert.IsTrue(result.Output.Any(x => x.Contains("app 'Crossplane CLI'")));
@@ -974,6 +974,146 @@ namespace NbuildTests
             {
                 Directory.SetCurrentDirectory(originalDir);
                 Directory.Delete(tempDir, true);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("1.0.0", true)]
+        [DataRow("7.26.9", false)]
+        public void GetAppsFromCurrentDirectory_VersionOverrideOnlyUsesMatchingManifestHash(
+            string requestedVersion, bool alreadyInstalled)
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+            var appPath = Path.Combine(tempDir, "home.bin");
+            var manifestPath = Path.Combine(tempDir, "apps.yaml");
+            File.WriteAllText(appPath, "installed version");
+            var hash = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(appPath)));
+            File.WriteAllText(manifestPath, $$"""
+                Version: '1.2.0'
+                NbuildAppList:
+                  - Name: home
+                    Version: '1.0.0'
+                    AppFileName: '{{appPath}}'
+                    WebDownloadFile: https://example.com/home-$(Version).zip
+                    DownloadedFile: home-$(Version).zip
+                    InstallCommand: cmd.exe
+                    InstallArgs: /c exit 0
+                    InstallPath: '{{tempDir}}'
+                    UninstallCommand: cmd.exe
+                    UninstallArgs: /c exit 0
+                    StoredHash: '{{hash}}'
+                """);
+
+            try
+            {
+                var app = Command.GetAppsFromCurrentDirectory("home", requestedVersion, out _, manifestPath).Single();
+
+                Assert.AreEqual($"https://example.com/home-{requestedVersion}.zip", app.WebDownloadFile);
+                Assert.AreEqual(alreadyInstalled, Command.IsAppVersionGreaterOrEqual(app));
+                Assert.AreEqual(alreadyInstalled ? hash : null, app.StoredHash);
+            }
+            finally
+            {
+                File.Delete(manifestPath);
+                File.Delete(appPath);
+                Directory.Delete(tempDir);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("1.0.0", true)]
+        [DataRow("7.26.9", false)]
+        public void ApplyAppVersion_LatestOnlyUsesMatchingManifestHash(string latestVersion, bool alreadyInstalled)
+        {
+            var appPath = Path.Combine(Path.GetTempPath(), $"sdo-app-{Guid.NewGuid():N}.bin");
+            File.WriteAllText(appPath, "installed version");
+            var hash = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(appPath)));
+            var app = new NbuildApp
+            {
+                Name = "home",
+                Version = "1.0.0",
+                AppFileName = appPath,
+                WebDownloadFile = "https://example.com/home-1.0.0.zip",
+                StoredHash = hash
+            };
+
+            try
+            {
+                Command.ApplyAppVersion(app, latestVersion);
+
+                Assert.AreEqual($"https://example.com/home-{latestVersion}.zip", app.WebDownloadFile);
+                Assert.AreEqual(alreadyInstalled, Command.IsAppVersionGreaterOrEqual(app));
+                Assert.AreEqual(alreadyInstalled ? hash : null, app.StoredHash);
+            }
+            finally
+            {
+                File.Delete(appPath);
+            }
+        }
+
+        [TestMethod]
+        public async Task InstallLatest_DryRun_DiscoversNewerVersionDespiteManifestHash()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+            var appPath = Path.Combine(tempDir, "home.bin");
+            var manifestPath = Path.Combine(tempDir, "apps.yaml");
+            File.WriteAllText(appPath, "installed version");
+            var hash = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(appPath)));
+            var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+            listener.Start();
+            var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+            File.WriteAllText(manifestPath, $$"""
+                Version: '1.2.0'
+                NbuildAppList:
+                  - Name: home
+                    Version: '2.0.0'
+                    AppFileName: '{{appPath}}'
+                    WebDownloadFile: http://127.0.0.1:{{port}}/home.zip
+                    DownloadedFile: home.zip
+                    InstallCommand: cmd.exe
+                    InstallArgs: /c exit 0
+                    InstallPath: '{{tempDir}}'
+                    UninstallCommand: cmd.exe
+                    UninstallArgs: /c exit 0
+                    StoredHash: '{{hash}}'
+                """);
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var responseTask = Task.Run(async () =>
+            {
+                using var client = await listener.AcceptTcpClientAsync(timeout.Token);
+                using var stream = client.GetStream();
+                using var reader = new StreamReader(stream, System.Text.Encoding.ASCII, leaveOpen: true);
+                string? line;
+                do
+                {
+                    line = await reader.ReadLineAsync(timeout.Token);
+                }
+                while (!string.IsNullOrEmpty(line));
+                var response = System.Text.Encoding.ASCII.GetBytes(
+                    "HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename=\"home-7.26.9.zip\"\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                await stream.WriteAsync(response, timeout.Token);
+            });
+            var originalOut = Console.Out;
+            using var output = new StringWriter();
+            Console.SetOut(output);
+
+            try
+            {
+                var result = Command.InstallLatest(manifestPath, "home", null, dryRun: true, latest: true);
+
+                await responseTask;
+                Assert.IsTrue(result.IsSuccess(), string.Join("; ", result.Output));
+                StringAssert.Contains(output.ToString(), "would update app 'home' from 2.0.0 to 7.26.9");
+            }
+            finally
+            {
+                Console.SetOut(originalOut);
+                listener.Stop();
+                File.Delete(manifestPath);
+                File.Delete(appPath);
+                Directory.Delete(tempDir);
             }
         }
 
