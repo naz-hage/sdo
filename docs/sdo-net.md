@@ -917,7 +917,13 @@ sdo tool install --name "Python" --latest --dry-run
 
 `--name` is required with `--latest`. Use `--manifest` (`-m`) to select a
 specific YAML manifest. `--appversion` cannot be combined with
-`--latest`.
+`--latest`. Latest discovery selects a stable release, not a pre-release.
+To install a specific version, including a pre-release, use
+`--appversion` or `-av` instead:
+
+```bash
+sdo tool install --name home --manifest .\dev-setup\apps.yaml -av 7.26.9
+```
 
 ##### `tool list` columns
 

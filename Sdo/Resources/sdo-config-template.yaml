@@ -1,0 +1,74 @@
+# PROMPT: Update sdo-config.yaml
+# 1. Switch to your project directory: cd /path/to/your/project
+# 2. Fill in the project and platform settings used by your project.
+#    GitHub and Azure DevOps can both be configured when different commands
+#    use different platforms.
+# 3. The project.platforms.wi.provider setting overrides work-item platform
+#    detection. Remove it to use the platform detected from the Git remote.
+# 4. Replace placeholders such as [PROJECT_NAME], [ORG_NAME], and [REPO_NAME].
+# ============================================================================
+# SDO CONFIGURATION
+# ============================================================================
+project:
+  name: "[PROJECT_NAME]"                    # e.g., "my-app", "api-service"
+  description: "[PROJECT_DESCRIPTION]"      # Brief project description
+  platforms:
+    wi:
+      provider: "azdo"                      # Override work-item platform detection
+
+# ============================================================================
+# WORK ITEM COMMAND DEFAULTS
+# ============================================================================
+# TODO: Move commands under project when configuration code supports it.
+commands:
+  wi:
+    list:
+      project: "Proto"                     # Filter to Proto project
+      area_path: "Proto\\Warriors"         # Filter to Warriors area
+      state: "New,To Do,In Progress"       # Exclude Done items - only show active work
+      # Usage: sdo wi list                 # Will use these defaults from config
+      # Usage: sdo wi list --state "Done" --area "Other\\Team"  # Override defaults
+
+# ============================================================================
+# AZURE DEVOPS CONFIGURATION
+# ============================================================================
+azure_devops:
+  organization: "[ORG_NAME]"               # e.g., "mycompany"
+  project: "[PROJECT_NAME]"                # e.g., "MyProject"
+  area_path: "[ORG_NAME]\\[TEAM_NAME]"     # e.g., "MyOrg\\Development"
+  default_iteration: "[ORG_NAME]\\[ITERATION]" # e.g., "MyOrg\\Sprint 1"
+
+# ============================================================================
+# GITHUB CONFIGURATION
+# ============================================================================
+github:
+  organization: "[ORG_NAME]"               # GitHub org or username
+  repository: "[REPO_NAME]"                # Repository name
+
+# ============================================================================
+# TOOLS CONFIGURATION
+# ============================================================================
+tools:
+  temp_directory: ".temp"                  # Temporary directory for work files
+
+# ============================================================================
+# AUTHENTICATION
+# ============================================================================
+authentication:
+  azure_devops:
+    env_var: "AZURE_DEVOPS_PAT"            # Environment variable for PAT
+  github:
+    env_var: "GITHUB_TOKEN"                # Environment variable for GitHub token
+
+# ============================================================================
+# Scrum Estimation
+# ============================================================================
+Estimation:
+  story_points:
+    scale:
+      (Extra Small) 1: "<1 day"
+      (Very Small) 2: "1-2 days"
+      (Small) 3: "2-3 days"
+      (Medium) 5: "3-5 days"
+      (Large) 8: "1-2 weeks"
+      (Extra Large) 13: "needs breakdown"
