@@ -7,9 +7,6 @@
 | MKDOCS              | Build docs locally for testing |
 | RUN_NBTESTS_COVERAGE | Run nbTests and generate code coverage report |
 | MKDOCS_DEPLOY       | mkdocs deploy locally with live reload fixes |
-| INSTALL_PYTHON_TEST_DEPS | Install python test dependencies for atools and run pytest (verbose) |
-| RUN_PYTESTS_VERBOSE | Run Python pytest for atools package (verbose) |
-| RUN_SDO_TESTS       | Run SDO tests specifically |
 | GET_PRODUCT_CODES   | Example to get the installation Product code used for uninstallation of product |
 | CORE                | Display core properties |
 | BUILD               | Build the solution alias solution target |
