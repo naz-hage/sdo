@@ -1558,7 +1558,7 @@
 </code></pre></div>
 <h3 id="build-system">Build System<a class="headerlink" href="#build-system" title="Anchor link to this section for reference">&para;</a></h3>
 <p>The solution contains one production assembly and one test assembly. Both are built using:
-- .NET 10.0 SDK
+- .NET 11.0 SDK
 - MSBuild
 - Custom build targets (sdo.targets)
 - Consolidated build tasks in <code>Sdo/sdo.dll</code></p>
@@ -1657,13 +1657,13 @@
 <h3 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Anchor link to this section for reference">&para;</a></h3>
 <h4 id="sdo-build-and-test-components">SDO Build and Test Components<a class="headerlink" href="#sdo-build-and-test-components" title="Anchor link to this section for reference">&para;</a></h4>
 <ul>
-<li><strong>Runtime</strong>: .NET 10.0 SDK</li>
+<li><strong>Runtime</strong>: .NET 11.0 SDK</li>
 <li><strong>CLI Framework</strong>: System.CommandLine 2.0.2</li>
 <li><strong>Build System</strong>: YAML workflows with <code>sdo.yaml</code></li>
 </ul>
 <h4 id="sdo-c-simple-devops-operations-tool">sdo (C# Simple DevOps Operations Tool)<a class="headerlink" href="#sdo-c-simple-devops-operations-tool" title="Anchor link to this section for reference">&para;</a></h4>
 <ul>
-<li><strong>Runtime</strong>: .NET 10.0 (only supported implementation)</li>
+<li><strong>Runtime</strong>: .NET 11.0 (only supported implementation)</li>
 <li><strong>CLI Framework</strong>: System.CommandLine 2.0.2</li>
 <li><strong>Configuration</strong>: YamlDotNet 15.1.1 for YAML parsing (Advanced Automation Features)</li>
 <li><strong>API Clients</strong>: Octokit.NET (GitHub API), Microsoft.TeamFoundationServer.Client (Azure DevOps API)</li>
