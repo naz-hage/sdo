@@ -60,10 +60,10 @@ NbuildAppList:
     AppFileName: "$(InstallPath)\\sdo.exe"
     WebDownloadFile: "https://github.com/naz-hage/sdo/releases/download/$(Version)/$(Name)-$(Version).zip"
     DownloadedFile: "$(Name)-$(Version).zip"
-    InstallCommand: "powershell.exe"
+    InstallCommand: "pwsh.exe"
     InstallArgs: "-Command Expand-Archive -Path $(DownloadedFile) -DestinationPath '$(InstallPath)' -Force"
     InstallPath: "$(ProgramFiles)\\sdo"
-    UninstallCommand: "powershell.exe"
+    UninstallCommand: "pwsh.exe"
     UninstallArgs: "-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force"
     StoredHash: "XXX"
     AddToPath: true
@@ -203,7 +203,7 @@ DownloadedFile: "Docker Desktop Installer.exe"
 InstallCommand: "$(DownloadedFile)"
 InstallArgs: "install --quiet"
 InstallPath: "$(ProgramFiles)\\Docker\\Docker"
-UninstallCommand: "powershell.exe"
+UninstallCommand: "pwsh.exe"
 UninstallArgs: "-Command \"Remove-Item -Path '$(InstallPath)' -Recurse -Force\""
 AddToPath: true
 ```

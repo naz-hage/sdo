@@ -188,10 +188,10 @@ namespace NbuildTests
                 ""AppFileName"": ""private.zip"",
                 ""WebDownloadFile"": ""https://github.com/naz-hage/this-repo-does-not-exist/releases/download/0.0.0/0.0.0.zip"",
                 ""DownloadedFile"": ""0.0.0.zip"",
-                ""InstallCommand"": ""powershell.exe"",
+                ""InstallCommand"": ""pwsh.exe"",
                 ""InstallArgs"": ""-Command Write-Output 'noop'"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2"",
-                ""UninstallCommand"": ""powershell.exe"",
+                ""UninstallCommand"": ""pwsh.exe"",
                 ""UninstallArgs"": ""-Command Write-Output 'noop'""
                 }
             ]
@@ -231,10 +231,10 @@ namespace NbuildTests
                 ""AppFileName"": ""private.zip"",
                 ""WebDownloadFile"": ""https://github.com/naz-hage/this-repo-does-not-exist/releases/download/0.0.0/0.0.0.zip"",
                 ""DownloadedFile"": ""0.0.0.zip"",
-                ""InstallCommand"": ""powershell.exe"",
+                ""InstallCommand"": ""pwsh.exe"",
                 ""InstallArgs"": ""-Command Write-Output 'noop'"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2"",
-                ""UninstallCommand"": ""powershell.exe"",
+                ""UninstallCommand"": ""pwsh.exe"",
                 ""UninstallArgs"": ""-Command Write-Output 'noop'""
                 }
             ]
@@ -299,10 +299,10 @@ namespace NbuildTests
                     "AppFileName": "{{name}}.zip",
                     "WebDownloadFile": "https://example.com/{{name}}.zip",
                     "DownloadedFile": "{{name}}.zip",
-                    "InstallCommand": "powershell.exe",
+                    "InstallCommand": "pwsh.exe",
                     "InstallArgs": "-Command Write-Output 'noop'",
                     "InstallPath": "C:\\Temp\\nbuild2",
-                    "UninstallCommand": "powershell.exe",
+                    "UninstallCommand": "pwsh.exe",
                     "UninstallArgs": "-Command Write-Output 'noop'"
                 }
                 ]

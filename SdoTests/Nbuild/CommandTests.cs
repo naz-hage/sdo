@@ -278,10 +278,10 @@ namespace NbuildTests
                 ""AppFileName"": ""sdo.exe"",
                 ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
                 ""DownloadedFile"": ""sdo-$(Version).zip"",
-                ""InstallCommand"": ""powershell.exe"",
+                ""InstallCommand"": ""pwsh.exe"",
                 ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2"",
-                ""UninstallCommand"": ""powershell.exe"",
+                ""UninstallCommand"": ""pwsh.exe"",
                 ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
                 }
             ]
@@ -319,10 +319,10 @@ namespace NbuildTests
                 ""AppFileName"": ""nb.exe"",
                 ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
                 ""DownloadedFile"": ""sdo-$(Version).zip"",
-                ""InstallCommand"": ""powershell.exe"",
+                ""InstallCommand"": ""pwsh.exe"",
                 ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2"",
-                ""UninstallCommand"": ""powershell.exe"",
+                ""UninstallCommand"": ""pwsh.exe"",
                 ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
                 }
             ]
@@ -415,10 +415,10 @@ namespace NbuildTests
                         ""AppFileName"": ""$(InstallPath)\\sdo.exe"",
                         ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
                         ""DownloadedFile"": ""sdo-$(Version).zip"",
-                        ""InstallCommand"": ""powershell.exe"",
+                        ""InstallCommand"": ""pwsh.exe"",
                         ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                         ""InstallPath"": ""C:\\Temp\\nbuild2"",
-                        ""UninstallCommand"": ""powershell.exe"",
+                        ""UninstallCommand"": ""pwsh.exe"",
                         ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
                     }
                 ]
@@ -476,10 +476,10 @@ namespace NbuildTests
                         ""AppFileName"": ""$(InstallPath)\\sdo.exe"",
                         ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
                         ""DownloadedFile"": ""sdo-$(Version).zip"",
-                        ""InstallCommand"": ""powershell.exe"",
+                        ""InstallCommand"": ""pwsh.exe"",
                         ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                         ""InstallPath"": ""C:\\Temp\\nbuild2"",
-                        ""UninstallCommand"": ""powershell.exe"",
+                        ""UninstallCommand"": ""pwsh.exe"",
                         ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
                     }
                 ]
@@ -531,7 +531,7 @@ namespace NbuildTests
                     ""AppFileName"": ""sdo.exe"",
                     ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
                     ""DownloadedFile"": ""sdo-$(Version).zip"",
-                    ""InstallCommand"": ""powershell.exe"",
+                    ""InstallCommand"": ""pwsh.exe"",
                     ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                     ""InstallPath"": ""C:\\Temp\\nbuild2""
                     }
@@ -573,10 +573,10 @@ namespace NbuildTests
                     ""Version"": ""1.2.0"",
                     ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
                     ""DownloadedFile"": ""sdo-$(Version).zip"",
-                    ""InstallCommand"": ""powershell.exe"",
+                    ""InstallCommand"": ""pwsh.exe"",
                     ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                     ""InstallPath"": ""C:\\Temp\\nbuild2"",
-                    ""UninstallCommand"": ""powershell.exe"",
+                    ""UninstallCommand"": ""pwsh.exe"",
                     ""UninstallArgs"": ""-Command Remove-Item -Path '$(InstallPath)' -Recurse -Force""
                     }
                 ]
@@ -612,7 +612,7 @@ namespace NbuildTests
                     ""Version"": ""1.2.0"",
                     ""AppFileName"": ""sdo.exe"",
                     ""DownloadedFile"": ""sdo-$(Version).zip"",
-                    ""InstallCommand"": ""powershell.exe"",
+                    ""InstallCommand"": ""pwsh.exe"",
                     ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                     ""InstallPath"": ""C:\\Temp\\nbuild2""
                     }
@@ -655,7 +655,7 @@ namespace NbuildTests
                     ""Version"": ""1.2.0"",
                     ""AppFileName"": ""sdo.exe"",
                     ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
-                    ""InstallCommand"": ""powershell.exe"",
+                    ""InstallCommand"": ""pwsh.exe"",
                     ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force"",
                     ""InstallPath"": ""C:\\Temp\\nbuild2""
                     }
@@ -742,7 +742,7 @@ namespace NbuildTests
                 ""AppFileName"": ""sdo.exe"",
                 ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
                 ""DownloadedFile"": ""sdo-$(Version).zip"",
-                ""InstallCommand"": ""powershell.exe"",
+                ""InstallCommand"": ""pwsh.exe"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2""
                     }
                 ]
@@ -785,7 +785,7 @@ namespace NbuildTests
                 ""AppFileName"": ""sdo.exe"",
                 ""WebDownloadFile"": ""https://github.com/naz-hage/sdo/releases/download/$(Version)/sdo-$(Version).zip"",
                 ""DownloadedFile"": ""sdo-$(Version).zip"",
-                ""InstallCommand"": ""powershell.exe"",
+                ""InstallCommand"": ""pwsh.exe"",
                 ""InstallArgs"": ""-Command Expand-Archive -Path sdo-$(Version).zip -DestinationPath $(InstallPath) -Force""
                     }
                 ]
@@ -823,10 +823,10 @@ namespace NbuildTests
                 ""AppFileName"": ""private.zip"",
                 ""WebDownloadFile"": ""https://github.com/naz-hage/this-repo-does-not-exist/releases/download/0.0.0/0.0.0.zip"",
                 ""DownloadedFile"": ""0.0.0.zip"",
-                ""InstallCommand"": ""powershell.exe"",
+                ""InstallCommand"": ""pwsh.exe"",
                 ""InstallArgs"": ""-Command Write-Output 'noop'"",
                 ""InstallPath"": ""C:\\Temp\\nbuild2"",
-                ""UninstallCommand"": ""powershell.exe"",
+                ""UninstallCommand"": ""pwsh.exe"",
                 ""UninstallArgs"": ""-Command Write-Output 'noop'""
                 }
             ]

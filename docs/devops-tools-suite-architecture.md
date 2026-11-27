@@ -112,7 +112,7 @@ sdo/
 ### Build System
 
 The solution contains one production assembly and one test assembly. Both are built using:
-- .NET 10.0 SDK
+- .NET 11.0 SDK
 - MSBuild
 - Custom build targets (sdo.targets)
 - Consolidated build tasks in `Sdo/sdo.dll`
@@ -214,12 +214,12 @@ All SDO components follow consistent design principles:
 ### Dependencies
 
 #### SDO Build and Test Components
-- **Runtime**: .NET 10.0 SDK
+- **Runtime**: .NET 11.0 SDK
 - **CLI Framework**: System.CommandLine 2.0.2
 - **Build System**: YAML workflows with `sdo.yaml`
 
 #### sdo (C# Simple DevOps Operations Tool)
-- **Runtime**: .NET 10.0 (only supported implementation)
+- **Runtime**: .NET 11.0 (only supported implementation)
 - **CLI Framework**: System.CommandLine 2.0.2
 - **Configuration**: YamlDotNet 15.1.1 for YAML parsing (Advanced Automation Features)
 - **API Clients**: Octokit.NET (GitHub API), Microsoft.TeamFoundationServer.Client (Azure DevOps API)

@@ -10,6 +10,7 @@ namespace NbuildTasks
         private static readonly List<string> FileMappings = new List<string>()
             {
                 "powershell.exe",
+                "pwsh.exe",
                 "msiexec.exe",
                 "xcopy.exe",
                 "robocopy.exe",

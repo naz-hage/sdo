@@ -26,7 +26,7 @@ on:
 
 env:
   solution_name: sdo.sln
-  dotnet_version: 10.0
+  dotnet_version: 11.0
   # Path to the consolidated sdo-scripts module file in the repository
   SDO_SCRIPT_MODULE: './scripts/module-package/sdo-scripts.psm1'
   build_type: ${{ github.ref == 'refs/heads/main' && 'prod' || github.event.inputs.build_type || 'stage' }}
