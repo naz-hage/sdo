@@ -120,26 +120,11 @@
 	<!-- Update the sdo-launcher NuGet package from the local feed for testing - not needed for normal builds -->
 	<Target Name="NUGET_UPDATE">
 		<!-- Remove the package reference first so the local feed package can be selected. -->
-		<Exec Command='dotnet remove package sdo-launcher' WorkingDirectory='$(SolutionDir)\Nbackup'></Exec>
-		<Exec Command='dotnet remove package sdo-launcher' WorkingDirectory='$(SolutionDir)\NbuildTasks'></Exec>
+
 		<Exec Command='dotnet remove package sdo-launcher' WorkingDirectory='$(SolutionDir)\Sdo'></Exec>
 		<Exec Command='dotnet remove package sdo-launcher' WorkingDirectory='$(SolutionDir)\SdoTests'></Exec>
-		<Exec Command='dotnet remove package sdo-launcher' WorkingDirectory='$(SolutionDir)\GitHubRelease'></Exec>
-		<Exec Command='dotnet add package sdo-launcher  --source "C:\Artifacts\nupkgs"' WorkingDirectory='$(SolutionDir)\Nbackup'></Exec>
-		<Exec Command='dotnet add package sdo-launcher  --source "C:\Artifacts\nupkgs"' WorkingDirectory='$(SolutionDir)\NbuildTasks'></Exec>
 		<Exec Command='dotnet add package sdo-launcher  --source "C:\Artifacts\nupkgs"' WorkingDirectory='$(SolutionDir)\Sdo'></Exec>
 		<Exec Command='dotnet add package sdo-launcher  --source "C:\Artifacts\nupkgs"' WorkingDirectory='$(SolutionDir)\SdoTests'></Exec>
-		<Exec Command='dotnet add package sdo-launcher  --source "C:\Artifacts\nupkgs"' WorkingDirectory='$(SolutionDir)\GitHubRelease'></Exec>	
-	</Target>
-
-	<!-- Example of a target that displays a yellow color message -->
-	<Target Name="YELLOW_MESSAGE">
-		<ColorMessage Message="This is a message displayed in Yellow" Color="Yellow" />
-	</Target>
-
-	<!-- Example of a target that displays a red color message -->
-	<Target Name="RED_MESSAGE">
-		<ColorMessage Message="This is a message displayed in Red" Color="Red" />
 	</Target>
 
 	<!-- Install dotnet-outdated-tool globally -->
